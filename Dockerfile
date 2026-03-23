@@ -3,7 +3,6 @@ FROM node:20-slim
 
 # 设置内存限制环境变量
 ENV NODE_OPTIONS="--max-old-space-size=512"
-ENV BGM_VERSION=2
 
 # Install system dependencies for Playwright (最小化安装)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,17 +39,19 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install Node dependencies (只安装生产依赖)
-RUN npm ci --omit=dev
+# Install Node dependencies (包含 Remotion CLI)
+RUN npm ci
 
 # Install Playwright browsers (只安装 chromium)
 RUN npx playwright install chromium
 
-# Copy application code
+# Copy application code (包含 BGM 文件)
 COPY . .
 
-# 验证 BGM 文件
-RUN ls -la /app/public/ && test -f /app/public/bensound-slowlife.mp3 && echo "BGM file OK" || echo "BGM file MISSING"
+# 验证 BGM 文件存在
+RUN echo "=== Checking BGM file ===" && \
+    ls -la /app/public/ && \
+    test -f /app/public/bensound-slowlife.mp3 && echo "✅ BGM file OK ($(stat -c%s /app/public/bensound-slowlife.mp3) bytes)" || echo "❌ BGM file MISSING"
 
 # Create output directory
 RUN mkdir -p out websites

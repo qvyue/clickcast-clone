@@ -275,96 +275,69 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  // 检查根目录 public 文件夹
   const rootPublicDir = path.join(__dirname, 'public');
   console.log(`   📂 根目录 public: ${rootPublicDir}`);
   console.log(`   📂 网站 public: ${publicDir}`);
 
-  // 列出根目录 public 内容
+  // 列出当前 public 目录内容
   if (fs.existsSync(rootPublicDir)) {
-    const rootFiles = fs.readdirSync(rootPublicDir);
-    console.log(`   📄 根目录 public 文件: ${rootFiles.join(', ')}`);
-  } else {
-    console.log(`   ⚠️ 根目录 public 不存在`);
-  }
+    const existingFiles = fs.readdirSync(rootPublicDir);
+    console.log(`   📄 现有 public 文件: ${existingFiles.join(', ')}`);
 
-  // BGM 文件路径
-  const bgmFiles = ['bensound-slowlife.mp3'];
-  const savedBgm = {};
-
-  // 保存 BGM 文件
-  for (const bgm of bgmFiles) {
-    const bgmPath = path.join(rootPublicDir, bgm);
+    // 验证 BGM 文件
+    const bgmPath = path.join(rootPublicDir, 'bensound-slowlife.mp3');
     if (fs.existsSync(bgmPath)) {
-      savedBgm[bgm] = fs.readFileSync(bgmPath);
-      console.log(`   💾 保存 BGM: ${bgm} (${savedBgm[bgm].length} bytes)`);
+      const stats = fs.statSync(bgmPath);
+      console.log(`   ✅ BGM 文件存在: ${stats.size} bytes`);
     } else {
-      console.log(`   ⚠️ BGM 不存在于根目录: ${bgmPath}`);
+      console.log(`   ❌ 致命错误: BGM 文件不存在`);
+      return null;
     }
+  } else {
+    console.log(`   ❌ 致命错误: public 目录不存在`);
+    return null;
   }
 
-  // 如果 BGM 不存在，尝试从其他位置复制
-  if (!savedBgm['bensound-slowlife.mp3']) {
-    // 检查网站目录
-    const websiteBgm = path.join(publicDir, 'bensound-slowlife.mp3');
-    if (fs.existsSync(websiteBgm)) {
-      savedBgm['bensound-slowlife.mp3'] = fs.readFileSync(websiteBgm);
-      console.log(`   💾 从网站目录复制 BGM: ${savedBgm['bensound-slowlife.mp3'].length} bytes`);
-    }
-  }
-
-  // 备份并替换 public 目录
-  const backupDir = path.join(__dirname, 'public_backup');
-  if (fs.existsSync(rootPublicDir)) {
-    if (fs.existsSync(backupDir)) {
-      fs.rmSync(backupDir, { recursive: true });
-    }
-    fs.renameSync(rootPublicDir, backupDir);
-    console.log(`   📦 备份 public 到 public_backup`);
-  }
-
-  // 创建新的 public 目录
-  fs.mkdirSync(rootPublicDir, { recursive: true });
-
-  // 复制网站 public 文件
+  // 将网站生成的文件复制到 public 目录（追加模式，不删除现有文件）
   if (fs.existsSync(publicDir)) {
     const files = fs.readdirSync(publicDir);
+    let copiedCount = 0;
     for (const file of files) {
       const srcPath = path.join(publicDir, file);
       const destPath = path.join(rootPublicDir, file);
       try {
         if (fs.statSync(srcPath).isDirectory()) {
+          // 如果目标目录存在，先删除
+          if (fs.existsSync(destPath)) {
+            fs.rmSync(destPath, { recursive: true });
+          }
           fs.cpSync(srcPath, destPath, { recursive: true });
         } else {
           fs.copyFileSync(srcPath, destPath);
         }
+        copiedCount++;
       } catch (e) {
         console.log(`   ⚠️ 复制失败 ${file}: ${e.message}`);
       }
     }
-    console.log(`   📁 复制网站文件: ${files.length} 个`);
+    console.log(`   📁 复制网站文件: ${copiedCount} 个`);
   }
 
-  // 恢复 BGM 文件
-  for (const [bgm, content] of Object.entries(savedBgm)) {
-    const bgmPath = path.join(rootPublicDir, bgm);
-    fs.writeFileSync(bgmPath, content);
-    console.log(`   ✅ 恢复 BGM: ${bgm} (${content.length} bytes)`);
-  }
+  // 验证最终文件
+  const finalFiles = fs.readdirSync(rootPublicDir);
+  const bgmPath = path.join(rootPublicDir, 'bensound-slowlife.mp3');
+  const timelinePath = path.join(rootPublicDir, 'timeline.json');
 
-  // 最终验证
-  const finalBgmPath = path.join(rootPublicDir, 'bensound-slowlife.mp3');
-  if (fs.existsSync(finalBgmPath)) {
-    const stats = fs.statSync(finalBgmPath);
-    console.log(`   ✅ BGM 验证成功: ${stats.size} bytes`);
-  } else {
-    console.log(`   ❌ 致命错误: BGM 文件恢复失败`);
+  if (!fs.existsSync(bgmPath)) {
+    console.log(`   ❌ 致命错误: BGM 文件丢失`);
+    return null;
+  }
+  if (!fs.existsSync(timelinePath)) {
+    console.log(`   ❌ 致命错误: timeline.json 不存在`);
     return null;
   }
 
-  // 列出最终 public 目录内容
-  const finalFiles = fs.readdirSync(rootPublicDir);
-  console.log(`   📄 最终 public 文件: ${finalFiles.slice(0, 10).join(', ')}${finalFiles.length > 10 ? '...' : ''}`);
+  console.log(`   ✅ 最终验证通过，文件数: ${finalFiles.length}`);
 
   // 查找 Chromium 路径
   let chromiumPath = null;
@@ -397,23 +370,20 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     });
     console.log(`\n✅ 视频渲染完成: ${outputFile}`);
 
-    // 恢复原始 public
-    try {
-      fs.rmSync(rootPublicDir, { recursive: true });
-      if (fs.existsSync(backupDir)) {
-        fs.renameSync(backupDir, rootPublicDir);
+    // 清理网站生成的文件（保留原始文件如 BGM）
+    const websiteFiles = ['shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png',
+                          'scraped.json', 'timeline.json', 'website-shot.png',
+                          'intro.mp3', 'scene0.mp3', 'scene1.mp3', 'scene2.mp3', 'scene3.mp3', 'outro.mp3'];
+    for (const file of websiteFiles) {
+      const filePath = path.join(rootPublicDir, file);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
-    } catch (e) {}
+    }
 
     return outputPath;
   } catch (e) {
     console.error(`\n❌ 渲染失败: ${e.message}`);
-    try {
-      fs.rmSync(rootPublicDir, { recursive: true });
-      if (fs.existsSync(backupDir)) {
-        fs.renameSync(backupDir, rootPublicDir);
-      }
-    } catch (cleanupError) {}
     return null;
   }
 }

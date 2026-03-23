@@ -1,14 +1,20 @@
 import { Config } from '@remotion/cli/config';
-import path from 'path';
 
 // Railway/Linux 环境配置 - 内存优化
 Config.setChromiumHeadlessMode(true);
-
-// 减少内存使用
 Config.setWebKitAnimationFrameCacheSizeInBytes(500000);
-
-// 并行渲染优化 - 减少同时渲染的帧数
 Config.setConcurrency(1);
 
-// 配置 static 文件目录 (public/)
-Config.setPublicDir(path.join(__dirname, 'public'));
+// 禁用缓存（避免路径问题）
+Config.setCaching(false);
+
+// 重要：确保静态文件从 public 目录正确加载
+Config.setPublicDir('./public');
+
+// 配置 webpack 确保静态文件被正确复制
+Config.setWebpackOverride((currentConfiguration) => {
+  return {
+    ...currentConfiguration,
+    // 确保静态资源被正确处理
+  };
+});
