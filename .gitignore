@@ -4,7 +4,6 @@ out/
 .env
 .playwright-tmp/
 *.mp4
-*.mp3
 *.wav
 .DS_Store
 Thumbs.db
@@ -13,6 +12,10 @@ Thumbs.db
 public/shot*.png
 public/scraped.json
 public/timeline.json
-public/*.mp3
+public/intro.mp3
+public/scene*.mp3
+public/outro.mp3
 websites/*/public/
 websites/*/out/
+
+# 保留 BGM 文件: public/bensound-*.mp3, public/bgm-*.mp3
