@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     fonts-liberation \
+    fonts-noto-color-emoji \
     libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
@@ -30,6 +31,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+# Install edge-tts for voice generation
+RUN pip3 install edge-tts --break-system-packages
+
 WORKDIR /app
 
 # Copy package files
@@ -46,6 +50,10 @@ COPY . .
 
 # Create output directory
 RUN mkdir -p out websites
+
+# Environment variables for Remotion
+ENV CHROMIUM_EXECUTABLE_PATH=/root/.cache/ms-playwright/chromium-*/chrome-linux/chrome
+ENV REMOTION_CHROMIUM_MODE=headless
 
 # Expose port
 EXPOSE 3000

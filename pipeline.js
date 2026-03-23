@@ -306,8 +306,27 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     fs.writeFileSync(bgmPath, content);
   }
 
+  // 构建 Remotion 渲染命令
+  let renderCmd = `npx remotion render ${compositionId} "${outputPath}"`;
+
+  // 检测是否在 Docker/Railway 环境中
+  if (process.env.CHROMIUM_EXECUTABLE_PATH || fs.existsSync('/root/.cache/ms-playwright')) {
+    // 使用 Playwright 安装的 Chromium
+    const playwrightPath = '/root/.cache/ms-playwright';
+    if (fs.existsSync(playwrightPath)) {
+      const chromiumDirs = fs.readdirSync(playwrightPath).filter(d => d.startsWith('chromium'));
+      if (chromiumDirs.length > 0) {
+        const chromePath = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
+        if (fs.existsSync(chromePath)) {
+          renderCmd += ` --chromium-executable-path="${chromePath}"`;
+          console.log(`   使用 Chromium: ${chromePath}`);
+        }
+      }
+    }
+  }
+
   try {
-    execSync(`npx remotion render ${compositionId} "${outputPath}"`, {
+    execSync(renderCmd, {
       cwd: __dirname,
       stdio: 'inherit'
     });
