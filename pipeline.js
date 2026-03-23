@@ -92,7 +92,7 @@ async function analyzeImageWithAI(scrapedPath, outputDir) {
   // 行业研究 (联网搜索行业信息)
   console.log('   🔍 进行行业研究...');
   const { enhanceWithIndustryResearch } = require('./industry-research.js');
-  scrapedData = await enhanceWithIndustryResearch(scrapedData);
+  scrapedData = await enhanceWithIndustryResearch(scrapedData, scrapedPath);
 
   // 使用 AI Agent 模块
   const { runAIAgent } = require('./ai-agent.js');

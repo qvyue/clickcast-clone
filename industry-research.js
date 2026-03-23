@@ -301,8 +301,10 @@ function formatResearchForAI(keywords, searchResults) {
 
 /**
  * 增强 scraped 数据
+ * @param {Object} scrapedData - 网站抓取的数据
+ * @param {string} savePath - 可选，保存路径（不提供则不保存）
  */
-async function enhanceWithIndustryResearch(scrapedData) {
+async function enhanceWithIndustryResearch(scrapedData, savePath = null) {
   const research = await researchIndustry(scrapedData);
 
   if (research) {
@@ -314,11 +316,13 @@ async function enhanceWithIndustryResearch(scrapedData) {
       scrapedData.core_text += '\n\n' + research.summary;
     }
 
-    // 保存更新后的数据
-    const scrapedPath = path.join(__dirname, 'public', 'scraped.json');
-    fs.writeFileSync(scrapedPath, JSON.stringify(scrapedData, null, 2));
-
-    console.log(`   📝 已更新 scraped.json，新增 ${research.summary?.length || 0} 字符行业信息`);
+    // 如果提供了保存路径，则保存
+    if (savePath) {
+      fs.writeFileSync(savePath, JSON.stringify(scrapedData, null, 2));
+      console.log(`   📝 已更新 scraped.json，新增 ${research.summary?.length || 0} 字符行业信息`);
+    } else {
+      console.log(`   📝 已添加行业研究信息: ${research.summary?.length || 0} 字符`);
+    }
   }
 
   return scrapedData;
