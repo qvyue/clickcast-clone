@@ -278,13 +278,16 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
   // 将当前网站的 public 目录复制到根目录的 public（Remotion 需要）
   const rootPublicDir = path.join(__dirname, 'public');
 
-  // 保存根目录的 BGM 文件（这些文件需要保留）
+  // 列出根目录 public 中现有的 BGM 文件
   const bgmFiles = ['bensound-slowlife.mp3', 'bgm-tech-01.mp3'];
   const savedBgm = {};
   for (const bgm of bgmFiles) {
     const bgmPath = path.join(rootPublicDir, bgm);
     if (fs.existsSync(bgmPath)) {
       savedBgm[bgm] = fs.readFileSync(bgmPath);
+      console.log(`   💾 保存 BGM: ${bgm}`);
+    } else {
+      console.log(`   ⚠️ BGM 不存在: ${bgmPath}`);
     }
   }
 
@@ -297,13 +300,39 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     fs.renameSync(rootPublicDir, backupDir);
   }
 
-  // 复制网站专属 public 到根目录
-  fs.cpSync(publicDir, rootPublicDir, { recursive: true });
+  // 创建新的 public 目录并复制网站专属文件
+  fs.mkdirSync(rootPublicDir, { recursive: true });
+  if (fs.existsSync(publicDir)) {
+    // 复制网站 public 目录中的所有文件（不覆盖已有）
+    const files = fs.readdirSync(publicDir);
+    for (const file of files) {
+      const srcPath = path.join(publicDir, file);
+      const destPath = path.join(rootPublicDir, file);
+      if (fs.statSync(srcPath).isDirectory()) {
+        fs.cpSync(srcPath, destPath, { recursive: true });
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+    console.log(`   📁 复制网站文件: ${files.length} 个`);
+  }
 
   // 恢复 BGM 文件
   for (const [bgm, content] of Object.entries(savedBgm)) {
     const bgmPath = path.join(rootPublicDir, bgm);
     fs.writeFileSync(bgmPath, content);
+    console.log(`   ✅ 恢复 BGM: ${bgm}`);
+  }
+
+  // 验证 BGM 文件存在
+  const bgmPath = path.join(rootPublicDir, 'bensound-slowlife.mp3');
+  if (fs.existsSync(bgmPath)) {
+    const stats = fs.statSync(bgmPath);
+    console.log(`   ✅ BGM 文件验证成功: ${stats.size} bytes`);
+  } else {
+    console.log(`   ❌ BGM 文件缺失，尝试创建占位符`);
+    // 创建一个空的占位符文件防止渲染失败
+    fs.writeFileSync(bgmPath, Buffer.alloc(0));
   }
 
   // 查找 Playwright Chromium 路径

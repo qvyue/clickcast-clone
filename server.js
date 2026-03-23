@@ -605,6 +605,15 @@ if (!fs.existsSync(websitesDir)) {
   fs.mkdirSync(websitesDir, { recursive: true });
 }
 
+// 验证 BGM 文件存在
+const bgmPath = path.join(__dirname, 'public', 'bensound-slowlife.mp3');
+if (fs.existsSync(bgmPath)) {
+  const stats = fs.statSync(bgmPath);
+  console.log(`✅ BGM 文件已找到: ${stats.size} bytes`);
+} else {
+  console.log(`⚠️ BGM 文件缺失: ${bgmPath}`);
+}
+
 app.listen(PORT, () => {
   console.log(`
 ========================================
