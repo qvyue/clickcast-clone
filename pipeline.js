@@ -472,6 +472,27 @@ async function main() {
         const result = await uploadVideo(videoPath, r2Key);
         if (result.success) {
           r2Url = result.url;
+
+          // 向 server.js 注册 R2 URL (如果是通过 server 启动的)
+          if (process.env.RAILWAY_ENVIRONMENT || process.env.PORT) {
+            try {
+              const http = require('http');
+              const registerUrl = `http://localhost:${process.env.PORT || 3000}/api/r2-register`;
+              const postData = JSON.stringify({ key: r2Key, url: r2Url });
+
+              const req = http.request(registerUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Content-Length': Buffer.byteLength(postData)
+                }
+              });
+              req.write(postData);
+              req.end();
+            } catch (e) {
+              // 忽略注册错误
+            }
+          }
         }
       }
     }

@@ -8,6 +8,9 @@ const { exec, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// 加载环境变量 (本地开发)
+require('dotenv').config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -19,6 +22,9 @@ app.use('/websites', express.static('websites')); // 提供网站目录访问
 
 // 任务状态存储
 const jobs = new Map();
+
+// R2 存储 URL 缓存
+const r2VideoUrls = new Map();
 
 /**
  * 从 URL 提取域名
@@ -137,18 +143,47 @@ app.get('/api/status/:jobId', (req, res) => {
   const domain = extractDomainFromUrl(job.url || '');
   const videoFile = job.aspectRatio === 'portrait' ? 'portrait.mp4' : 'landscape.mp4';
 
-  // 新路径：websites/{domain}/out/{videoFile}
+  // 优先使用 R2 URL (云端存储)
+  const r2Key = `videos/${domain}/${videoFile}`;
+  const r2Url = r2VideoUrls.get(r2Key);
+
+  if (r2Url) {
+    // R2 已上传，直接返回云端 URL
+    return res.json({
+      ...job,
+      domain,
+      videoUrl: r2Url,
+      storage: 'r2'
+    });
+  }
+
+  // 检查本地文件
   const videoPath = path.join(__dirname, 'websites', domain, 'out', videoFile);
   const videoExists = fs.existsSync(videoPath);
 
-  // 视频访问 URL
+  // 视频访问 URL (本地)
   const videoUrl = videoExists ? `/websites/${domain}/out/${videoFile}` : null;
 
   res.json({
     ...job,
     domain,
-    videoUrl
+    videoUrl,
+    storage: videoExists ? 'local' : null
   });
+});
+
+// API: 注册 R2 视频 URL (pipeline 完成后调用)
+app.post('/api/r2-register', (req, res) => {
+  const { key, url } = req.body;
+
+  if (!key || !url) {
+    return res.status(400).json({ error: '缺少参数' });
+  }
+
+  r2VideoUrls.set(key, url);
+  console.log(`R2 视频已注册: ${key} -> ${url}`);
+
+  res.json({ success: true });
 });
 
 // API: 获取视频
@@ -172,10 +207,39 @@ app.get('/api/video/:jobId', (req, res) => {
 });
 
 // API: 获取已生成的视频列表
-app.get('/api/videos', (req, res) => {
+app.get('/api/videos', async (req, res) => {
   const websitesDir = path.join(__dirname, 'websites');
   const videos = [];
 
+  // 检查 R2 是否配置
+  const { isR2Configured, listVideos } = require('./r2-storage.js');
+  const useR2 = isR2Configured();
+
+  // 如果 R2 配置了，优先从 R2 获取视频列表
+  if (useR2) {
+    try {
+      const r2Videos = await listVideos();
+      r2Videos.forEach(v => {
+        const parts = v.key.split('/');
+        const domain = parts[1];
+        const file = parts[2];
+        if (domain && file) {
+          videos.push({
+            domain,
+            file,
+            url: v.url,
+            size: v.size ? Math.round(v.size / 1024 / 1024 * 10) / 10 : null,
+            created: v.lastModified,
+            storage: 'r2'
+          });
+        }
+      });
+    } catch (e) {
+      console.error('R2 list error:', e.message);
+    }
+  }
+
+  // 同时检查本地存储 (兼容本地开发)
   if (fs.existsSync(websitesDir)) {
     const domains = fs.readdirSync(websitesDir).filter(f => {
       return fs.statSync(path.join(websitesDir, f)).isDirectory();
@@ -187,21 +251,26 @@ app.get('/api/videos', (req, res) => {
         ['landscape.mp4', 'portrait.mp4'].forEach(videoFile => {
           const videoPath = path.join(outDir, videoFile);
           if (fs.existsSync(videoPath)) {
-            const stats = fs.statSync(videoPath);
-            videos.push({
-              domain,
-              file: videoFile,
-              url: `/websites/${domain}/out/${videoFile}`,
-              size: Math.round(stats.size / 1024 / 1024 * 10) / 10, // MB
-              created: stats.mtime
-            });
+            // 检查是否已从 R2 获取
+            const exists = videos.some(v => v.domain === domain && v.file === videoFile);
+            if (!exists) {
+              const stats = fs.statSync(videoPath);
+              videos.push({
+                domain,
+                file: videoFile,
+                url: `/websites/${domain}/out/${videoFile}`,
+                size: Math.round(stats.size / 1024 / 1024 * 10) / 10, // MB
+                created: stats.mtime,
+                storage: 'local'
+              });
+            }
           }
         });
       }
     });
   }
 
-  res.json({ videos });
+  res.json({ videos, r2Enabled: useR2 });
 });
 
 // 首页 HTML
