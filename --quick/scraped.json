@@ -1,0 +1,295 @@
+{
+  "url": "https://github.com/",
+  "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
+  "description": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.",
+  "keywords": "",
+  "productName": "GitHub",
+  "colorPalette": {
+    "primary": "#1F6FEB",
+    "secondary": "#FFFFFF",
+    "accent": "#F0F6FC",
+    "background": null,
+    "text": null,
+    "brand": [
+      {
+        "source": "theme-color meta",
+        "value": "#1E2327",
+        "isBrandColor": false
+      },
+      {
+        "source": "cta text",
+        "value": "#FFFFFF",
+        "priority": 1,
+        "isBrandColor": false
+      },
+      {
+        "source": "hero text",
+        "value": "#F0F6FC",
+        "priority": 2,
+        "isBrandColor": false
+      },
+      {
+        "source": "link background",
+        "value": "#1F6FEB",
+        "priority": 3,
+        "isBrandColor": true
+      },
+      {
+        "source": "logo detected",
+        "value": "check_image"
+      }
+    ],
+    "css": []
+  },
+  "raw": {
+    "url": "https://github.com/",
+    "seo": {
+      "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
+      "description": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.",
+      "keywords": "",
+      "ogTitle": "GitHub · Change is constant. GitHub keeps you ahead.",
+      "ogDescription": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.",
+      "twitterTitle": "GitHub · Change is constant. GitHub keeps you ahead.",
+      "twitterDescription": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity."
+    },
+    "jsonLd": [],
+    "headings": {
+      "h1": [
+        "Search code, repositories, users, issues, pull requests...",
+        "Provide feedback",
+        "Saved searches",
+        "The future of building happens together"
+      ],
+      "h2": [
+        "Navigation Menu",
+        "Use saved searches to filter your results more quickly",
+        "GitHub features",
+        "GITHUB CUSTOMERS",
+        "Accelerate your entire workflow",
+        "Built-in application security where found means fixed",
+        "Work together, achieve more",
+        "From startups to enterprises, GitHub scales with teams of any size in any industry.",
+        "Millions of developers and businesses call GitHub home",
+        "Footnotes",
+        "Site-wide Links"
+      ],
+      "h3": [
+        "Explore",
+        "Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle.",
+        "Automate your path to production",
+        "Code instantly from anywhere",
+        "Keep momentum on the go",
+        "Shape your toolchain",
+        "Apply fixes in seconds. Spend less time debugging and more time building features with Copilot Autofix.",
+        "Plan with clarity. Organize everything from high-level roadmaps to everyday tasks.",
+        "Keep track of your tasks",
+        "Share ideas and ask questions",
+        "Review code changes together",
+        "Fund open source projects",
+        "Subscribe to our developer newsletter",
+        "Platform",
+        "Ecosystem",
+        "Support",
+        "Company"
+      ],
+      "h4": []
+    },
+    "paragraphs": [
+      "We read every piece of feedback, and take your input very seriously.",
+      "To see all available qualifiers, see our documentation.",
+      "Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform.",
+      "Write, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features.",
+      "From your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster.",
+      "Duolingo boosts developer speed by 25% with GitHub Copilot",
+      "2025 Gartner® Magic Quadrant™ for AI Code Assistants",
+      "Ship faster with secure, reliable CI/CD.",
+      "Launch a full, cloud-based development environment in seconds.",
+      "Manage projects and assign tasks to Copilot, all from your mobile device.",
+      "Extend your stack with apps, actions, and AI models.",
+      "Use AI to find and fix vulnerabilities so your team can ship more secure software faster.",
+      "Security debt, solved. Leverage security campaigns and Copilot Autofix to reduce application vulnerabilities.",
+      "Dependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes.",
+      "Your secrets, your business. Detect, prevent, and remediate leaked secrets across your organization.",
+      "70% MTTR reduction\nwith Copilot Autofix1",
+      "8.3M secret leaks stopped\nin the past 12 months with push protection1",
+      "From planning and discussion to code review, GitHub keeps your team’s conversation and context next to your code.",
+      "Create issues and manage projects with tools that adapt to your code.",
+      "Create space for open-ended conversations alongside your project."
+    ],
+    "listItems": [
+      "Platform",
+      "AI CODE CREATIONGitHub CopilotWrite better code with AIGitHub SparkBuild and deploy intelligent appsGitHub ModelsManage and compare promptsMCP RegistryNewIntegrate external tools",
+      "GitHub CopilotWrite better code with AI",
+      "GitHub SparkBuild and deploy intelligent apps",
+      "GitHub ModelsManage and compare prompts",
+      "MCP RegistryNewIntegrate external tools",
+      "DEVELOPER WORKFLOWSActionsAutomate any workflowCodespacesInstant dev environmentsIssuesPlan and track workCode ReviewManage code changes",
+      "ActionsAutomate any workflow",
+      "CodespacesInstant dev environments",
+      "IssuesPlan and track work",
+      "Code ReviewManage code changes",
+      "APPLICATION SECURITYGitHub Advanced SecurityFind and fix vulnerabilitiesCode securitySecure your code as you buildSecret protectionStop leaks before they start",
+      "GitHub Advanced SecurityFind and fix vulnerabilities",
+      "Code securitySecure your code as you build",
+      "Secret protectionStop leaks before they start",
+      "EXPLOREWhy GitHubDocumentationBlogChangelogMarketplace",
+      "Why GitHub",
+      "Documentation",
+      "Blog",
+      "Changelog",
+      "Marketplace",
+      "Solutions",
+      "BY COMPANY SIZEEnterprisesSmall and medium teamsStartupsNonprofits",
+      "Enterprises",
+      "Small and medium teams",
+      "Startups",
+      "Nonprofits",
+      "BY USE CASEApp ModernizationDevSecOpsDevOpsCI/CDView all use cases",
+      "App Modernization",
+      "DevSecOps"
+    ],
+    "ctaTexts": [
+      "Toggle navigation",
+      "Sign in",
+      "Platform",
+      "Solutions",
+      "Resources",
+      "Open Source",
+      "Enterprise",
+      "Search or jump to...",
+      "Cancel",
+      "Submit feedback"
+    ],
+    "features": [],
+    "productName": "GitHub",
+    "navItems": [
+      "Sign in",
+      "GitHub CopilotWrite better code with AI",
+      "GitHub SparkBuild and deploy intelligent apps",
+      "GitHub ModelsManage and compare prompts",
+      "MCP RegistryNewIntegrate external tools",
+      "ActionsAutomate any workflow",
+      "CodespacesInstant dev environments",
+      "IssuesPlan and track work",
+      "Code ReviewManage code changes",
+      "GitHub Advanced SecurityFind and fix vulnerabilities",
+      "Code securitySecure your code as you build",
+      "Secret protectionStop leaks before they start",
+      "Why GitHub",
+      "Documentation",
+      "Blog"
+    ],
+    "footerText": [
+      "Site-wide Links",
+      "Subscribe to our developer newsletter",
+      "",
+      "Get tips, technical guides, and best practices. Twice a month.",
+      "",
+      "Subscribe",
+      "Platform",
+      "Features",
+      "Enterprise",
+      "Copilot"
+    ],
+    "formLabels": [
+      "Search",
+      "Include my email address so I can be contacted",
+      "Name",
+      "Query",
+      "Enter your email",
+      "Enter your email"
+    ],
+    "imageAlts": [
+      "Duolingo",
+      "Gartner",
+      "List of dependencies defined in a requirements .txt file.",
+      "GitHub push protection confirms and displays an active secret, and blocks the push."
+    ],
+    "dataDescriptions": [],
+    "colorPalette": {
+      "primary": "#1F6FEB",
+      "secondary": "#FFFFFF",
+      "accent": "#F0F6FC",
+      "background": null,
+      "text": null,
+      "brand": [
+        {
+          "source": "theme-color meta",
+          "value": "#1E2327",
+          "isBrandColor": false
+        },
+        {
+          "source": "cta text",
+          "value": "#FFFFFF",
+          "priority": 1,
+          "isBrandColor": false
+        },
+        {
+          "source": "hero text",
+          "value": "#F0F6FC",
+          "priority": 2,
+          "isBrandColor": false
+        },
+        {
+          "source": "link background",
+          "value": "#1F6FEB",
+          "priority": 3,
+          "isBrandColor": true
+        },
+        {
+          "source": "logo detected",
+          "value": "check_image"
+        }
+      ],
+      "css": []
+    }
+  },
+  "core_text": "【页面标题】GitHub · Change is constant. GitHub keeps you ahead. · GitHub\n\n【页面描述】Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.\n\n【产品名称】GitHub\n\n【主标题】Search code, repositories, users, issues, pull requests... | Provide feedback | Saved searches | The future of building happens together\n\n【副标题】Navigation Menu | Use saved searches to filter your results more quickly | GitHub features | GITHUB CUSTOMERS | Accelerate your entire workflow\n\n【要点列表】Platform\n  - GitHub CopilotWrite better code with AI\n  - GitHub SparkBuild and deploy intelligent apps\n  - GitHub ModelsManage and compare prompts\n  - MCP RegistryNewIntegrate external tools\n  - ActionsAutomate any workflow\n  - CodespacesInstant dev environments\n  - IssuesPlan and track work\n  - Code ReviewManage code changes\n  - GitHub Advanced SecurityFind and fix vulnerabilities\n  - Code securitySecure your code as you build\n  - Secret protectionStop leaks before they start\n  - EXPLOREWhy GitHubDocumentationBlogChangelogMarketplace\n  - Why GitHub\n  - Documentation\n\n【正文段落】We read every piece of feedback, and take your input very seriously.\n\nTo see all available qualifiers, see our documentation.\n\nTools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform.\n\nWrite, test, and fix code quickly with GitHub Copilot, from simple boilerplate to complex features.\n\nFrom your first line of code to final deployment, GitHub provides AI and automation tools to help you build and ship better software faster.\n\n【行动号召】Toggle navigation | Sign in | Platform | Solutions | Resources | Open Source | Enterprise | Search or jump to... | Cancel | Submit feedback\n\n【导航菜单】Sign in | GitHub CopilotWrite better code with AI | GitHub SparkBuild and deploy intelligent apps | GitHub ModelsManage and compare prompts | MCP RegistryNewIntegrate external tools | ActionsAutomate any workflow | CodespacesInstant dev environments | IssuesPlan and track work | Code ReviewManage code changes | GitHub Advanced SecurityFind and fix vulnerabilities",
+  "headings": [
+    "Search code, repositories, users, issues, pull requests...",
+    "Provide feedback",
+    "Saved searches",
+    "The future of building happens together",
+    "Navigation Menu",
+    "Use saved searches to filter your results more quickly",
+    "GitHub features",
+    "GITHUB CUSTOMERS",
+    "Accelerate your entire workflow",
+    "Built-in application security where found means fixed",
+    "Work together, achieve more",
+    "From startups to enterprises, GitHub scales with teams of any size in any industry.",
+    "Millions of developers and businesses call GitHub home",
+    "Footnotes",
+    "Site-wide Links",
+    "Explore",
+    "Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle.",
+    "Automate your path to production",
+    "Code instantly from anywhere",
+    "Keep momentum on the go",
+    "Shape your toolchain",
+    "Apply fixes in seconds. Spend less time debugging and more time building features with Copilot Autofix.",
+    "Plan with clarity. Organize everything from high-level roadmaps to everyday tasks.",
+    "Keep track of your tasks",
+    "Share ideas and ask questions",
+    "Review code changes together",
+    "Fund open source projects",
+    "Subscribe to our developer newsletter",
+    "Platform",
+    "Ecosystem",
+    "Support",
+    "Company"
+  ],
+  "features": [],
+  "ctaTexts": [
+    "Toggle navigation",
+    "Sign in",
+    "Platform",
+    "Solutions",
+    "Resources",
+    "Open Source",
+    "Enterprise",
+    "Search or jump to...",
+    "Cancel",
+    "Submit feedback"
+  ]
+}

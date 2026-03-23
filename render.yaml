@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: clickcast
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: API_BASE_URL
+        value: https://api.deepseek.com
+      - key: AI_MODEL
+        value: deepseek-chat
+      - key: VOICE
+        value: en-US-ChristopherNeural
+      - key: BGM_VOLUME
+        value: 0.15

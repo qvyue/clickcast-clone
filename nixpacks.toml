@@ -1,0 +1,13 @@
+# Nixpacks 配置文件
+# Railway 使用 Nixpacks 构建
+
+[start]
+cmd = "bash start.sh"
+
+[install]
+# 安装 Playwright 浏览器依赖
+cmds = ["npx playwright install chromium"]
+
+[variables]
+# 确保 Node.js 使用正确内存
+NODE_OPTIONS = "--max-old-space-size=768"

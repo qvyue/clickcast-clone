@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+.env
+.playwright-tmp/
+*.mp4
+*.mp3
+*.wav
+.DS_Store
+Thumbs.db
+
+# 生成的截图和数据文件
+public/shot*.png
+public/scraped.json
+public/timeline.json
+public/*.mp3
+websites/*/public/
+websites/*/out/
