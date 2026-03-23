@@ -1,10 +1,10 @@
 import { Config } from '@remotion/cli/config';
 
-// Railway/Linux 环境配置
+// Railway/Linux 环境配置 - 内存优化
 Config.setChromiumHeadlessMode(true);
 
-// 使用系统安装的 Chromium (Playwright)
-Config.setChromiumExecutablePath('/root/.cache/ms-playwright/chromium-*/chrome-linux/chrome');
+// 减少内存使用
+Config.setWebKitAnimationFrameCacheSizeInBytes(500000);
 
-// 内存优化
-Config.setWebKitAnimationFrameCacheSizeInBytes(1000000);
+// 并行渲染优化 - 减少同时渲染的帧数
+Config.setConcurrency(1);

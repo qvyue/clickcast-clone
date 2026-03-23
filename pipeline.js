@@ -306,29 +306,41 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     fs.writeFileSync(bgmPath, content);
   }
 
-  // 构建 Remotion 渲染命令
-  let renderCmd = `npx remotion render ${compositionId} "${outputPath}"`;
-
-  // 检测是否在 Docker/Railway 环境中
-  if (process.env.CHROMIUM_EXECUTABLE_PATH || fs.existsSync('/root/.cache/ms-playwright')) {
-    // 使用 Playwright 安装的 Chromium
-    const playwrightPath = '/root/.cache/ms-playwright';
-    if (fs.existsSync(playwrightPath)) {
-      const chromiumDirs = fs.readdirSync(playwrightPath).filter(d => d.startsWith('chromium'));
-      if (chromiumDirs.length > 0) {
-        const chromePath = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
-        if (fs.existsSync(chromePath)) {
-          renderCmd += ` --chromium-executable-path="${chromePath}"`;
-          console.log(`   使用 Chromium: ${chromePath}`);
-        }
+  // 查找 Playwright Chromium 路径
+  let chromiumPath = null;
+  const playwrightPath = '/root/.cache/ms-playwright';
+  if (fs.existsSync(playwrightPath)) {
+    const chromiumDirs = fs.readdirSync(playwrightPath).filter(d => d.startsWith('chromium'));
+    if (chromiumDirs.length > 0) {
+      const chromePath = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
+      if (fs.existsSync(chromePath)) {
+        chromiumPath = chromePath;
+        console.log(`   使用 Chromium: ${chromePath}`);
       }
     }
   }
 
+  // 构建 Remotion 渲染命令 - 添加内存优化参数
+  let renderCmd = `npx remotion render ${compositionId} "${outputPath}"`;
+
+  // 添加 Chromium 路径
+  if (chromiumPath) {
+    renderCmd += ` --chromium-executable-path="${chromiumPath}"`;
+  }
+
+  // 内存优化: 降低并发
+  renderCmd += ' --concurrency=1';
+
+  console.log(`   渲染命令: ${renderCmd}`);
+
   try {
     execSync(renderCmd, {
       cwd: __dirname,
-      stdio: 'inherit'
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--max-old-space-size=512'
+      }
     });
     console.log(`视频渲染完成: ${outputFile}`);
 
@@ -343,9 +355,13 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     console.error(`渲染失败: ${e.message}`);
 
     // 恢复原始 public 目录
-    fs.rmSync(rootPublicDir, { recursive: true });
-    if (fs.existsSync(backupDir)) {
-      fs.renameSync(backupDir, rootPublicDir);
+    try {
+      fs.rmSync(rootPublicDir, { recursive: true });
+      if (fs.existsSync(backupDir)) {
+        fs.renameSync(backupDir, rootPublicDir);
+      }
+    } catch (cleanupError) {
+      // 忽略清理错误
     }
 
     return null;

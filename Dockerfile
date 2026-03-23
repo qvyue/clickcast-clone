@@ -1,10 +1,11 @@
-# ClickCast Docker Image
+# ClickCast Docker Image - 优化内存使用
 FROM node:20-slim
 
-# Install system dependencies for Playwright
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
+# 设置内存限制环境变量
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Install system dependencies for Playwright (最小化安装)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
     fonts-noto-color-emoji \
@@ -19,31 +20,30 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     libnspr4 \
     libnss3 \
-    libwayland-client0 \
     libxcomposite1 \
     libxdamage1 \
     libxfixes3 \
     libxkbcommon0 \
     libxrandr2 \
-    xdg-utils \
     ffmpeg \
     python3 \
     python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Install edge-tts for voice generation
-RUN pip3 install edge-tts --break-system-packages
+RUN pip3 install --no-cache-dir edge-tts --break-system-packages
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install Node dependencies
-RUN npm ci
+# Install Node dependencies (只安装生产依赖)
+RUN npm ci --omit=dev
 
-# Install Playwright browsers
-RUN npx playwright install chromium --with-deps
+# Install Playwright browsers (只安装 chromium)
+RUN npx playwright install chromium
 
 # Copy application code
 COPY . .
@@ -51,12 +51,8 @@ COPY . .
 # Create output directory
 RUN mkdir -p out websites
 
-# Environment variables for Remotion
-ENV CHROMIUM_EXECUTABLE_PATH=/root/.cache/ms-playwright/chromium-*/chrome-linux/chrome
-ENV REMOTION_CHROMIUM_MODE=headless
-
 # Expose port
 EXPOSE 3000
 
-# Start server
-CMD ["node", "server.js"]
+# Start server with memory limit
+CMD ["node", "--max-old-space-size=512", "server.js"]
