@@ -56,17 +56,17 @@ function runPipeline(url, aspectRatio, jobId) {
       output += text;
       console.log(text);
 
-      // 解析进度
-      if (text.includes('截图')) {
-        jobs.set(jobId, { status: 'capturing', progress: 10, message: '正在截图...', aspectRatio, url });
-      } else if (text.includes('AI 分析')) {
-        jobs.set(jobId, { status: 'analyzing', progress: 30, message: '正在 AI 分析...', aspectRatio, url });
-      } else if (text.includes('时间轴')) {
-        jobs.set(jobId, { status: 'generating', progress: 50, message: '正在生成时间轴...', aspectRatio, url });
-      } else if (text.includes('配音')) {
-        jobs.set(jobId, { status: 'voiceover', progress: 70, message: '正在生成配音...', aspectRatio, url });
-      } else if (text.includes('渲染')) {
-        jobs.set(jobId, { status: 'rendering', progress: 85, message: '正在渲染视频...', aspectRatio, url });
+      // Parse progress
+      if (text.includes('Capturing') || text.includes('截图')) {
+        jobs.set(jobId, { status: 'capturing', progress: 10, message: 'Capturing screenshots...', aspectRatio, url });
+      } else if (text.includes('AI') || text.includes('分析')) {
+        jobs.set(jobId, { status: 'analyzing', progress: 30, message: 'AI analyzing...', aspectRatio, url });
+      } else if (text.includes('timeline') || text.includes('时间轴')) {
+        jobs.set(jobId, { status: 'generating', progress: 50, message: 'Generating timeline...', aspectRatio, url });
+      } else if (text.includes('voiceover') || text.includes('配音')) {
+        jobs.set(jobId, { status: 'voiceover', progress: 70, message: 'Generating voiceover...', aspectRatio, url });
+      } else if (text.includes('Rendering') || text.includes('渲染')) {
+        jobs.set(jobId, { status: 'rendering', progress: 85, message: 'Rendering video...', aspectRatio, url });
       }
     });
 
@@ -76,10 +76,10 @@ function runPipeline(url, aspectRatio, jobId) {
 
     pipelineProcess.on('close', (code) => {
       if (code === 0) {
-        jobs.set(jobId, { status: 'completed', progress: 100, message: '完成!', aspectRatio, url });
+        jobs.set(jobId, { status: 'completed', progress: 100, message: 'Completed!', aspectRatio, url });
         resolve({ success: true });
       } else {
-        jobs.set(jobId, { status: 'failed', progress: 0, message: '生成失败', aspectRatio, url });
+        jobs.set(jobId, { status: 'failed', progress: 0, message: 'Generation failed', aspectRatio, url });
         reject(new Error(`Pipeline exited with code ${code}`));
       }
     });
@@ -91,12 +91,12 @@ app.post('/api/generate', async (req, res) => {
   let { url, aspectRatio } = req.body;
 
   if (!url) {
-    return res.status(400).json({ error: '请输入 URL' });
+    return res.status(400).json({ error: 'Please enter a URL' });
   }
 
   const ratio = aspectRatio || 'landscape';
   if (!['landscape', 'portrait'].includes(ratio)) {
-    return res.status(400).json({ error: '无效的比例参数' });
+    return res.status(400).json({ error: 'Invalid aspect ratio' });
   }
 
   // 自动补全 URL 协议
@@ -112,21 +112,21 @@ app.post('/api/generate', async (req, res) => {
       throw new Error('Invalid hostname');
     }
   } catch (e) {
-    return res.status(400).json({ error: '无效的 URL 格式，请输入正确的网址（如 github.com）' });
+    return res.status(400).json({ error: 'Invalid URL format. Please enter a valid URL (e.g., github.com)' });
   }
 
   const jobId = Date.now().toString();
-  jobs.set(jobId, { status: 'pending', progress: 0, message: '准备中...', aspectRatio: ratio, url });
+  jobs.set(jobId, { status: 'pending', progress: 0, message: 'Preparing...', aspectRatio: ratio, url });
 
-  console.log(`\n新任务: ${jobId} - ${url} (${ratio})`);
+  console.log(`\nNew job: ${jobId} - ${url} (${ratio})`);
 
-  res.json({ jobId, message: '任务已提交', aspectRatio: ratio });
+  res.json({ jobId, message: 'Job submitted', aspectRatio: ratio });
 
   try {
     await runPipeline(url, ratio, jobId);
-    console.log(`任务完成: ${jobId}`);
+    console.log(`Job completed: ${jobId}`);
   } catch (error) {
-    console.error(`任务失败: ${jobId}`, error);
+    console.error(`Job failed: ${jobId}`, error);
   }
 });
 
@@ -136,7 +136,7 @@ app.get('/api/status/:jobId', (req, res) => {
   const job = jobs.get(jobId);
 
   if (!job) {
-    return res.status(404).json({ error: '任务不存在' });
+    return res.status(404).json({ error: 'Job not found' });
   }
 
   // 根据网站 URL 计算视频路径
@@ -177,11 +177,11 @@ app.post('/api/r2-register', (req, res) => {
   const { key, url } = req.body;
 
   if (!key || !url) {
-    return res.status(400).json({ error: '缺少参数' });
+    return res.status(400).json({ error: 'Missing parameters' });
   }
 
   r2VideoUrls.set(key, url);
-  console.log(`R2 视频已注册: ${key} -> ${url}`);
+  console.log(`R2 video registered: ${key} -> ${url}`);
 
   res.json({ success: true });
 });
@@ -192,7 +192,7 @@ app.get('/api/video/:jobId', (req, res) => {
   const job = jobs.get(jobId);
 
   if (!job) {
-    return res.status(404).json({ error: '任务不存在' });
+    return res.status(404).json({ error: 'Job not found' });
   }
 
   const domain = extractDomainFromUrl(job.url || '');
@@ -200,7 +200,7 @@ app.get('/api/video/:jobId', (req, res) => {
   const videoPath = path.join(__dirname, 'websites', domain, 'out', videoFile);
 
   if (!fs.existsSync(videoPath)) {
-    return res.status(404).json({ error: '视频不存在' });
+    return res.status(404).json({ error: 'Video not found' });
   }
 
   res.download(videoPath, `${domain}-${videoFile}`);
@@ -275,11 +275,11 @@ app.get('/api/videos', async (req, res) => {
 
 // 首页 HTML
 const indexHtml = `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickCast AI - URL to Video</title>
+  <title>ClickCast AI - URL to Video Generator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -432,51 +432,51 @@ const indexHtml = `<!DOCTYPE html>
 <body>
   <div class="container">
     <h1>ClickCast AI</h1>
-    <p class="subtitle">输入网址，AI 自动生成营销视频</p>
+    <p class="subtitle">Enter a URL, AI automatically generates a marketing video</p>
     <div class="input-group">
-      <label for="url">网站 URL</label>
-      <input type="url" id="url" placeholder="github.com 或 https://example.com" required>
+      <label for="url">Website URL</label>
+      <input type="url" id="url" placeholder="github.com or https://example.com" required>
     </div>
-    <label>视频比例</label>
+    <label>Aspect Ratio</label>
     <div class="ratio-selector">
       <div class="ratio-option selected" data-ratio="landscape" onclick="selectRatio('landscape')">
         <div class="ratio-icon" style="width:70px;height:40px;">16:9</div>
-        <div class="ratio-label">横屏</div>
-        <div class="ratio-desc">适合 YouTube、网页</div>
+        <div class="ratio-label">Landscape</div>
+        <div class="ratio-desc">Best for YouTube, Web</div>
       </div>
       <div class="ratio-option" data-ratio="portrait" onclick="selectRatio('portrait')">
         <div class="ratio-icon" style="width:34px;height:60px;">9:16</div>
-        <div class="ratio-label">竖屏</div>
-        <div class="ratio-desc">适合 TikTok、短视频</div>
+        <div class="ratio-label">Portrait</div>
+        <div class="ratio-desc">Best for TikTok, Reels</div>
       </div>
     </div>
-    <button id="generateBtn" onclick="generateVideo()">生成视频</button>
+    <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
     <div class="progress-container" id="progress">
-      <p class="progress-text" id="progressText">准备中...</p>
+      <p class="progress-text" id="progressText">Preparing...</p>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill" style="width: 0%"></div>
       </div>
     </div>
     <div class="result" id="result">
-      <p>视频生成完成!</p>
+      <p>Video generated successfully!</p>
       <video id="videoPlayer" controls></video>
       <br>
-      <a id="downloadLink" class="download-btn" href="#" download>下载视频</a>
+      <a id="downloadLink" class="download-btn" href="#" download>Download Video</a>
     </div>
 
     <div class="video-list" id="videoListSection" style="display:none;">
-      <h3>已生成的视频</h3>
+      <h3>Generated Videos</h3>
       <div id="videoList"></div>
     </div>
 
     <div class="steps">
-      <p class="steps-title">完整流程</p>
-      <span class="step">输入 URL</span>
-      <span class="step">Playwright 截图</span>
-      <span class="step">AI 分析提炼</span>
-      <span class="step">生成文案</span>
-      <span class="step">edge-TTS 配音</span>
-      <span class="step">Remotion 渲染</span>
+      <p class="steps-title">Workflow</p>
+      <span class="step">Enter URL</span>
+      <span class="step">Playwright Screenshot</span>
+      <span class="step">AI Analysis</span>
+      <span class="step">Script Generation</span>
+      <span class="step">edge-TTS Voiceover</span>
+      <span class="step">Remotion Render</span>
     </div>
   </div>
   <script>
@@ -498,14 +498,14 @@ const indexHtml = `<!DOCTYPE html>
                 '<div class="video-meta">' + v.file + ' · ' + v.size + ' MB</div>' +
               '</div>' +
               '<div class="video-actions">' +
-                '<a href="' + v.url + '" target="_blank">播放</a>' +
-                '<a href="' + v.url + '" download>下载</a>' +
+                '<a href="' + v.url + '" target="_blank">Play</a>' +
+                '<a href="' + v.url + '" download">Download</a>' +
               '</div>' +
             '</div>'
           ).join('');
         }
       } catch (e) {
-        console.error('加载视频列表失败:', e);
+        console.error('Failed to load video list:', e);
       }
     }
 
@@ -522,10 +522,10 @@ const indexHtml = `<!DOCTYPE html>
       const progress = document.getElementById('progress');
       const result = document.getElementById('result');
 
-      if (!url) { alert('请输入 URL'); return; }
+      if (!url) { alert('Please enter a URL'); return; }
 
       btn.disabled = true;
-      btn.textContent = '提交中...';
+      btn.textContent = 'Submitting...';
       progress.classList.add('active');
       result.classList.remove('active');
       document.getElementById('progressFill').style.width = '0%';
@@ -541,18 +541,18 @@ const indexHtml = `<!DOCTYPE html>
         if (data.error) {
           alert(data.error);
           btn.disabled = false;
-          btn.textContent = '生成视频';
+          btn.textContent = 'Generate Video';
           return;
         }
 
         currentJobId = data.jobId;
-        btn.textContent = '生成中...';
+        btn.textContent = 'Generating...';
         pollStatus();
         pollInterval = setInterval(pollStatus, 2000);
       } catch (error) {
-        alert('提交失败: ' + error.message);
+        alert('Submission failed: ' + error.message);
         btn.disabled = false;
-        btn.textContent = '生成视频';
+        btn.textContent = 'Generate Video';
       }
     }
 
@@ -575,15 +575,15 @@ const indexHtml = `<!DOCTYPE html>
           }
           document.getElementById('result').classList.add('active');
           document.getElementById('generateBtn').disabled = false;
-          document.getElementById('generateBtn').textContent = '生成视频';
+          document.getElementById('generateBtn').textContent = 'Generate Video';
           loadVideoList();
         }
 
         if (data.status === 'failed') {
           clearInterval(pollInterval);
-          alert('生成失败，请重试');
+          alert('Generation failed, please try again');
           document.getElementById('generateBtn').disabled = false;
-          document.getElementById('generateBtn').textContent = '生成视频';
+          document.getElementById('generateBtn').textContent = 'Generate Video';
         }
       } catch (error) {
         console.error('Status poll error:', error);
@@ -609,9 +609,9 @@ if (!fs.existsSync(websitesDir)) {
 const bgmPath = path.join(__dirname, 'public', 'bensound-slowlife.mp3');
 if (fs.existsSync(bgmPath)) {
   const stats = fs.statSync(bgmPath);
-  console.log(`✅ BGM 文件已找到: ${stats.size} bytes`);
+  console.log(`✅ BGM file found: ${stats.size} bytes`);
 } else {
-  console.log(`⚠️ BGM 文件缺失: ${bgmPath}`);
+  console.log(`⚠️ BGM file missing: ${bgmPath}`);
 }
 
 app.listen(PORT, () => {
