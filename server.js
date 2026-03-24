@@ -279,7 +279,8 @@ const indexHtml = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickCast AI - URL to Video Generator</title>
+  <title>VidGen - AI Video Generator</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -431,7 +432,7 @@ const indexHtml = `<!DOCTYPE html>
 </head>
 <body>
   <div class="container">
-    <h1>ClickCast AI</h1>
+    <h1>VidGen</h1>
     <p class="subtitle">Enter a URL, AI automatically generates a marketing video</p>
     <div class="input-group">
       <label for="url">Website URL</label>
