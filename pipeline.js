@@ -376,7 +376,8 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
   }
   renderCmd += ' --concurrency=1';
 
-  console.log(`\n   🎬 开始渲染...\n`);
+  console.log(`\n   🎬 开始渲染...`);
+  console.log(`   📝 命令: ${renderCmd}\n`);
 
   try {
     execSync(renderCmd, {
@@ -400,6 +401,7 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     return outputPath;
   } catch (e) {
     console.error(`\n❌ 渲染失败: ${e.message}`);
+    console.error(`   堆栈: ${e.stack}`);
     return null;
   }
 }
