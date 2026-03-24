@@ -1,8 +1,8 @@
 # ClickCast Docker Image - 优化内存使用
 FROM node:20-slim
 
-# 设置内存限制环境变量
-ENV NODE_OPTIONS="--max-old-space-size=512"
+# 设置内存限制环境变量 (8GB实例，Node.js使用4GB)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Install system dependencies for Playwright (最小化安装)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -59,5 +59,5 @@ RUN mkdir -p out websites
 # Expose port
 EXPOSE 3000
 
-# Start server with memory limit
-CMD ["node", "--max-old-space-size=512", "server.js"]
+# Start server with memory limit (4GB for Node.js, leaving 4GB for Chromium)
+CMD ["node", "--max-old-space-size=4096", "server.js"]
