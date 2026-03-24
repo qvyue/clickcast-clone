@@ -505,9 +505,13 @@ async function main() {
       ? await analyzeImageWithAI(scrapedPath, outputDir)
       : { script: generateDefaultScript(), style: null };
 
-    const script = aiResult.script;
+    const script = aiResult?.script || generateDefaultScript();
+    console.log(`   📝 script 存在: ${!!script}, scenes: ${script?.scenes?.length || 0}个`);
+    if (!script || !script.scenes) {
+      console.log('   ⚠️ AI 返回的 script 无效，使用默认脚本');
+    }
     // 如果已有 style，复用它保证一致性；否则使用新生成的 style
-    const videoStyle = existingStyle || aiResult.style;
+    const videoStyle = existingStyle || aiResult?.style;
 
     // 2.5 AI 智能分析图片裁切策略
     console.log('\n[2.5/5] 🖼️ AI 分析图片裁切策略...');
@@ -523,6 +527,12 @@ async function main() {
 
     // 3. 准备配音场景列表
     const voiceoverScenes = [];
+
+    // 确保 script.scenes 存在
+    if (!script || !script.scenes) {
+      console.log('   ⚠️ script 或 script.scenes 未定义，使用默认脚本');
+      Object.assign(script, generateDefaultScript());
+    }
 
     for (let i = 0; i < script.scenes.length; i++) {
       const scene = script.scenes[i];
