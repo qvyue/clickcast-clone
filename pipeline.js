@@ -11,6 +11,22 @@ const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// 全局错误处理
+process.on('uncaughtException', (error) => {
+  console.error('\n❌ 未捕获的异常:');
+  console.error('   消息:', error.message);
+  console.error('   文件:', error.stack?.split('\n')[1]?.trim() || '未知');
+  console.error('   完整堆栈:\n', error.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('\n❌ 未处理的 Promise 拒绝:');
+  console.error('   原因:', reason?.message || reason);
+  console.error('   堆栈:', reason?.stack || '未知');
+  process.exit(1);
+});
+
 // 手动加载 .env 文件
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
