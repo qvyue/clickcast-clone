@@ -442,13 +442,21 @@ async function main() {
 
     // 1. 截图
     console.log('\n>>> 步骤 1: 截图');
+    console.log(`   outputDir = ${outputDir}`);
+    console.log(`   完整路径 = ${path.resolve(outputDir)}`);
     await captureWebsite(url, outputDir);
+
+    // 验证截图结果
+    console.log(`\n>>> 验证截图结果:`);
+    console.log(`   outputDir 存在: ${fs.existsSync(outputDir)}`);
+    const files = fs.existsSync(outputDir) ? fs.readdirSync(outputDir) : [];
+    console.log(`   outputDir 文件: ${files.join(', ')}`);
 
     // 2. AI 分析
     console.log('\n>>> 步骤 2: AI 分析');
     const scrapedPath = path.join(outputDir, 'scraped.json');
-    console.log(`   scraped.json 路径: ${scrapedPath}`);
-    console.log(`   文件存在: ${fs.existsSync(scrapedPath)}`);
+    console.log(`   scrapedPath = ${scrapedPath}`);
+    console.log(`   scraped.json 存在: ${fs.existsSync(scrapedPath)}`);
     const aiResult = fs.existsSync(scrapedPath)
       ? await analyzeImageWithAI(scrapedPath, outputDir)
       : { script: generateDefaultScript(), style: null };
