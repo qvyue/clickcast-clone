@@ -116,8 +116,10 @@ async function analyzeImageWithAI(scrapedPath, outputDir) {
 
   // 行业研究 (联网搜索行业信息)
   console.log('   🔍 进行行业研究...');
+  console.log('   📞 即将加载 industry-research.js...');
   const { enhanceWithIndustryResearch } = require('./industry-research.js');
-  console.log('   📞 调用 enhanceWithIndustryResearch...');
+  console.log('   ✅ industry-research.js 加载成功');
+  console.log('   📞 调用 enhanceWithIndustryResearch, savePath=' + scrapedPath);
   try {
     scrapedData = await enhanceWithIndustryResearch(scrapedData, scrapedPath);
     console.log('   ✅ 行业研究完成');
@@ -128,11 +130,14 @@ async function analyzeImageWithAI(scrapedPath, outputDir) {
   }
 
   // 使用 AI Agent 模块
-  console.log('   🤖 调用 AI Agent...');
+  console.log('   🤖 即将加载 ai-agent.js...');
   const { runAIAgent } = require('./ai-agent.js');
+  console.log('   ✅ ai-agent.js 加载成功');
+  console.log('   📞 调用 runAIAgent...');
   const result = await runAIAgent(scrapedData, [
     'shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png'
   ]);
+  console.log('   ✅ AI Agent 完成');
 
   return {
     script: result?.script || generateDefaultScript(),

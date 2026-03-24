@@ -305,9 +305,12 @@ function formatResearchForAI(keywords, searchResults) {
  * @param {string} savePath - 可选，保存路径（不提供则不保存）
  */
 async function enhanceWithIndustryResearch(scrapedData, savePath = null) {
+  console.log(`   🔧 enhanceWithIndustryResearch 开始, savePath=${savePath}`);
   const research = await researchIndustry(scrapedData);
+  console.log(`   🔧 researchIndustry 返回, research=${research ? '有数据' : 'null'}`);
 
   if (research) {
+    console.log(`   🔧 正在处理研究结果...`);
     // 添加到原始数据
     scrapedData.industryResearch = research;
 
@@ -318,13 +321,21 @@ async function enhanceWithIndustryResearch(scrapedData, savePath = null) {
 
     // 如果提供了保存路径，则保存
     if (savePath) {
-      fs.writeFileSync(savePath, JSON.stringify(scrapedData, null, 2));
-      console.log(`   📝 已更新 scraped.json，新增 ${research.summary?.length || 0} 字符行业信息`);
+      console.log(`   🔧 准备写入文件: ${savePath}`);
+      try {
+        fs.writeFileSync(savePath, JSON.stringify(scrapedData, null, 2));
+        console.log(`   📝 已更新 scraped.json，新增 ${research.summary?.length || 0} 字符行业信息`);
+      } catch (writeErr) {
+        console.log(`   ❌ 写入失败: ${writeErr.message}`);
+        console.log(`   堆栈: ${writeErr.stack}`);
+        throw writeErr;
+      }
     } else {
       console.log(`   📝 已添加行业研究信息: ${research.summary?.length || 0} 字符`);
     }
   }
 
+  console.log(`   🔧 enhanceWithIndustryResearch 完成`);
   return scrapedData;
 }
 

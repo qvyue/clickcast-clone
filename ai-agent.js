@@ -390,9 +390,11 @@ async function callAI(prompt, maxRetries = 2) {
  */
 async function runAIAgent(scrapedData, screenshotPaths) {
   console.log('\n🤖 AI Agent 开始分析...');
+  console.log(`   🔧 runAIAgent 参数: scrapedData=${scrapedData ? '有' : '无'}, screenshots=${screenshotPaths?.length || 0}个`);
 
   // 检查是否有用户自定义描述
   const descPath = path.join(__dirname, 'public', 'custom-description.txt');
+  console.log(`   🔧 检查自定义描述: ${descPath}`);
   if (fs.existsSync(descPath)) {
     console.log('   📝 检测到用户自定义描述，将融合到AI分析中');
   }
@@ -406,7 +408,9 @@ async function runAIAgent(scrapedData, screenshotPaths) {
 
   // 1.5. 生成视频风格 (AI 从网站提取配色)
   console.log('   🎨 生成视频风格...');
+  console.log('   🔧 加载 style-generator.js...');
   const { generateVideoStyle } = require('./style-generator.js');
+  console.log('   🔧 style-generator.js 加载成功');
   const videoStyle = await generateVideoStyle(scrapedData, websiteType?.type);
 
   // 2. 生成脚本 (核心步骤)
