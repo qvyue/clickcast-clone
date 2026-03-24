@@ -183,7 +183,7 @@ function generateDefaultScript() {
 // ==========================================
 // 步骤4: 生成时间轴 (根据配音时长动态计算)
 // ==========================================
-async function generateTimeline(script, audioDurations, outputDir = './public', style = null, cropStrategies = []) {
+async function generateTimeline(script, audioDurations, outputDir = './public', style = null, cropStrategies = [], availableScreenshots = []) {
   console.log('\n[4/5] ⏱️ 生成视频时间轴...');
 
   // 创建裁切策略映射 (文件名 -> 策略)
@@ -191,6 +191,16 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
   cropStrategies.forEach(c => {
     cropMap[c.file] = c;
   });
+
+  // 验证可用截图
+  const validScreenshots = availableScreenshots.filter(f => {
+    const filePath = path.join(outputDir, f);
+    return fs.existsSync(filePath);
+  });
+  console.log(`   📸 有效截图: ${validScreenshots.join(', ') || '无'}`);
+
+  // 如果没有有效截图，生成默认截图文件名
+  const fallbackScreenshots = validScreenshots.length > 0 ? validScreenshots : ['shot1.png'];
 
   const timeline = {
     product: script.product,
@@ -203,10 +213,27 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 
   const FPS = 30;
   let currentStartFrame = 0;
+  let usedScreenshots = new Set(); // 追踪已使用的截图
 
   for (let i = 0; i < script.scenes.length; i++) {
     const scene = script.scenes[i];
-    const screenshotFile = scene.screenshot || `shot${i + 1}.png`;
+    let screenshotFile = scene.screenshot || `shot${i + 1}.png`;
+
+    // 验证截图是否存在，如果不存在则使用可用截图
+    if (!validScreenshots.includes(screenshotFile)) {
+      // 找一个未使用的截图
+      const unusedScreenshot = fallbackScreenshots.find(s => !usedScreenshots.has(s));
+      if (unusedScreenshot) {
+        console.log(`   ⚠️ ${screenshotFile} 不存在，使用 ${unusedScreenshot}`);
+        screenshotFile = unusedScreenshot;
+      } else {
+        // 所有截图都用过了，循环使用
+        screenshotFile = fallbackScreenshots[i % fallbackScreenshots.length];
+        console.log(`   ⚠️ ${scene.screenshot || `shot${i + 1}.png`} 不存在，复用 ${screenshotFile}`);
+      }
+    }
+
+    usedScreenshots.add(screenshotFile);
 
     // 获取该截图的裁切策略
     const cropInfo = cropMap[screenshotFile] || {
@@ -557,8 +584,12 @@ async function main() {
     // 生成配音并获取时长
     const audioDurations = await generateVoiceovers(voiceoverScenes, outputDir);
 
+    // 获取可用的截图列表
+    const availableScreenshots = scrapedData?.screenshots?.map(s => s.file) || [];
+    console.log(`   📸 可用截图: ${availableScreenshots.join(', ') || '无'}`);
+
     // 4. 生成时间轴 (根据音频时长 + AI 风格 + 裁切策略)
-    const timeline = await generateTimeline(script, audioDurations, outputDir, videoStyle, cropStrategies);
+    const timeline = await generateTimeline(script, audioDurations, outputDir, videoStyle, cropStrategies, availableScreenshots);
 
     // 4.5 AI 选择背景音乐
     console.log('\n[4.5/5] 🎵 AI 选择背景音乐...');

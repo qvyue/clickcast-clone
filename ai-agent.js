@@ -515,34 +515,41 @@ function ensureUniqueScreenshots(script, availableScreenshots) {
     return { fixed: false, changes: [] };
   }
 
-  script.scenes.forEach((scene, index) => {
-    if (scene.img) {
-      // 检查截图是否存在
-      const screenshotExists = screenshotFiles.includes(scene.img);
-      // 检查是否已被使用
-      const isDuplicate = usedScreenshots.has(scene.img);
+  console.log(`   📸 可用截图: ${screenshotFiles.join(', ')}`);
 
-      if (!screenshotExists || isDuplicate) {
-        // 找一个未使用的截图
-        const unusedScreenshot = screenshotFiles.find(s => !usedScreenshots.has(s));
-        if (unusedScreenshot) {
-          const reason = !screenshotExists ? '不存在' : '重复';
-          changes.push(`${scene.id}: ${scene.img} -> ${unusedScreenshot} (${reason})`);
-          scene.img = unusedScreenshot;
-          usedScreenshots.add(unusedScreenshot);
-        } else {
-          // 没有更多截图，使用一个和上一个不同的截图
-          const prevScene = script.scenes[index - 1];
-          const altScreenshots = screenshotFiles.filter(s => s !== (prevScene?.img || ''));
-          if (altScreenshots.length > 0) {
-            const altScreenshot = altScreenshots[Math.floor(Math.random() * altScreenshots.length)];
-            changes.push(`${scene.id}: ${scene.img} -> ${altScreenshot} (reused)`);
-            scene.img = altScreenshot;
-          }
-        }
+  script.scenes.forEach((scene, index) => {
+    // 兼容 screenshot 和 img 两种字段名
+    const screenshotField = scene.screenshot || scene.img;
+
+    // 检查截图是否存在
+    const screenshotExists = screenshotFiles.includes(screenshotField);
+    // 检查是否已被使用
+    const isDuplicate = usedScreenshots.has(screenshotField);
+
+    if (!screenshotExists || isDuplicate) {
+      // 找一个未使用的截图
+      const unusedScreenshot = screenshotFiles.find(s => !usedScreenshots.has(s));
+      if (unusedScreenshot) {
+        const reason = !screenshotExists ? '不存在' : '重复';
+        changes.push(`${scene.id}: ${screenshotField} -> ${unusedScreenshot} (${reason})`);
+        // 同时更新两个字段
+        scene.screenshot = unusedScreenshot;
+        scene.img = unusedScreenshot;
+        usedScreenshots.add(unusedScreenshot);
       } else {
-        usedScreenshots.add(scene.img);
+        // 没有更多截图，使用一个和上一个不同的截图
+        const prevScene = script.scenes[index - 1];
+        const prevScreenshot = prevScene?.screenshot || prevScene?.img || '';
+        const altScreenshots = screenshotFiles.filter(s => s !== prevScreenshot);
+        if (altScreenshots.length > 0) {
+          const altScreenshot = altScreenshots[Math.floor(Math.random() * altScreenshots.length)];
+          changes.push(`${scene.id}: ${screenshotField} -> ${altScreenshot} (reused)`);
+          scene.screenshot = altScreenshot;
+          scene.img = altScreenshot;
+        }
       }
+    } else {
+      usedScreenshots.add(screenshotField);
     }
   });
 
