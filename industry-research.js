@@ -330,15 +330,7 @@ async function enhanceWithIndustryResearch(scrapedData, savePath = null) {
 
 // 命令行测试
 if (require.main === module) {
-  const scrapedPath = path.join(__dirname, 'public', 'scraped.json');
-  if (fs.existsSync(scrapedPath)) {
-    const scrapedData = JSON.parse(fs.readFileSync(scrapedPath, 'utf8'));
-    enhanceWithIndustryResearch(scrapedData).then(() => {
-      console.log('\n完成！');
-    });
-  } else {
-    console.log('请先运行 capture.js');
-  }
+  console.log('请通过 pipeline.js 运行');
 }
 
 module.exports = {

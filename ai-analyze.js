@@ -135,12 +135,7 @@ function generateDefaultScript() {
 
 // 命令行测试
 if (require.main === module) {
-  const scrapedPath = path.join(__dirname, 'public', 'scraped.json');
-  let scrapedData = {};
-  if (fs.existsSync(scrapedPath)) {
-    scrapedData = JSON.parse(fs.readFileSync(scrapedPath, 'utf-8'));
-  }
-  generateScript(scrapedData).then(console.log);
+  console.log('请通过 pipeline.js 运行');
 }
 
 module.exports = { generateScript, generateDefaultScript };

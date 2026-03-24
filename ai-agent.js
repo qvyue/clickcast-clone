@@ -629,18 +629,7 @@ CRITICAL: Output ONLY valid JSON array, nothing else. Example:
 
 // 命令行测试
 if (require.main === module) {
-  const scrapedPath = path.join(__dirname, 'public', 'scraped.json');
-  let scrapedData = {};
-  if (fs.existsSync(scrapedPath)) {
-    scrapedData = JSON.parse(fs.readFileSync(scrapedPath, 'utf-8'));
-  }
-
-  const screenshots = ['shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png'];
-
-  runAIAgent(scrapedData, screenshots).then(result => {
-    console.log('\n结果:');
-    console.log(JSON.stringify(result, null, 2));
-  });
+  console.log('请通过 pipeline.js 运行');
 }
 
 module.exports = {

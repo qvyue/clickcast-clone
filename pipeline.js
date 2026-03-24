@@ -424,6 +424,10 @@ async function main() {
   console.log(`📁 网站目录: websites/${domain}/`);
 
   try {
+    console.log(`\n开始处理: ${url}`);
+    console.log(`域名: ${domain}`);
+    console.log(`网站目录: ${websiteDir}`);
+
     // 检查是否已有 style（避免重复生成导致颜色不一致）
     const existingTimelinePath = path.join(outputDir, 'timeline.json');
     let existingStyle = null;
@@ -437,10 +441,14 @@ async function main() {
     }
 
     // 1. 截图
+    console.log('\n>>> 步骤 1: 截图');
     await captureWebsite(url, outputDir);
 
     // 2. AI 分析
+    console.log('\n>>> 步骤 2: AI 分析');
     const scrapedPath = path.join(outputDir, 'scraped.json');
+    console.log(`   scraped.json 路径: ${scrapedPath}`);
+    console.log(`   文件存在: ${fs.existsSync(scrapedPath)}`);
     const aiResult = fs.existsSync(scrapedPath)
       ? await analyzeImageWithAI(scrapedPath, outputDir)
       : { script: generateDefaultScript(), style: null };
@@ -566,6 +574,7 @@ async function main() {
 
   } catch (error) {
     console.error('流程出错:', error.message);
+    console.error('错误堆栈:', error.stack);
   }
 }
 
