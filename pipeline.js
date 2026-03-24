@@ -281,7 +281,8 @@ async function generateVoiceovers(scenes, outputDir = './public') {
 
     try {
       const text = scene.text.replace(/"/g, '\\"');
-      execSync(`python -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
+      // 使用 python3 而不是 python
+      execSync(`python3 -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
         stdio: 'pipe'
       });
 
