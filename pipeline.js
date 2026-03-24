@@ -27,6 +27,8 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+console.log('🚀 Pipeline v2024.03.24-4 启动...');
+
 // 手动加载 .env 文件
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
