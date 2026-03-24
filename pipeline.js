@@ -96,21 +96,39 @@ async function captureWebsite(url, outputDir = './public') {
 // ==========================================
 async function analyzeImageWithAI(scrapedPath, outputDir) {
   console.log('\n[2/5] AI Agent 智能分析...');
+  console.log(`   📂 scrapedPath: ${scrapedPath}`);
+  console.log(`   📂 outputDir: ${outputDir}`);
+  console.log(`   📄 文件存在: ${fs.existsSync(scrapedPath)}`);
 
   // 读取抓取的文字内容
   let scrapedData = { title: '', description: '', core_text: '' };
   if (fs.existsSync(scrapedPath)) {
     try {
+      console.log('   📖 读取 scraped.json...');
       scrapedData = JSON.parse(fs.readFileSync(scrapedPath, 'utf-8'));
-    } catch (e) {}
+      console.log('   ✅ scraped.json 读取成功');
+    } catch (e) {
+      console.log(`   ⚠️ 读取失败: ${e.message}`);
+    }
+  } else {
+    console.log('   ⚠️ scraped.json 不存在，使用默认数据');
   }
 
   // 行业研究 (联网搜索行业信息)
   console.log('   🔍 进行行业研究...');
   const { enhanceWithIndustryResearch } = require('./industry-research.js');
-  scrapedData = await enhanceWithIndustryResearch(scrapedData, scrapedPath);
+  console.log('   📞 调用 enhanceWithIndustryResearch...');
+  try {
+    scrapedData = await enhanceWithIndustryResearch(scrapedData, scrapedPath);
+    console.log('   ✅ 行业研究完成');
+  } catch (e) {
+    console.log(`   ❌ 行业研究失败: ${e.message}`);
+    console.log(`   堆栈: ${e.stack}`);
+    throw e;
+  }
 
   // 使用 AI Agent 模块
+  console.log('   🤖 调用 AI Agent...');
   const { runAIAgent } = require('./ai-agent.js');
   const result = await runAIAgent(scrapedData, [
     'shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png'
