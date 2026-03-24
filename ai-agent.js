@@ -352,11 +352,41 @@ async function callAI(prompt, maxRetries = 2) {
               const json = JSON.parse(data);
               if (json.choices && json.choices[0]) {
                 const content = json.choices[0].message.content;
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                  resolve(JSON.parse(jsonMatch[0]));
-                } else {
-                  reject(new Error('No JSON found in response'));
+
+                // 先清理 markdown 代码块
+                let cleanContent = content
+                  .replace(/```json\s*/gi, '')
+                  .replace(/```\s*/g, '')
+                  .trim();
+
+                // 尝试匹配 JSON 数组或对象
+                const arrayMatch = cleanContent.match(/\[[\s\S]*\]/);
+                const objectMatch = cleanContent.match(/\{[\s\S]*\}/);
+
+                if (arrayMatch) {
+                  try {
+                    resolve(JSON.parse(arrayMatch[0]));
+                    return;
+                  } catch (e) {
+                    // 数组解析失败，继续尝试对象
+                  }
+                }
+
+                if (objectMatch) {
+                  try {
+                    resolve(JSON.parse(objectMatch[0]));
+                    return;
+                  } catch (e) {
+                    // 对象解析失败
+                  }
+                }
+
+                // 尝试直接解析整个内容
+                try {
+                  resolve(JSON.parse(cleanContent));
+                  return;
+                } catch (e) {
+                  reject(new Error('No valid JSON found in response'));
                 }
               } else {
                 reject(new Error('Invalid API response'));
