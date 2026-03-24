@@ -406,18 +406,20 @@ async function extractPageContent(page) {
       productName = ogSiteName;
     } else if (seo.ogTitle) {
       // 从 og:title 提取第一部分
-      const parts = seo.ogTitle.split(/[·|\-|–]/);
-      productName = parts[0].trim();
+      const parts = seo.ogTitle.split(/[·|\-|–|\\|\/]/);
+      productName = parts[parts.length > 1 ? 1 : 0].trim();
     } else if (seo.title) {
       // 从 title 提取
-      const parts = seo.title.split(/[·|\-|–]/);
-      productName = parts[0].trim();
+      const parts = seo.title.split(/[·|\-|–|\\|\/]/);
+      productName = parts[parts.length > 1 ? 1 : 0].trim();
     } else if (headings.h1[0] && headings.h1[0].length < 50) {
       productName = headings.h1[0];
     }
 
     // 清理产品名称
     productName = productName.replace(/^(Welcome to|Home\s*-?\s*)/i, '').trim();
+    // 清理特殊字符
+    productName = productName.replace(/[\\\/\|\-]/g, '').trim();
 
     // 9. 导航菜单 (了解网站结构)
     const navItems = getText('nav a, header a, [class*="nav"] a').slice(0, 15);
@@ -1902,8 +1904,47 @@ async function capture() {
 
   // Step 1: 注入探针，提取候选区块
   console.log('   🔍 Step 1: 注入探针，分析 DOM 结构...');
-  const candidates = await injectProbesAndExtractBlocks(page);
+  let candidates = await injectProbesAndExtractBlocks(page);
   console.log(`   ✅ 发现 ${candidates.length} 个候选区块`);
+
+  // 如果没有找到候选区块，尝试备用方法：查找所有可见的大块元素
+  if (candidates.length === 0) {
+    console.log('   ⚠️  未找到语义化区块，尝试备用方法...');
+    candidates = await page.evaluate(() => {
+      const fallbackCandidates = [];
+      const allDivs = document.querySelectorAll('div');
+
+      allDivs.forEach((div, index) => {
+        const rect = div.getBoundingClientRect();
+        const style = getComputedStyle(div);
+
+        // 查找可见的、足够大的块
+        if (rect.width > 400 && rect.height > 200 &&
+            style.display !== 'none' && style.visibility !== 'hidden' &&
+            rect.height < window.innerHeight * 1.5) {
+
+          // 检查是否有实际的文本内容
+          const text = (div.innerText || '').trim();
+          if (text.length > 20) {
+            fallbackCandidates.push({
+              id: `fallback-${index}`,
+              selector: `div:nth-of-type(${index + 1})`,
+              suggestedType: 'content',
+              heading: text.substring(0, 50),
+              textSummary: text.substring(0, 200),
+              width: rect.width,
+              height: rect.height,
+              aspectRatio: (rect.width / rect.height).toFixed(2)
+            });
+          }
+        }
+      });
+
+      return fallbackCandidates.slice(0, 10); // 最多返回10个
+    });
+
+    console.log(`   ✅ 备用方法发现 ${candidates.length} 个候选区块`);
+  }
 
   // Step 2: AI 智能挑选
   console.log('   🤖 Step 2: AI 智能挑选最佳区块...');
@@ -2048,8 +2089,10 @@ async function capture() {
     }
   }
 
-  // Step 4: 如果截图太少（少于3张），才使用滚动截图补充
-  const minScreenshots = 3;
+  // Step 4: 如果截图太少，才使用滚动截图补充
+  // 短页面降低最小截图数量要求
+  const maxScroll = Math.max(0, pageTotalHeightForScroll - viewportHeight);
+  const minScreenshots = maxScroll < 200 ? 2 : 3; // 极短页面只需要2张
   if (screenshots.length < minScreenshots) {
     console.log(`\n   ⚠️  截图仅 ${screenshots.length} 张，尝试滚动截图补充...`);
 
@@ -2063,10 +2106,32 @@ async function capture() {
 
     // 使用黄金比例分割页面，避免重复内容
     const scrollPositions = [];
-    let pos = viewportHeight * 0.8; // 从首屏下方开始
-    while (scrollPositions.length < needed && pos < pageHeight - viewportHeight) {
-      scrollPositions.push(Math.round(pos));
-      pos += viewportHeight * 0.7; // 每次滚动 70% 视口高度
+
+    // 计算有效的滚动位置
+    const maxScroll = Math.max(0, pageHeight - viewportHeight);
+    console.log(`   📊 最大滚动距离: ${maxScroll}px`);
+
+    if (maxScroll < 100) {
+      // 极短页面：只截取一次
+      console.log(`   📊 极短页面模式 (无需滚动)`);
+      scrollPositions.push(0);
+    } else if (pageHeight <= viewportHeight * 1.5) {
+      // 短页面：分成两到三段
+      console.log(`   📊 短页面模式 (高度: ${pageHeight}px)`);
+      const segments = Math.min(needed, Math.ceil(pageHeight / (viewportHeight * 0.6)));
+      for (let i = 0; i < segments; i++) {
+        const pos = Math.round((maxScroll / segments) * i);
+        if (pos < maxScroll) {
+          scrollPositions.push(pos);
+        }
+      }
+    } else {
+      // 正常页面：使用滚动截图
+      let pos = viewportHeight * 0.5; // 降低起始位置
+      while (scrollPositions.length < needed && pos < pageHeight - viewportHeight * 0.5) {
+        scrollPositions.push(Math.round(pos));
+        pos += viewportHeight * 0.5; // 每次滚动 50% 视口高度
+      }
     }
 
     console.log(`   📊 滚动位置: ${scrollPositions.join(', ')}px`);

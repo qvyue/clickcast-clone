@@ -96,9 +96,12 @@ Output JSON format:
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const script = JSON.parse(jsonMatch[0]);
-              console.log('AI 分析完成!');
-              resolve(script);
-              return;
+              // 确保 scenes 数组存在
+              if (script && script.scenes && Array.isArray(script.scenes)) {
+                console.log('AI 分析完成!');
+                resolve(script);
+                return;
+              }
             }
           }
         } catch (e) {

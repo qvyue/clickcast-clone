@@ -451,6 +451,16 @@ async function runAIAgent(scrapedData, screenshotPaths) {
     { analysis: [] }
   );
 
+  // 处理 AI 返回数组的情况（直接返回 scenes 数组而不是完整对象）
+  if (Array.isArray(script)) {
+    console.log('   🔧 AI 返回了数组，转换为标准格式');
+    script = {
+      product: scrapedData.productName || 'This Product',
+      tagline: scrapedData.description?.substring(0, 50) || 'Amazing Solution',
+      scenes: script
+    };
+  }
+
   if (!script) {
     // Fallback to basic script generation
     console.log('   ⚠️ AI Agent 生成失败，使用基础生成器');
