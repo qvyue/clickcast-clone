@@ -55,9 +55,9 @@ const CONFIG = {
   BGM_VOLUME: parseFloat(process.env.BGM_VOLUME) || 0.15,
   MAX_SCENES: 6,
   // TTS 服务选择: 'edge-tts' (免费) 或 'elevenlabs' (高质量)
-  TTS_SERVICE: process.env.TTS_SERVICE || 'edge-tts',
-  // ElevenLabs 声音: Adam, Rachel, Antoni, Josh, Bella
-  ELEVENLABS_VOICE: process.env.ELEVENLABS_VOICE || 'Adam',
+  TTS_SERVICE: process.env.TTS_SERVICE || 'elevenlabs',
+  // ElevenLabs 声音: Dallin, Adam, Rachel, Antoni, Josh, Bella
+  ELEVENLABS_VOICE: process.env.ELEVENLABS_VOICE || 'Dallin',
 };
 
 // ==========================================

@@ -27,21 +27,18 @@ loadEnv();
 
 const CONFIG = {
   API_KEY: process.env.ELEVENLABS_API_KEY || '',
-  // ElevenLabs 内置声音 ID (2024年更新)
-  // 如果这些 ID 失效，可以在 https://elevenlabs.io/voice-library 查找
+  // ElevenLabs 声音 ID
   VOICES: {
-    'Adam': 'pNInz6obpgDQGcFmaJgB',      // 专业、可信（推荐）
+    'Adam': 'pNInz6obpgDQGcFmaJgB',      // 专业、可信
     'Rachel': '21m00Tcm4TlvDq8ikWAM',    // 友好、温暖
     'Antoni': 'ErXwobaYiN019PkySvjV',    // 充满活力
     'Josh': 'TxGEqnHWfuWHDWyoWaKh',      // 深沉、权威
     'Bella': 'EXAVITQu4vr4xnSDxMaL',     // 柔和、优雅
-    'Domi': 'AZnzlk1XvdvUeBn1ldC5',      // 强烈、自信
-    'Elli': 'MF3mGyEYCl7XYWbV9V6O',      // 情感丰富
-    'Sam': 'yoZ06aMxZJJ28mfd3poQ',       // 诚实、直接
+    'Dallin': 'alFofuDn3cOwyoz1i44T',   // 自定义声音
   },
-  DEFAULT_VOICE: 'Adam',
-  // 免费计划使用 eleven_multilingual_v2，付费计划可用 eleven_turbo_v2
-  MODEL: 'eleven_multilingual_v2',
+  DEFAULT_VOICE: 'Dallin',
+  // Eleven Flash v2.5 - 快速、高质量
+  MODEL: 'eleven_flash_v2_5',
 };
 
 /**
