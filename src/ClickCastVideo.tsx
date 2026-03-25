@@ -163,6 +163,33 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const imageFocus = sceneData.imageFocus || 'center';
   const objectPosition = getObjectPosition(imageFocus);
 
+  // 计算文本长度，动态调整布局
+  const titleLength = (sceneData.title || '').length;
+  const subTextLength = (sceneData.subText || '').length;
+  const totalTextLength = titleLength + subTextLength;
+
+  // 根据文本长度动态调整字体大小和间距
+  const isLongText = totalTextLength > 80;
+  const isVeryLongText = totalTextLength > 120;
+
+  // 动态字体大小
+  const titleFontSize = isPortrait
+    ? (isVeryLongText ? '50px' : (isLongText ? '55px' : '70px'))
+    : (isCenterMode ? (isLongText ? '40px' : '50px') : '70px');
+  const subTextFontSize = isPortrait
+    ? (isVeryLongText ? '26px' : (isLongText ? '30px' : '35px'))
+    : (isCenterMode ? (isLongText ? '24px' : '30px') : '30px');
+
+  // 动态间距
+  const textMarginBottom = isCenterMode
+    ? (isPortrait ? (isLongText ? '40px' : '80px') : (isLongText ? '30px' : '60px'))
+    : '0';
+
+  // 图片尺寸调整（长文本时缩小图片）
+  const imageWidth = isPortrait
+    ? (isVeryLongText ? '800px' : (isLongText ? '880px' : '960px'))
+    : (isCenterMode ? (isLongText ? '800px' : '900px') : '750px');
+
   return (
     <AbsoluteFill style={{
       flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
@@ -174,12 +201,39 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
         <Audio src={staticFile(sceneData.audioFile)} />
       </Sequence>
 
-      <div style={{ flex: isPortrait ? 0 : 1, textAlign: isCenterMode ? 'center' : 'left', opacity: enter, transform: `translateY(${interpolate(enter,[0, 1], [50, 0])}px)`, marginBottom: isCenterMode ? (isPortrait ? '80px' : '60px') : '0', padding: isCenterMode ? '0' : (layout === 'left' ? '0 60px 0 0' : '0 0 0 60px') }}>
-        <h2 style={{ fontSize: isPortrait ? '70px' : (isCenterMode ? '50px' : '70px'), lineHeight: 1.1, color: textColor, margin: '0 0 20px 0' }}>{sceneData.title}</h2>
-        {sceneData.subText && <p style={{ fontSize: isPortrait ? '35px' : '30px', color: subTextColor, margin: 0 }}>{sceneData.subText}</p>}
+      <div style={{
+        flex: isPortrait ? 0 : 1,
+        textAlign: isCenterMode ? 'center' : 'left',
+        opacity: enter,
+        transform: `translateY(${interpolate(enter,[0, 1], [50, 0])}px)`,
+        marginBottom: textMarginBottom,
+        padding: isCenterMode ? '0' : (layout === 'left' ? '0 60px 0 0' : '0 0 0 60px'),
+        // 限制文本容器最大高度，防止溢出
+        maxHeight: isPortrait ? '35%' : 'auto',
+        overflow: 'hidden'
+      }}>
+        <h2 style={{
+          fontSize: titleFontSize,
+          lineHeight: isLongText ? 1.15 : 1.1,
+          color: textColor,
+          margin: '0 0 15px 0',
+          // 长文本时添加文字阴影提高可读性
+          textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
+        }}>{sceneData.title}</h2>
+        {sceneData.subText && <p style={{
+          fontSize: subTextFontSize,
+          lineHeight: 1.3,
+          color: subTextColor,
+          margin: 0,
+          // 长文本截断处理
+          display: isVeryLongText ? '-webkit-box' : 'block',
+          WebkitLineClamp: isVeryLongText ? 3 : 'unset',
+          WebkitBoxOrient: 'vertical',
+          overflow: isVeryLongText ? 'hidden' : 'visible'
+        }}>{sceneData.subText}</p>}
       </div>
       <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: isPortrait ? '960px' : (isCenterMode ? '900px' : '750px'), aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+        <div style={{ transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
           <Img
             src={staticFile(sceneData.img)}
             style={{

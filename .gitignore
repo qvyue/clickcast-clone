@@ -19,3 +19,4 @@ websites/*/public/
 websites/*/out/
 
 # 保留 BGM 文件: public/bensound-*.mp3, public/bgm-*.mp3
+.gstack/
