@@ -246,13 +246,47 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       safeZone: 100
     };
 
+    // AI 智能布局决策（从 AI 生成的 script 中获取）
+    // 如果 AI 没有返回，使用智能默认值
+    const titleLength = (scene.title || '').length;
+    const subTextLength = (scene.subText || '').length;
+    const totalTextLength = titleLength + subTextLength;
+
+    let layout = scene.layout;
+    let imageImportance = scene.imageImportance || 'medium';
+
+    // 如果 AI 没有决定布局，使用智能默认规则
+    if (!layout) {
+      if (totalTextLength > 80) {
+        // 长文本 → center 布局（图片不会被裁剪）
+        layout = 'center';
+      } else {
+        // 短文本 → 交替 left/center 布局
+        layout = i % 2 === 0 ? 'left' : 'center';
+      }
+    }
+
+    // 如果 AI 没有决定图片重要性，根据截图类型推断
+    if (!scene.imageImportance) {
+      const screenshotType = cropInfo.type || scene.type || '';
+      if (['hero', 'product', 'testimonial'].includes(screenshotType)) {
+        imageImportance = 'high';
+      } else if (['decorative', 'background'].includes(screenshotType)) {
+        imageImportance = 'low';
+      } else {
+        imageImportance = 'medium';
+      }
+    }
+
     // 根据配音时长计算场景时长
     const audioDuration = audioDurations[i] || 3;
     const sceneDurationFrames = Math.ceil((audioDuration + 0.5) * FPS); // 加0.5秒缓冲
 
     timeline.scenes.push({
       id: i === 0 ? 'intro' : `scene${i - 1}`,
-      layout: i % 2 === 0 ? 'left' : 'center',
+      layout: layout,
+      imageImportance: imageImportance,
+      layoutReason: scene.layoutReason || `AI决策: ${totalTextLength}字符文本 + ${imageImportance}重要性图片`,
       title: scene.title,
       subText: scene.subText,
       img: screenshotFile,

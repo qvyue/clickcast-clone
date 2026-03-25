@@ -163,32 +163,58 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const imageFocus = sceneData.imageFocus || 'center';
   const objectPosition = getObjectPosition(imageFocus);
 
+  // AI 智能布局决策
+  const imageImportance = sceneData.imageImportance || 'medium';
+  const layoutReason = sceneData.layoutReason || '';
+
   // 计算文本长度，动态调整布局
   const titleLength = (sceneData.title || '').length;
   const subTextLength = (sceneData.subText || '').length;
   const totalTextLength = titleLength + subTextLength;
 
-  // 根据文本长度动态调整字体大小和间距
+  // 根据文本长度和图片重要性智能调整
   const isLongText = totalTextLength > 80;
   const isVeryLongText = totalTextLength > 120;
+
+  // 根据 AI 的布局决策 + 文本长度，动态调整图片尺寸
+  // 规则：
+  // - HIGH importance + long text → 图片保持较大（在 center 布局下）
+  // - LOW importance + long text → 图片可以缩小
+  // - HIGH importance + short text → 图片最大化
+  // - MEDIUM importance → 中等尺寸
+
+  let imageWidth: string;
+  if (isCenterMode) {
+    // Center 布局：图片独立于文字，保持较大
+    imageWidth = isPortrait
+      ? (isVeryLongText ? '800px' : (isLongText ? '880px' : '960px'))
+      : (isLongText ? '800px' : '900px');
+  } else {
+    // Left/Right 布局：根据图片重要性和文字长度动态调整
+    if (imageImportance === 'high') {
+      // 高重要性图片：保持较大，但长文本时适当缩小
+      imageWidth = isLongText ? '680px' : '750px';
+    } else if (imageImportance === 'low') {
+      // 低重要性图片：可以更小
+      imageWidth = isLongText ? '550px' : '620px';
+    } else {
+      // 中等重要性
+      imageWidth = isLongText ? '620px' : '700px';
+    }
+  }
 
   // 动态字体大小
   const titleFontSize = isPortrait
     ? (isVeryLongText ? '50px' : (isLongText ? '55px' : '70px'))
-    : (isCenterMode ? (isLongText ? '40px' : '50px') : '70px');
+    : (isCenterMode ? (isLongText ? '40px' : '50px') : (isLongText ? '50px' : '65px'));
   const subTextFontSize = isPortrait
     ? (isVeryLongText ? '26px' : (isLongText ? '30px' : '35px'))
-    : (isCenterMode ? (isLongText ? '24px' : '30px') : '30px');
+    : (isCenterMode ? (isLongText ? '24px' : '30px') : (isLongText ? '26px' : '30px'));
 
   // 动态间距
   const textMarginBottom = isCenterMode
     ? (isPortrait ? (isLongText ? '40px' : '80px') : (isLongText ? '30px' : '60px'))
     : '0';
-
-  // 图片尺寸调整（长文本时缩小图片）
-  const imageWidth = isPortrait
-    ? (isVeryLongText ? '800px' : (isLongText ? '880px' : '960px'))
-    : (isCenterMode ? (isLongText ? '800px' : '900px') : '750px');
 
   return (
     <AbsoluteFill style={{

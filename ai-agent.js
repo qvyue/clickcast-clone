@@ -273,7 +273,10 @@ ${screenshotContext}
       "subText": "Supporting text",
       "screenshot": "shot1.png",
       "voiceover": "Hook Title Here",
-      "type": "hook"
+      "type": "hook",
+      "layout": "center",
+      "imageImportance": "high",
+      "layoutReason": "Short title + important hero image"
     },
     {
       "id": "scene0",
@@ -281,10 +284,33 @@ ${screenshotContext}
       "subText": "Benefit description",
       "screenshot": "shot2.png",
       "voiceover": "Feature 1",
-      "type": "value"
+      "type": "value",
+      "layout": "left",
+      "imageImportance": "medium",
+      "layoutReason": "Medium text + feature screenshot"
     }
   ]
-}`;
+}
+
+=== LAYOUT DECISION RULES (CRITICAL!) ===
+For each scene, you MUST decide:
+1. "layout": "left", "right", or "center"
+2. "imageImportance": "high", "medium", or "low"
+3. "layoutReason": brief explanation
+
+DECISION LOGIC:
+- Calculate total text length = title + subText
+- SHORT TEXT (≤40 chars) + HIGH image importance → "left" or "right" (gives image more space)
+- LONG TEXT (>80 chars) + HIGH image importance → "center" (preserves image, stacks text)
+- LONG TEXT (>80 chars) + LOW image importance → "left" or "right" + image will be smaller
+- MEDIUM TEXT (40-80 chars) → "center" is safest, or "left"/"right" if image is not critical
+
+IMAGE IMPORTANCE GUIDE:
+- HIGH: hero sections, product screenshots, key UI, testimonials with faces
+- MEDIUM: feature lists, pricing tables, secondary content
+- LOW: decorative screenshots, background elements
+
+CRITICAL: When text is long AND image is important, use "center" layout to prevent image from being cut off!`;
 
   return callAI(prompt);
 }
