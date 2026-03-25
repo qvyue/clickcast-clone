@@ -210,6 +210,7 @@ app.get('/api/video/:jobId', (req, res) => {
 app.get('/api/videos', async (req, res) => {
   const websitesDir = path.join(__dirname, 'websites');
   const videos = [];
+  const limit = parseInt(req.query.limit) || 10; // 默认显示10个
 
   // 检查 R2 是否配置
   const { isR2Configured, listVideos } = require('./r2-storage.js');
@@ -270,7 +271,11 @@ app.get('/api/videos', async (req, res) => {
     });
   }
 
-  res.json({ videos, r2Enabled: useR2 });
+  // 按时间倒序排列，限制返回数量
+  videos.sort((a, b) => new Date(b.created) - new Date(a.created));
+  const limitedVideos = videos.slice(0, limit);
+
+  res.json({ videos: limitedVideos, total: videos.length, r2Enabled: useR2 });
 });
 
 // 首页 HTML
