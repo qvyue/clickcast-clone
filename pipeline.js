@@ -331,10 +331,10 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 }
 
 // ==========================================
-// 步骤3: 生成配音 (返回音频时长数组)
+// 步骤3: 生成配音 (返回音频时长数组) - 并发版本
 // ==========================================
 async function generateVoiceovers(scenes, outputDir = './public') {
-  console.log('\n[3/5] 🎤 生成 AI 配音...');
+  console.log('\n[3/5] 🎤 生成 AI 配音 (并发模式)...');
 
   // 检查是否使用 ElevenLabs
   const useElevenLabs = CONFIG.TTS_SERVICE === 'elevenlabs';
@@ -349,49 +349,54 @@ async function generateVoiceovers(scenes, outputDir = './public') {
     console.log(`   🎯 使用 edge-tts (${CONFIG.VOICE})`);
   }
 
-  const audioDurations = [];
+  console.log(`   ⚡ 并发生成 ${scenes.length} 段语音...`);
 
-  for (const scene of scenes) {
-    const audioFileName = `${scene.id}.mp3`;
-    const outputPath = path.join(outputDir, audioFileName);
+  // 并发生成所有语音
+  const startTime = Date.now();
+  const results = await Promise.all(
+    scenes.map(async (scene, index) => {
+      const audioFileName = `${scene.id}.mp3`;
+      const outputPath = path.join(outputDir, audioFileName);
 
-    console.log(`   🎙️ ${scene.id}`);
+      console.log(`   🎙️ 开始 ${scene.id}...`);
 
-    try {
-      const text = scene.text.replace(/"/g, '\\"');
-      let success = false;
+      try {
+        let success = false;
 
-      // 尝试使用 ElevenLabs
-      if (useElevenLabs) {
-        const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
-        if (isElevenLabsConfigured()) {
-          success = await generateSpeech(scene.text, outputPath, CONFIG.ELEVENLABS_VOICE);
-          if (success) {
-            console.log(`   ✅ ElevenLabs 合成成功`);
+        // 尝试使用 ElevenLabs
+        if (useElevenLabs) {
+          const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
+          if (isElevenLabsConfigured()) {
+            success = await generateSpeech(scene.text, outputPath, CONFIG.ELEVENLABS_VOICE);
           }
         }
+
+        // 回退到 edge-tts
+        if (!success) {
+          const text = scene.text.replace(/"/g, '\\"');
+          const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+          execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
+            stdio: 'pipe'
+          });
+          success = true;
+        }
+
+        // 读取音频时长
+        const duration = getAudioDuration(outputPath);
+        console.log(`   ✅ ${scene.id} 完成 (${duration.toFixed(2)}秒)`);
+        return { id: scene.id, duration, success: true };
+      } catch (e) {
+        console.log(`   ⚠️ ${scene.id} 失败: ${e.message}`);
+        return { id: scene.id, duration: 3, success: false };
       }
+    })
+  );
 
-      // 回退到 edge-tts
-      if (!success) {
-        const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-        execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
-          stdio: 'pipe'
-        });
-      }
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`✅ 配音生成完成 (耗时 ${elapsed}秒)`);
 
-      // 读取音频时长
-      const duration = getAudioDuration(outputPath);
-      audioDurations.push(duration);
-      console.log(`   ⏱️ 时长: ${duration.toFixed(2)}秒`);
-    } catch (e) {
-      console.log(`   ⚠️ 配音失败: ${e.message}`);
-      audioDurations.push(3); // 默认3秒
-    }
-  }
-
-  console.log('✅ 配音生成完成');
-  return audioDurations;
+  // 按照 scenes 顺序返回时长
+  return results.map(r => r.duration);
 }
 
 // ==========================================
