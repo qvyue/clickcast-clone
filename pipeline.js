@@ -54,6 +54,10 @@ const CONFIG = {
   VOICE: process.env.VOICE || 'en-US-ChristopherNeural',
   BGM_VOLUME: parseFloat(process.env.BGM_VOLUME) || 0.15,
   MAX_SCENES: 6,
+  // TTS 服务选择: 'edge-tts' (免费) 或 'elevenlabs' (高质量)
+  TTS_SERVICE: process.env.TTS_SERVICE || 'edge-tts',
+  // ElevenLabs 声音: Adam, Rachel, Antoni, Josh, Bella
+  ELEVENLABS_VOICE: process.env.ELEVENLABS_VOICE || 'Adam',
 };
 
 // ==========================================
@@ -298,6 +302,19 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 async function generateVoiceovers(scenes, outputDir = './public') {
   console.log('\n[3/5] 🎤 生成 AI 配音...');
 
+  // 检查是否使用 ElevenLabs
+  const useElevenLabs = CONFIG.TTS_SERVICE === 'elevenlabs';
+  if (useElevenLabs) {
+    const { isElevenLabsConfigured } = require('./elevenlabs-tts.js');
+    if (!isElevenLabsConfigured()) {
+      console.log('   ⚠️ ElevenLabs 未配置，回退到 edge-tts');
+    } else {
+      console.log(`   🎯 使用 ElevenLabs (${CONFIG.ELEVENLABS_VOICE})`);
+    }
+  } else {
+    console.log(`   🎯 使用 edge-tts (${CONFIG.VOICE})`);
+  }
+
   const audioDurations = [];
 
   for (const scene of scenes) {
@@ -308,11 +325,26 @@ async function generateVoiceovers(scenes, outputDir = './public') {
 
     try {
       const text = scene.text.replace(/"/g, '\\"');
-      // Windows 使用 python, Linux/Docker 使用 python3
-      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-      execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
-        stdio: 'pipe'
-      });
+      let success = false;
+
+      // 尝试使用 ElevenLabs
+      if (useElevenLabs) {
+        const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
+        if (isElevenLabsConfigured()) {
+          success = await generateSpeech(scene.text, outputPath, CONFIG.ELEVENLABS_VOICE);
+          if (success) {
+            console.log(`   ✅ ElevenLabs 合成成功`);
+          }
+        }
+      }
+
+      // 回退到 edge-tts
+      if (!success) {
+        const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+        execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
+          stdio: 'pipe'
+        });
+      }
 
       // 读取音频时长
       const duration = getAudioDuration(outputPath);
