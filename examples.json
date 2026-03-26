@@ -1,0 +1,16 @@
+{
+  "examples": [
+    {
+      "title": "Stripe",
+      "description": "Payment infrastructure for the internet",
+      "youtubeId": "dQw4w9WgXcQ",
+      "domain": "stripe.com"
+    },
+    {
+      "title": "GitHub",
+      "description": "Where developers build together",
+      "youtubeId": "dQw4w9WgXcQ",
+      "domain": "github.com"
+    }
+  ]
+}

@@ -278,6 +278,45 @@ app.get('/api/videos', async (req, res) => {
   res.json({ videos: limitedVideos, total: videos.length, r2Enabled: useR2 });
 });
 
+// 加载示例视频配置
+function loadExamples() {
+  const examplesPath = path.join(__dirname, 'examples.json');
+  if (fs.existsSync(examplesPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(examplesPath, 'utf-8'));
+      return data.examples || [];
+    } catch (e) {
+      console.error('Failed to load examples.json:', e.message);
+    }
+  }
+  return [];
+}
+
+// 生成示例视频 HTML
+function generateExamplesHtml() {
+  const examples = loadExamples();
+  if (examples.length === 0) return '';
+
+  const cardsHtml = examples.map(ex => `
+    <div class="example-card">
+      <iframe src="https://www.youtube.com/embed/${ex.youtubeId}" allowfullscreen></iframe>
+      <div class="example-info">
+        <div class="example-title">${ex.title}</div>
+        <div class="example-desc">${ex.description}</div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="examples">
+      <h3>🎬 See it in action</h3>
+      <div class="examples-grid">
+        ${cardsHtml}
+      </div>
+    </div>
+  `;
+}
+
 // 首页 HTML
 const indexHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -433,6 +472,14 @@ const indexHtml = `<!DOCTYPE html>
       margin-right: 8px;
       margin-bottom: 8px;
     }
+    .examples { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    .examples h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+    .examples-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+    .example-card { flex: 1; min-width: 280px; background: #f8f9fa; border-radius: 12px; overflow: hidden; }
+    .example-card iframe { width: 100%; height: 180px; border: none; }
+    .example-info { padding: 12px 15px; }
+    .example-title { font-weight: 600; color: #333; margin-bottom: 4px; }
+    .example-desc { font-size: 12px; color: #666; }
   </style>
 </head>
 <body>
@@ -481,9 +528,11 @@ const indexHtml = `<!DOCTYPE html>
       <span class="step">Playwright Screenshot</span>
       <span class="step">AI Analysis</span>
       <span class="step">Script Generation</span>
-      <span class="step">edge-TTS Voiceover</span>
+      <span class="step">AI Voiceover</span>
       <span class="step">Remotion Render</span>
     </div>
+
+    {{EXAMPLES_SECTION}}
   </div>
   <script>
     let currentJobId = null;
@@ -602,7 +651,8 @@ const indexHtml = `<!DOCTYPE html>
 </html>`;
 
 app.get('/', (req, res) => {
-  res.send(indexHtml);
+  const html = indexHtml.replace('{{EXAMPLES_SECTION}}', generateExamplesHtml());
+  res.send(html);
 });
 
 // 确保网站目录存在
