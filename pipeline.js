@@ -406,47 +406,52 @@ async function generateVoiceovers(scenes, outputDir = './public') {
     }
   });
 
-  console.log(`   ⚡ 并发生成 ${tasks.length} 段语音...`);
+  console.log(`   ⚡ 生成 ${tasks.length} 段语音 (并发数: 2)...`);
 
-  // 并发生成所有语音
+  // 限制并发数为 2，避免 ElevenLabs rate limit
   const startTime = Date.now();
-  const results = await Promise.all(
-    tasks.map(async (task) => {
-      const outputPath = path.join(outputDir, task.fileName);
+  const results = [];
+  for (let i = 0; i < tasks.length; i += 2) {
+    const batch = tasks.slice(i, i + 2);
+    const batchResults = await Promise.all(
+      batch.map(async (task) => {
+        const outputPath = path.join(outputDir, task.fileName);
 
-      console.log(`   🎙️ 开始 ${task.id}-${task.type}...`);
+        console.log(`   🎙️ 开始 ${task.id}-${task.type}...`);
 
-      try {
-        let success = false;
+        try {
+          let success = false;
 
-        // 尝试使用 ElevenLabs
-        if (useElevenLabs) {
-          const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
-          if (isElevenLabsConfigured()) {
-            success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
+          // 尝试使用 ElevenLabs
+          if (useElevenLabs) {
+            const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
+            if (isElevenLabsConfigured()) {
+              success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
+            }
           }
-        }
 
-        // 回退到 edge-tts
-        if (!success) {
-          const text = task.text.replace(/"/g, '\\"');
-          const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-          execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
-            stdio: 'pipe'
-          });
-          success = true;
-        }
+          // 回退到 edge-tts
+          if (!success) {
+            const text = task.text.replace(/"/g, '\\"');
+            const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+            execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
+              stdio: 'pipe'
+            });
+            success = true;
+          }
 
-        // 读取音频时长
-        const duration = getAudioDuration(outputPath);
-        console.log(`   ✅ ${task.id}-${task.type} 完成 (${duration.toFixed(2)}秒)`);
-        return { id: task.id, type: task.type, duration, success: true };
-      } catch (e) {
-        console.log(`   ⚠️ ${task.id}-${task.type} 失败: ${e.message}`);
-        return { id: task.id, type: task.type, duration: 3, success: false };
-      }
-    })
-  );
+          // 读取音频时长
+          const duration = getAudioDuration(outputPath);
+          console.log(`   ✅ ${task.id}-${task.type} 完成 (${duration.toFixed(2)}秒)`);
+          return { id: task.id, type: task.type, duration, success: true };
+        } catch (e) {
+          console.log(`   ⚠️ ${task.id}-${task.type} 失败: ${e.message}`);
+          return { id: task.id, type: task.type, duration: 3, success: false };
+        }
+      })
+    );
+    results.push(...batchResults);
+  }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`✅ 配音生成完成 (耗时 ${elapsed}秒)`);
