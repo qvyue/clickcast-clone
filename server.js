@@ -210,7 +210,7 @@ app.get('/api/video/:jobId', (req, res) => {
 app.get('/api/videos', async (req, res) => {
   const websitesDir = path.join(__dirname, 'websites');
   const videos = [];
-  const limit = parseInt(req.query.limit) || 10; // 默认显示10个
+  const limit = parseInt(req.query.limit) || 5; // 默认显示5个
 
   // 检查 R2 是否配置
   const { isR2Configured, listVideos } = require('./r2-storage.js');
