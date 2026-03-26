@@ -588,7 +588,7 @@ const indexHtml = `<!DOCTYPE html>
               '<div class="video-actions">' +
                 '<a href="' + v.url + '" target="_blank">Play</a>' +
                 '<a href="' + v.url + '" download">Download</a>' +
-                '<a href="#" class="delete" onclick="deleteVideo(\'' + v.domain + '\', event)">Delete</a>' +
+                '<a href="#" class="delete" data-domain="' + v.domain + '">Delete</a>' +
               '</div>' +
             '</div>'
           ).join('');
@@ -679,8 +679,18 @@ const indexHtml = `<!DOCTYPE html>
       }
     }
 
-    async function deleteVideo(domain, event) {
-      event.preventDefault();
+    // Event delegation for delete buttons
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('delete')) {
+        e.preventDefault();
+        var domain = e.target.getAttribute('data-domain');
+        if (domain) {
+          deleteVideo(domain);
+        }
+      }
+    });
+
+    async function deleteVideo(domain) {
       if (!confirm('Delete video and cache for ' + domain + '?')) return;
 
       try {
@@ -689,11 +699,11 @@ const indexHtml = `<!DOCTYPE html>
 
         if (data.success) {
           // Remove from UI
-          const item = document.getElementById('video-' + domain);
+          var item = document.getElementById('video-' + domain);
           if (item) item.remove();
 
           // Check if list is empty
-          const list = document.getElementById('videoList');
+          var list = document.getElementById('videoList');
           if (list.children.length === 0) {
             document.getElementById('videoListSection').style.display = 'none';
           }
