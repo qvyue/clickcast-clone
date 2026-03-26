@@ -579,7 +579,7 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
   if (chromiumPath) {
     renderCmd += ` --chromium-executable-path="${chromiumPath}"`;
   }
-  renderCmd += ' --concurrency=1';
+  renderCmd += ' --concurrency=4';
 
   console.log(`\n   🎬 开始渲染...`);
   console.log(`   📝 命令: ${renderCmd}\n`);
