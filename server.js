@@ -278,6 +278,34 @@ app.get('/api/videos', async (req, res) => {
   res.json({ videos: limitedVideos, total: videos.length, r2Enabled: useR2 });
 });
 
+// API: 删除视频和缓存
+app.delete('/api/delete/:domain', async (req, res) => {
+  const { domain } = req.params;
+  const websiteDir = path.join(__dirname, 'websites', domain);
+
+  if (!fs.existsSync(websiteDir)) {
+    return res.status(404).json({ error: 'Website not found' });
+  }
+
+  try {
+    // 删除整个网站目录（包含视频、截图、缓存等）
+    fs.rmSync(websiteDir, { recursive: true, force: true });
+    console.log(`Deleted: ${websiteDir}`);
+
+    // 清除 R2 URL 缓存
+    for (const [key] of r2VideoUrls) {
+      if (key.includes(domain)) {
+        r2VideoUrls.delete(key);
+      }
+    }
+
+    res.json({ success: true, message: 'Deleted successfully' });
+  } catch (e) {
+    console.error('Delete error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // 加载示例视频配置
 function loadExamples() {
   const examplesPath = path.join(__dirname, 'examples.json');
@@ -460,6 +488,11 @@ const indexHtml = `<!DOCTYPE html>
       font-size: 12px;
       margin-left: 8px;
     }
+    .video-actions a:hover { opacity: 0.8; }
+    .video-actions a.delete {
+      background: #dc3545;
+    }
+    .video-actions a.delete:hover { background: #c82333; }
     .steps { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
     .steps-title { font-size: 12px; color: #999; margin-bottom: 10px; }
     .step {
@@ -547,7 +580,7 @@ const indexHtml = `<!DOCTYPE html>
         if (data.videos && data.videos.length > 0) {
           document.getElementById('videoListSection').style.display = 'block';
           document.getElementById('videoList').innerHTML = data.videos.map(v =>
-            '<div class="video-item">' +
+            '<div class="video-item" id="video-' + v.domain + '">' +
               '<div class="video-info">' +
                 '<div class="video-domain">' + v.domain + '</div>' +
                 '<div class="video-meta">' + v.file + ' · ' + v.size + ' MB</div>' +
@@ -555,6 +588,7 @@ const indexHtml = `<!DOCTYPE html>
               '<div class="video-actions">' +
                 '<a href="' + v.url + '" target="_blank">Play</a>' +
                 '<a href="' + v.url + '" download">Download</a>' +
+                '<a href="#" class="delete" onclick="deleteVideo(\'' + v.domain + '\', event)">Delete</a>' +
               '</div>' +
             '</div>'
           ).join('');
@@ -642,6 +676,34 @@ const indexHtml = `<!DOCTYPE html>
         }
       } catch (error) {
         console.error('Status poll error:', error);
+      }
+    }
+
+    async function deleteVideo(domain, event) {
+      event.preventDefault();
+      if (!confirm('Delete video and cache for ' + domain + '?')) return;
+
+      try {
+        const res = await fetch('/api/delete/' + domain, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+          // Remove from UI
+          const item = document.getElementById('video-' + domain);
+          if (item) item.remove();
+
+          // Check if list is empty
+          const list = document.getElementById('videoList');
+          if (list.children.length === 0) {
+            document.getElementById('videoListSection').style.display = 'none';
+          }
+
+          alert('Deleted successfully');
+        } else {
+          alert('Delete failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Delete failed: ' + e.message);
       }
     }
 
