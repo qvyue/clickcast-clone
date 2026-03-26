@@ -185,11 +185,11 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{sceneData.title}</h1>
 
           {isIntro ? (
-            <p style={{ fontSize: isPortrait ? '40px' : '30px', color: subTextColor, marginTop: '30px' }}>{sceneData.subText}</p>
+            <p style={{ fontSize: isPortrait ? '40px' : '30px', color: subTextColor, marginTop: '30px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.3, wordWrap: 'break-word' }}>{sceneData.subText}</p>
           ) : (
             <>
               <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '20px 50px', borderRadius: '12px', display: 'inline-block', fontSize: '30px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '20px', ...buttonTextStyle }}>GET STARTED</div>
-              <p style={{ color: subTextColor, fontSize: '30px', marginTop: '40px' }}>{sceneData.subText}</p>
+              <p style={{ color: subTextColor, fontSize: '30px', marginTop: '40px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.3, wordWrap: 'break-word' }}>{sceneData.subText}</p>
             </>
           )}
         </div>
