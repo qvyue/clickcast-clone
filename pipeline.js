@@ -278,9 +278,11 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       }
     }
 
-    // 根据配音时长计算场景时长
-    const audioDuration = audioDurations[i] || 3;
-    const sceneDurationFrames = Math.ceil((audioDuration + 0.5) * FPS); // 加0.5秒缓冲
+    // 根据配音时长计算场景时长（主配音 + 次配音）
+    const audioInfo = audioDurations[i] || { mainDuration: 3, subDuration: 0 };
+    // 总时长 = 主配音时长 + 次配音时长 + 缓冲时间
+    const totalAudioDuration = audioInfo.mainDuration + audioInfo.subDuration;
+    const sceneDurationFrames = Math.ceil((totalAudioDuration + 0.5) * FPS); // 加0.5秒缓冲
 
     timeline.scenes.push({
       id: i === 0 ? 'intro' : `scene${i - 1}`,
@@ -291,7 +293,10 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       subText: scene.subText,
       img: screenshotFile,
       text: i === 0 ? `${script.product}. ${scene.title}.` : scene.title,
-      audioFile: i === 0 ? 'intro.mp3' : `scene${i - 1}.mp3`,
+      audioFile: i === 0 ? 'intro-main.mp3' : `scene${i - 1}-main.mp3`,
+      audioFileSub: i === 0 ? 'intro-sub.mp3' : `scene${i - 1}-sub.mp3`,
+      mainDuration: audioInfo.mainDuration,
+      subDuration: audioInfo.subDuration,
       startFrame: currentStartFrame,
       durationInFrames: sceneDurationFrames,
       audioStartFrame: 10,
@@ -305,8 +310,8 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
   }
 
   // outro - 使用最后一个音频时长
-  const outroAudioDuration = audioDurations[audioDurations.length - 1] || 3;
-  const outroDurationFrames = Math.ceil((outroAudioDuration + 1) * FPS);
+  const outroAudioInfo = audioDurations[audioDurations.length - 1] || { mainDuration: 3, subDuration: 0 };
+  const outroDurationFrames = Math.ceil((outroAudioInfo.mainDuration + outroAudioInfo.subDuration + 1) * FPS);
 
   timeline.scenes.push({
     id: 'outro',
@@ -314,7 +319,10 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     title: `Try ${script.product}`,
     subText: script.tagline,
     text: `${script.product}. ${script.tagline}.`,
-    audioFile: 'outro.mp3',
+    audioFile: 'outro-main.mp3',
+    audioFileSub: 'outro-sub.mp3',
+    mainDuration: outroAudioInfo.mainDuration,
+    subDuration: outroAudioInfo.subDuration,
     startFrame: currentStartFrame,
     durationInFrames: outroDurationFrames,
     audioStartFrame: 10
@@ -332,6 +340,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 
 // ==========================================
 // 步骤3: 生成配音 (返回音频时长数组) - 并发版本
+// 支持 main (主文案) 和 sub (次文案) 分别生成配音
 // ==========================================
 async function generateVoiceovers(scenes, outputDir = './public') {
   console.log('\n[3/5] 🎤 生成 AI 配音 (并发模式)...');
@@ -349,16 +358,38 @@ async function generateVoiceovers(scenes, outputDir = './public') {
     console.log(`   🎯 使用 edge-tts (${CONFIG.VOICE})`);
   }
 
-  console.log(`   ⚡ 并发生成 ${scenes.length} 段语音...`);
+  // 收集所有需要生成的配音任务
+  const tasks = [];
+  scenes.forEach((scene, index) => {
+    // 主文案配音任务
+    if (scene.title) {
+      tasks.push({
+        id: scene.id,
+        type: 'main',
+        text: scene.title,
+        fileName: `${scene.id}-main.mp3`
+      });
+    }
+    // 次文案配音任务（如果有内容）
+    if (scene.subText && scene.subText.trim()) {
+      tasks.push({
+        id: scene.id,
+        type: 'sub',
+        text: scene.subText,
+        fileName: `${scene.id}-sub.mp3`
+      });
+    }
+  });
+
+  console.log(`   ⚡ 并发生成 ${tasks.length} 段语音...`);
 
   // 并发生成所有语音
   const startTime = Date.now();
   const results = await Promise.all(
-    scenes.map(async (scene, index) => {
-      const audioFileName = `${scene.id}.mp3`;
-      const outputPath = path.join(outputDir, audioFileName);
+    tasks.map(async (task) => {
+      const outputPath = path.join(outputDir, task.fileName);
 
-      console.log(`   🎙️ 开始 ${scene.id}...`);
+      console.log(`   🎙️ 开始 ${task.id}-${task.type}...`);
 
       try {
         let success = false;
@@ -367,13 +398,13 @@ async function generateVoiceovers(scenes, outputDir = './public') {
         if (useElevenLabs) {
           const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
           if (isElevenLabsConfigured()) {
-            success = await generateSpeech(scene.text, outputPath, CONFIG.ELEVENLABS_VOICE);
+            success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
           }
         }
 
         // 回退到 edge-tts
         if (!success) {
-          const text = scene.text.replace(/"/g, '\\"');
+          const text = task.text.replace(/"/g, '\\"');
           const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
           execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
             stdio: 'pipe'
@@ -383,11 +414,11 @@ async function generateVoiceovers(scenes, outputDir = './public') {
 
         // 读取音频时长
         const duration = getAudioDuration(outputPath);
-        console.log(`   ✅ ${scene.id} 完成 (${duration.toFixed(2)}秒)`);
-        return { id: scene.id, duration, success: true };
+        console.log(`   ✅ ${task.id}-${task.type} 完成 (${duration.toFixed(2)}秒)`);
+        return { id: task.id, type: task.type, duration, success: true };
       } catch (e) {
-        console.log(`   ⚠️ ${scene.id} 失败: ${e.message}`);
-        return { id: scene.id, duration: 3, success: false };
+        console.log(`   ⚠️ ${task.id}-${task.type} 失败: ${e.message}`);
+        return { id: task.id, type: task.type, duration: 3, success: false };
       }
     })
   );
@@ -395,8 +426,19 @@ async function generateVoiceovers(scenes, outputDir = './public') {
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`✅ 配音生成完成 (耗时 ${elapsed}秒)`);
 
-  // 按照 scenes 顺序返回时长
-  return results.map(r => r.duration);
+  // 转换为按场景分组的格式
+  const audioDurations = [];
+  scenes.forEach(scene => {
+    const mainResult = results.find(r => r.id === scene.id && r.type === 'main');
+    const subResult = results.find(r => r.id === scene.id && r.type === 'sub');
+    audioDurations.push({
+      id: scene.id,
+      mainDuration: mainResult ? mainResult.duration : 0,
+      subDuration: subResult ? subResult.duration : 0
+    });
+  });
+
+  return audioDurations;
 }
 
 // ==========================================
@@ -515,7 +557,12 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     // 清理网站生成的文件（保留原始文件如 BGM）
     const websiteFiles = ['shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png',
                           'scraped.json', 'timeline.json', 'website-shot.png',
-                          'intro.mp3', 'scene0.mp3', 'scene1.mp3', 'scene2.mp3', 'scene3.mp3', 'outro.mp3'];
+                          // 新的配音文件命名
+                          'intro-main.mp3', 'intro-sub.mp3', 'outro-main.mp3', 'outro-sub.mp3'];
+    // 添加 scene 的配音文件
+    for (let i = 0; i < 10; i++) {
+      websiteFiles.push(`scene${i}-main.mp3`, `scene${i}-sub.mp3`);
+    }
     for (const file of websiteFiles) {
       const filePath = path.join(rootPublicDir, file);
       if (fs.existsSync(filePath)) {
@@ -624,7 +671,7 @@ async function main() {
       : [];
     console.log(`   ✅ 已分析 ${cropStrategies.length} 张截图的裁切策略`);
 
-    // 3. 准备配音场景列表
+    // 3. 准备配音场景列表（包含主文案和次文案）
     const voiceoverScenes = [];
 
     // 确保 script.scenes 存在
@@ -635,21 +682,23 @@ async function main() {
 
     for (let i = 0; i < script.scenes.length; i++) {
       const scene = script.scenes[i];
-      // 短视频风格: 只读 title
-      const text = i === 0
+      // 主文案: 第一个场景包含产品名
+      const title = i === 0
         ? `${script.product}. ${scene.title}.`
         : scene.title;
 
       voiceoverScenes.push({
         id: i === 0 ? 'intro' : `scene${i - 1}`,
-        text: text
+        title: title,
+        subText: scene.subText || ''  // 次文案
       });
     }
 
     // 添加 outro
     voiceoverScenes.push({
       id: 'outro',
-      text: `${script.product}. ${script.tagline}.`
+      title: `${script.product}. ${script.tagline}.`,
+      subText: ''  // outro 没有次文案
     });
 
     // 生成配音并获取时长

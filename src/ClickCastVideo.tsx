@@ -102,6 +102,11 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const isPortrait = height > width;
   const colors = videoStyle.colors;
 
+  // 检查是否有两阶段动画数据
+  const hasTwoPhase = sceneData.subAudioFile && sceneData.subDuration;
+  const mainDuration = sceneData.mainDuration || sceneData.durationInFrames;
+  const subDuration = sceneData.subDuration || 0;
+
   // 根据背景颜色自动计算所有文字颜色，确保最佳对比度
   const bgColor = colors.background || '#05010d';
   const textColor = getContrastText(bgColor);  // 主标题颜色
@@ -216,63 +221,223 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
     ? (isPortrait ? (isLongText ? '40px' : '80px') : (isLongText ? '30px' : '60px'))
     : '0';
 
-  return (
-    <AbsoluteFill style={{
-      flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
-      justifyContent: 'center', alignItems: 'center',
-      padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
-      opacity: fadeOut, perspective: '1500px'
-    }}>
-      <Sequence from={sceneData.audioStartFrame}>
-        <Audio src={staticFile(sceneData.audioFile)} />
-      </Sequence>
+  // 两阶段动画渲染函数
+  const renderTwoPhaseScene = () => {
+    // 阶段1: 主文案阶段 - 图片正常大小，标题显示
+    const renderPhase1 = () => {
+      const phase1Frame = frame;
+      const enterPhase1 = spring({ frame: phase1Frame - 5, fps, config: { damping: 14 } });
+      const fadeOutPhase1 = interpolate(phase1Frame, [mainDuration - 15, mainDuration], [1, 0], { extrapolateRight: 'clamp' });
 
-      <div style={{
-        flex: isPortrait ? 0 : 1,
-        textAlign: isCenterMode ? 'center' : 'left',
-        opacity: enter,
-        transform: `translateY(${interpolate(enter,[0, 1], [50, 0])}px)`,
-        marginBottom: textMarginBottom,
-        padding: isCenterMode ? '0' : (layout === 'left' ? '0 60px 0 0' : '0 0 0 60px'),
-        // 限制文本容器最大高度，防止溢出
-        maxHeight: isPortrait ? '35%' : 'auto',
-        overflow: 'hidden'
-      }}>
-        <h2 style={{
-          fontSize: titleFontSize,
-          lineHeight: isLongText ? 1.15 : 1.1,
-          color: textColor,
-          margin: '0 0 15px 0',
-          // 长文本时添加文字阴影提高可读性
-          textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
-        }}>{sceneData.title}</h2>
-        {sceneData.subText && <p style={{
-          fontSize: subTextFontSize,
-          lineHeight: 1.3,
-          color: subTextColor,
-          margin: 0,
-          // 长文本截断处理
-          display: isVeryLongText ? '-webkit-box' : 'block',
-          WebkitLineClamp: isVeryLongText ? 3 : 'unset',
-          WebkitBoxOrient: 'vertical',
-          overflow: isVeryLongText ? 'hidden' : 'visible'
-        }}>{sceneData.subText}</p>}
-      </div>
-      <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
-          <Img
-            src={staticFile(sceneData.img)}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: imageFit, // AI 智能决定: contain 或 cover
-              objectPosition: objectPosition // AI 智能决定焦点位置
-            }}
-          />
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
+      return (
+        <AbsoluteFill style={{
+          flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
+          justifyContent: 'center', alignItems: 'center',
+          padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
+          opacity: fadeOutPhase1, perspective: '1500px'
+        }}>
+          <Sequence from={sceneData.audioStartFrame}>
+            <Audio src={staticFile(sceneData.mainAudioFile || sceneData.audioFile)} />
+          </Sequence>
+
+          <div style={{
+            flex: isPortrait ? 0 : 1,
+            textAlign: isCenterMode ? 'center' : 'left',
+            opacity: enterPhase1,
+            transform: `translateY(${interpolate(enterPhase1,[0, 1], [50, 0])}px)`,
+            marginBottom: textMarginBottom,
+            padding: isCenterMode ? '0' : (layout === 'left' ? '0 60px 0 0' : '0 0 0 60px'),
+            maxHeight: isPortrait ? '35%' : 'auto',
+            overflow: 'hidden'
+          }}>
+            <h2 style={{
+              fontSize: titleFontSize,
+              lineHeight: isLongText ? 1.15 : 1.1,
+              color: textColor,
+              margin: '0 0 15px 0',
+              textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
+            }}>{sceneData.title}</h2>
+            {sceneData.subText && <p style={{
+              fontSize: subTextFontSize,
+              lineHeight: 1.3,
+              color: subTextColor,
+              margin: 0,
+              display: isVeryLongText ? '-webkit-box' : 'block',
+              WebkitLineClamp: isVeryLongText ? 3 : 'unset',
+              WebkitBoxOrient: 'vertical',
+              overflow: isVeryLongText ? 'hidden' : 'visible'
+            }}>{sceneData.subText}</p>}
+          </div>
+          <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ transform: `translateY(${interpolate(enterPhase1, [0, 1], [200, 0])}px) rotateY(${interpolate(enterPhase1, [0, 1], [targetRotateY > 0 ? 40 : -40, targetRotateY])}deg) scale(${interpolate(phase1Frame, [0, mainDuration], [1, 1.05])})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+              <Img
+                src={staticFile(sceneData.img)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: imageFit,
+                  objectPosition: objectPosition
+                }}
+              />
+            </div>
+          </div>
+        </AbsoluteFill>
+      );
+    };
+
+    // 阶段2: 次文案阶段 - 图片放大到100%，标题淡出
+    const renderPhase2 = () => {
+      const phase2Frame = frame - mainDuration;
+      const zoomTransitionDuration = fps; // 1秒过渡
+      const enterPhase2 = spring({ frame: phase2Frame, fps, config: { damping: 14 } });
+
+      // 图片放大动画：从当前宽度过渡到100%
+      const imageScale = interpolate(phase2Frame, [0, zoomTransitionDuration], [1, 1.15], { extrapolateRight: 'clamp' });
+
+      // 文字淡出动画
+      const textOpacity = interpolate(phase2Frame, [0, zoomTransitionDuration], [1, 0], { extrapolateRight: 'clamp' });
+
+      // 场景结束时淡出
+      const fadeOutPhase2 = interpolate(phase2Frame, [subDuration - 15, subDuration], [1, 0], { extrapolateRight: 'clamp' });
+
+      // 100%宽度的图片尺寸
+      const fullImageWidth = isPortrait ? '100%' : '100%';
+
+      return (
+        <AbsoluteFill style={{
+          flexDirection: 'column',
+          justifyContent: 'center', alignItems: 'center',
+          padding: isPortrait ? '0 20px' : '0 40px',
+          opacity: fadeOutPhase2, perspective: '1500px'
+        }}>
+          <Sequence from={0}>
+            <Audio src={staticFile(sceneData.subAudioFile)} />
+          </Sequence>
+
+          {/* 文字层 - 淡出 */}
+          <div style={{
+            position: 'absolute',
+            top: isPortrait ? '5%' : '10%',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            opacity: textOpacity,
+            padding: '0 40px',
+            zIndex: 10
+          }}>
+            <h2 style={{
+              fontSize: titleFontSize,
+              lineHeight: isLongText ? 1.15 : 1.1,
+              color: textColor,
+              margin: '0 0 15px 0',
+              textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
+            }}>{sceneData.title}</h2>
+          </div>
+
+          {/* 图片层 - 放大到100% */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            height: '100%'
+          }}>
+            <div style={{
+              transform: `scale(${imageScale})`,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: fullImageWidth,
+              maxWidth: '95%',
+              aspectRatio: '1440 / 900',
+              overflow: 'hidden',
+              background: '#111'
+            }}>
+              <Img
+                src={staticFile(sceneData.img)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: imageFit,
+                  objectPosition: objectPosition
+                }}
+              />
+            </div>
+          </div>
+        </AbsoluteFill>
+      );
+    };
+
+    // 根据当前帧判断渲染哪个阶段
+    const isPhase1 = frame < mainDuration;
+
+    return (
+      <>
+        {isPhase1 ? renderPhase1() : renderPhase2()}
+      </>
+    );
+  };
+
+  // 单阶段渲染（原有逻辑）
+  const renderSinglePhaseScene = () => {
+    return (
+      <AbsoluteFill style={{
+        flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
+        justifyContent: 'center', alignItems: 'center',
+        padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
+        opacity: fadeOut, perspective: '1500px'
+        }}>
+          <Sequence from={sceneData.audioStartFrame}>
+            <Audio src={staticFile(sceneData.audioFile)} />
+          </Sequence>
+
+          <div style={{
+            flex: isPortrait ? 0 : 1,
+            textAlign: isCenterMode ? 'center' : 'left',
+            opacity: enter,
+            transform: `translateY(${interpolate(enter,[0, 1], [50, 0])}px)`,
+            marginBottom: textMarginBottom,
+            padding: isCenterMode ? '0' : (layout === 'left' ? '0 60px 0 0' : '0 0 0 60px'),
+            maxHeight: isPortrait ? '35%' : 'auto',
+            overflow: 'hidden'
+          }}>
+            <h2 style={{
+              fontSize: titleFontSize,
+              lineHeight: isLongText ? 1.15 : 1.1,
+              color: textColor,
+              margin: '0 0 15px 0',
+              textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
+            }}>{sceneData.title}</h2>
+            {sceneData.subText && <p style={{
+              fontSize: subTextFontSize,
+              lineHeight: 1.3,
+              color: subTextColor,
+              margin: 0,
+              display: isVeryLongText ? '-webkit-box' : 'block',
+              WebkitLineClamp: isVeryLongText ? 3 : 'unset',
+              WebkitBoxOrient: 'vertical',
+              overflow: isVeryLongText ? 'hidden' : 'visible'
+            }}>{sceneData.subText}</p>}
+          </div>
+          <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+              <Img
+                src={staticFile(sceneData.img)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: imageFit,
+                  objectPosition: objectPosition
+                }}
+              />
+            </div>
+          </div>
+        </AbsoluteFill>
+    );
+  };
+
+  // 根据是否有两阶段数据选择渲染方式
+  return hasTwoPhase ? renderTwoPhaseScene() : renderSinglePhaseScene();
 };
 
 // --- 主视频时间轴 ---
