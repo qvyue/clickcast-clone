@@ -356,6 +356,22 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       const containerWidth = isPortrait ? '100%' : '90%';
       const containerHeight = isPortrait ? '60%' : '75%';
 
+      // 根据布局决定图片的位置和缩放起点
+      // layout === 'left': 文字在左边，图片在右边 -> 放大时从右边开始
+      // layout === 'right': 图片在左边，文字在右边 -> 放大时从左边开始
+      // layout === 'center': 居中 -> 从中间放大
+      const imageJustifyContent = isCenterMode
+        ? 'center'
+        : (layout === 'left' ? 'flex-end' : 'flex-start');
+      const transformOrigin = isCenterMode
+        ? 'center center'
+        : (layout === 'left' ? 'right center' : 'left center');
+
+      // 文字位置也需要根据布局调整
+      const textAlign = isCenterMode ? 'center' : (layout === 'left' ? 'left' : 'right');
+      const textPaddingLeft = isCenterMode ? '40px' : (layout === 'left' ? '120px' : '40px');
+      const textPaddingRight = isCenterMode ? '40px' : (layout === 'left' ? '40px' : '120px');
+
       return (
         <AbsoluteFill style={{
           flexDirection: 'column',
@@ -373,9 +389,10 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             top: isPortrait ? '5%' : '8%',
             left: 0,
             right: 0,
-            textAlign: 'center',
+            textAlign: textAlign,
             opacity: textOpacity,
-            padding: '0 40px',
+            paddingLeft: textPaddingLeft,
+            paddingRight: textPaddingRight,
             zIndex: 10
           }}>
             <h2 style={{
@@ -387,10 +404,10 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             }}>{sceneData.title}</h2>
           </div>
 
-          {/* 图片层 - 放大显示 */}
+          {/* 图片层 - 放大显示，根据布局调整位置 */}
           <div style={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: imageJustifyContent,
             alignItems: 'center',
             width: containerWidth,
             height: containerHeight,
@@ -398,6 +415,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           }}>
             <div style={{
               transform: `scale(${imageScale})`,
+              transformOrigin: transformOrigin,
               boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
               borderRadius: '16px',
               border: '1px solid rgba(255,255,255,0.15)',
