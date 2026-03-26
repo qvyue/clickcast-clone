@@ -103,7 +103,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const colors = videoStyle.colors;
 
   // 检查是否有两阶段动画数据
-  const hasTwoPhase = sceneData.subAudioFile && sceneData.subDuration;
+  const hasTwoPhase = sceneData.audioFileSub && sceneData.subDuration;
   const mainDuration = sceneData.mainDuration || sceneData.durationInFrames;
   const subDuration = sceneData.subDuration || 0;
 
@@ -237,7 +237,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           opacity: fadeOutPhase1, perspective: '1500px'
         }}>
           <Sequence from={sceneData.audioStartFrame}>
-            <Audio src={staticFile(sceneData.mainAudioFile || sceneData.audioFile)} />
+            <Audio src={staticFile(sceneData.audioFile)} />
           </Sequence>
 
           <div style={{
@@ -311,7 +311,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           opacity: fadeOutPhase2, perspective: '1500px'
         }}>
           <Sequence from={0}>
-            <Audio src={staticFile(sceneData.subAudioFile)} />
+            <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
 
           {/* 文字层 - 淡出 */}
