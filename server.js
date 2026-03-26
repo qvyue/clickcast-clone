@@ -476,7 +476,7 @@ const indexHtml = `<!DOCTYPE html>
     .examples h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
     .examples-grid { display: flex; flex-direction: column; gap: 15px; }
     .example-card { background: #f8f9fa; border-radius: 12px; overflow: hidden; }
-    .example-card iframe { width: 100%; height: 200px; border: none; }
+    .example-card iframe { width: 100%; aspect-ratio: 16 / 9; border: none; }
     .example-info { padding: 12px 15px; }
     .example-title { font-weight: 600; color: #333; margin-bottom: 4px; }
     .example-desc { font-size: 12px; color: #666; }
