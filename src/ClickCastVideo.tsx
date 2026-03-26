@@ -140,15 +140,44 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const translateY = interpolate(enter, [0, 1], [200, 0]);
   const slowZoom = interpolate(frame, [0, duration], [1, 1.05]);
 
-  // Intro 和 Outro 样式
+  // Intro 和 Outro 样式 - 支持两阶段
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
     const scale = interpolate(enter, [0, 1], [3, 1]);
     const rotateX = interpolate(enter, [0, 1], [40, 0]);
     const isIntro = sceneData.id === 'intro';
 
+    // 检查是否有次配音
+    const hasSubAudio = sceneData.audioFileSub && sceneData.subDuration;
+    const mainDur = hasSubAudio ? (sceneData.mainDuration || 3) * fps : duration;
+    const subDur = hasSubAudio ? (sceneData.subDuration || 0) * fps : 0;
+    const transitionDur = Math.round((sceneData.transitionDuration || 0.5) * fps);
+
+    // 阶段判断
+    const isPhase1 = frame < mainDur;
+    const isTransition = hasSubAudio && frame >= mainDur && frame < mainDur + transitionDur;
+    const isPhase2 = hasSubAudio && frame >= mainDur + transitionDur;
+
+    // 阶段2淡出
+    const fadeOutPhase2 = hasSubAudio && isPhase2
+      ? interpolate(frame - mainDur - transitionDur, [subDur - fps * 0.5, subDur], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' })
+      : fadeOut;
+
+    const currentOpacity = isPhase2 ? fadeOutPhase2 : fadeOut;
+
     return (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0', opacity: fadeOut }}>
-        <Sequence from={sceneData.audioStartFrame}><Audio src={staticFile(sceneData.audioFile)} /></Sequence>
+      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0', opacity: currentOpacity }}>
+        {/* 阶段1: 主配音 */}
+        {isPhase1 && (
+          <Sequence from={sceneData.audioStartFrame}>
+            <Audio src={staticFile(sceneData.audioFile)} />
+          </Sequence>
+        )}
+        {/* 阶段2: 次配音 */}
+        {isPhase2 && (
+          <Sequence from={0}>
+            <Audio src={staticFile(sceneData.audioFileSub)} />
+          </Sequence>
+        )}
         <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center' }}>
           {isIntro ? (
             <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
