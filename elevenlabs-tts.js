@@ -77,6 +77,7 @@ async function generateSpeech(text, outputPath, voiceName = 'Adam') {
       voice_settings: {
         stability: 0.38,
         similarity_boost: 0.85,
+        style: 0.5,
         speed: 0.95
       }
     });
