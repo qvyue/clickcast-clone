@@ -104,8 +104,12 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 
   // 检查是否有两阶段动画数据
   const hasTwoPhase = sceneData.audioFileSub && sceneData.subDuration;
-  const mainDuration = sceneData.mainDuration || sceneData.durationInFrames;
-  const subDuration = sceneData.subDuration || 0;
+  // mainDuration 和 subDuration 在 timeline.json 中是秒，需要转换成帧数
+  const mainDurationSec = sceneData.mainDuration || (sceneData.durationInFrames / fps);
+  const subDurationSec = sceneData.subDuration || 0;
+  // 转换成帧数（用于动画计算）
+  const mainDuration = Math.round(mainDurationSec * fps);
+  const subDuration = Math.round(subDurationSec * fps);
   // 主配音和次配音之间的过渡时间（帧数）
   const transitionDuration = Math.round((sceneData.transitionDuration || 0.5) * fps);
 
@@ -342,9 +346,11 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       // 文字淡出动画 - 更快地淡出
       const textOpacity = interpolate(phase2Frame, [0, fps * 0.5], [1, 0], { extrapolateRight: 'clamp' });
 
-      // 场景结束时淡出 - 确保 subDuration 有效，默认至少 3 秒
+      // 场景结束时淡出 - subDuration 已经是帧数
+      // 确保至少显示 3 秒
       const actualSubDuration = Math.max(subDuration, fps * 3);
-      const fadeOutPhase2 = interpolate(phase2Frame, [actualSubDuration - 15, actualSubDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' });
+      // 在次配音快结束时才淡出（最后 0.5 秒）
+      const fadeOutPhase2 = interpolate(phase2Frame, [actualSubDuration - fps * 0.5, actualSubDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' });
 
       // 计算图片实际尺寸 - 确保图片在容器中居中且足够大
       const containerWidth = isPortrait ? '100%' : '90%';
