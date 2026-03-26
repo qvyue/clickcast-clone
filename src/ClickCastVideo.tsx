@@ -272,10 +272,6 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
           opacity: fadeOutPhase1, perspective: '1500px'
         }}>
-          <Sequence from={sceneData.audioStartFrame}>
-            <Audio src={staticFile(sceneData.audioFile)} />
-          </Sequence>
-
           <div style={{
             flex: isPortrait ? 0 : 1,
             textAlign: isCenterMode ? 'center' : 'left',
@@ -373,10 +369,6 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
           padding: isPortrait ? '0 20px' : '0 40px',
           perspective: '1500px'
         }}>
-          <Sequence from={0}>
-            <Audio src={staticFile(sceneData.audioFileSub)} />
-          </Sequence>
-
           {/* 图片层 - 大图从原位置淡入并放大 */}
           <div style={{
             display: 'flex',
@@ -443,6 +435,14 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 
     return (
       <>
+        {/* 主字幕音频 - 从 audioStartFrame 开始播放 */}
+        <Sequence from={sceneData.audioStartFrame} durationInFrames={mainDuration}>
+          <Audio src={staticFile(sceneData.audioFile)} />
+        </Sequence>
+        {/* 次字幕音频 - 从主字幕结束后播放（需要加上 audioStartFrame 的偏移） */}
+        <Sequence from={sceneData.audioStartFrame + mainDuration + transitionDuration} durationInFrames={subDuration}>
+          <Audio src={staticFile(sceneData.audioFileSub)} />
+        </Sequence>
         {isPhase1 ? renderPhase1() : (isTransition ? renderTransition() : renderPhase2())}
       </>
     );

@@ -75,11 +75,9 @@ async function generateSpeech(text, outputPath, voiceName = 'Adam') {
       text: text,
       model_id: CONFIG.MODEL,
       voice_settings: {
-        stability: 0.85,
-        similarity_boost: 0.9,
-        style: 0.1,
-        use_speaker_boost: true,
-        speed: 0.85
+        stability: 0.38,
+        similarity_boost: 0.85,
+        speed: 0.95
       }
     });
 
