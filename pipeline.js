@@ -351,6 +351,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 // ==========================================
 // 步骤3: 生成配音 (返回音频时长数组) - 并发版本
 // 支持 main (主文案) 和 sub (次文案) 分别生成配音
+// intro 和 outro 使用合并的单个音频，其他场景保持两阶段动画
 // ==========================================
 async function generateVoiceovers(scenes, outputDir = './public') {
   console.log('\n[3/5] 🎤 生成 AI 配音 (并发模式)...');
@@ -370,24 +371,38 @@ async function generateVoiceovers(scenes, outputDir = './public') {
 
   // 收集所有需要生成的配音任务
   const tasks = [];
-  scenes.forEach((scene, index) => {
-    // 主文案配音任务
-    if (scene.title) {
+  scenes.forEach((scene) => {
+    const isIntroOrOutro = scene.id === 'intro' || scene.id === 'outro';
+
+    if (isIntroOrOutro) {
+      // intro 和 outro: 合并 title 和 subText 为单个音频
+      const mergedText = scene.subText && scene.subText.trim()
+        ? `${scene.title} ${scene.subText}`
+        : scene.title;
       tasks.push({
         id: scene.id,
-        type: 'main',
-        text: scene.title,
-        fileName: `${scene.id}-main.mp3`
+        type: 'combined',
+        text: mergedText,
+        fileName: `${scene.id}.mp3`
       });
-    }
-    // 次文案配音任务（如果有内容）
-    if (scene.subText && scene.subText.trim()) {
-      tasks.push({
-        id: scene.id,
-        type: 'sub',
-        text: scene.subText,
-        fileName: `${scene.id}-sub.mp3`
-      });
+    } else {
+      // 其他场景: 保持两阶段动画，分开生成 main 和 sub
+      if (scene.title) {
+        tasks.push({
+          id: scene.id,
+          type: 'main',
+          text: scene.title,
+          fileName: `${scene.id}-main.mp3`
+        });
+      }
+      if (scene.subText && scene.subText.trim()) {
+        tasks.push({
+          id: scene.id,
+          type: 'sub',
+          text: scene.subText,
+          fileName: `${scene.id}-sub.mp3`
+        });
+      }
     }
   });
 
@@ -436,51 +451,29 @@ async function generateVoiceovers(scenes, outputDir = './public') {
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`✅ 配音生成完成 (耗时 ${elapsed}秒)`);
 
-  // 合并 intro 的两个音频文件（主字幕 + 次字幕）
-  const introMainPath = path.join(outputDir, 'intro-main.mp3');
-  const introSubPath = path.join(outputDir, 'intro-sub.mp3');
-  const introCombinedPath = path.join(outputDir, 'intro.mp3');
-
-  if (fs.existsSync(introMainPath) && fs.existsSync(introSubPath)) {
-    console.log('   🔗 合并 intro 音频...');
-    try {
-      // 使用 ffmpeg 合并两个 mp3 文件
-      execSync(`ffmpeg -y -i "concat:${introMainPath}|${introSubPath}" -acodec copy "${introCombinedPath}"`, {
-        stdio: 'pipe'
-      });
-      console.log('   ✅ intro.mp3 已生成（主字幕 + 次字幕合并）');
-    } catch (e) {
-      console.log(`   ⚠️ 合并 intro 音频失败: ${e.message}`);
-    }
-  }
-
-  // 同样处理 outro（如果有的话）
-  const outroMainPath = path.join(outputDir, 'outro-main.mp3');
-  const outroSubPath = path.join(outputDir, 'outro-sub.mp3');
-  const outroCombinedPath = path.join(outputDir, 'outro.mp3');
-
-  if (fs.existsSync(outroMainPath) && fs.existsSync(outroSubPath)) {
-    console.log('   🔗 合并 outro 音频...');
-    try {
-      execSync(`ffmpeg -y -i "concat:${outroMainPath}|${outroSubPath}" -acodec copy "${outroCombinedPath}"`, {
-        stdio: 'pipe'
-      });
-      console.log('   ✅ outro.mp3 已生成（主字幕 + 次字幕合并）');
-    } catch (e) {
-      console.log(`   ⚠️ 合并 outro 音频失败: ${e.message}`);
-    }
-  }
-
   // 转换为按场景分组的格式
   const audioDurations = [];
   scenes.forEach(scene => {
-    const mainResult = results.find(r => r.id === scene.id && r.type === 'main');
-    const subResult = results.find(r => r.id === scene.id && r.type === 'sub');
-    audioDurations.push({
-      id: scene.id,
-      mainDuration: mainResult ? mainResult.duration : 0,
-      subDuration: subResult ? subResult.duration : 0
-    });
+    const isIntroOrOutro = scene.id === 'intro' || scene.id === 'outro';
+
+    if (isIntroOrOutro) {
+      // intro/outro: combined 类型，总时长就是 combined 音频的时长
+      const combinedResult = results.find(r => r.id === scene.id && r.type === 'combined');
+      audioDurations.push({
+        id: scene.id,
+        mainDuration: combinedResult ? combinedResult.duration : 3,
+        subDuration: 0
+      });
+    } else {
+      // 其他场景: main + sub
+      const mainResult = results.find(r => r.id === scene.id && r.type === 'main');
+      const subResult = results.find(r => r.id === scene.id && r.type === 'sub');
+      audioDurations.push({
+        id: scene.id,
+        mainDuration: mainResult ? mainResult.duration : 0,
+        subDuration: subResult ? subResult.duration : 0
+      });
+    }
   });
 
   return audioDurations;
@@ -602,9 +595,9 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
     // 清理网站生成的文件（保留原始文件如 BGM）
     const websiteFiles = ['shot1.png', 'shot2.png', 'shot3.png', 'shot4.png', 'shot5.png', 'shot6.png',
                           'scraped.json', 'timeline.json', 'website-shot.png',
-                          // 新的配音文件命名
-                          'intro-main.mp3', 'intro-sub.mp3', 'outro-main.mp3', 'outro-sub.mp3'];
-    // 添加 scene 的配音文件
+                          // intro 和 outro 的音频文件（已合并生成）
+                          'intro.mp3', 'outro.mp3'];
+    // 添加 scene 的配音文件 (两阶段动画)
     for (let i = 0; i < 10; i++) {
       websiteFiles.push(`scene${i}-main.mp3`, `scene${i}-sub.mp3`);
     }
