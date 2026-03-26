@@ -286,20 +286,28 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     const totalAudioDuration = audioInfo.mainDuration + transitionDuration + audioInfo.subDuration;
     const sceneDurationFrames = Math.ceil((totalAudioDuration + 0.5) * FPS); // 加0.5秒缓冲
 
+    // intro 使用合并后的单个音频文件，其他场景使用分开的两个文件
+    const isIntro = i === 0;
+    const audioFile = isIntro ? 'intro.mp3' : `scene${i - 1}-main.mp3`;
+    const audioFileSub = isIntro ? undefined : `scene${i - 1}-sub.mp3`;
+    // intro 的总时长是合并音频的时长
+    const mainDuration = isIntro ? totalAudioDuration : audioInfo.mainDuration;
+    const subDuration = isIntro ? 0 : audioInfo.subDuration;
+
     timeline.scenes.push({
-      id: i === 0 ? 'intro' : `scene${i - 1}`,
+      id: isIntro ? 'intro' : `scene${i - 1}`,
       layout: layout,
       imageImportance: imageImportance,
       layoutReason: scene.layoutReason || `AI决策: ${totalTextLength}字符文本 + ${imageImportance}重要性图片`,
       title: scene.title,
       subText: scene.subText,
       img: screenshotFile,
-      text: i === 0 ? `${script.product}. ${scene.title}.` : scene.title,
-      audioFile: i === 0 ? 'intro-main.mp3' : `scene${i - 1}-main.mp3`,
-      audioFileSub: i === 0 ? 'intro-sub.mp3' : `scene${i - 1}-sub.mp3`,
-      mainDuration: audioInfo.mainDuration,
-      subDuration: audioInfo.subDuration,
-      transitionDuration: transitionDuration,
+      text: isIntro ? `${script.product}. ${scene.title}.` : scene.title,
+      audioFile: audioFile,
+      ...(audioFileSub && { audioFileSub: audioFileSub }),
+      mainDuration: mainDuration,
+      subDuration: subDuration,
+      ...(subDuration > 0 && { transitionDuration: transitionDuration }),
       startFrame: currentStartFrame,
       durationInFrames: sceneDurationFrames,
       audioStartFrame: 10,
@@ -312,9 +320,10 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     currentStartFrame += sceneDurationFrames;
   }
 
-  // outro - 使用最后一个音频时长
+  // outro - 使用合并后的单个音频文件
   const outroAudioInfo = audioDurations[audioDurations.length - 1] || { mainDuration: 3, subDuration: 0 };
-  const outroDurationFrames = Math.ceil((outroAudioInfo.mainDuration + outroAudioInfo.subDuration + 1) * FPS);
+  const outroTotalDuration = outroAudioInfo.mainDuration + outroAudioInfo.subDuration;
+  const outroDurationFrames = Math.ceil((outroTotalDuration + 1) * FPS);
 
   timeline.scenes.push({
     id: 'outro',
@@ -322,10 +331,8 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     title: `Try ${script.product}`,
     subText: script.tagline,
     text: `${script.product}. ${script.tagline}.`,
-    audioFile: 'outro-main.mp3',
-    audioFileSub: 'outro-sub.mp3',
-    mainDuration: outroAudioInfo.mainDuration,
-    subDuration: outroAudioInfo.subDuration,
+    audioFile: 'outro.mp3',
+    mainDuration: outroTotalDuration,
     startFrame: currentStartFrame,
     durationInFrames: outroDurationFrames,
     audioStartFrame: 10
@@ -428,6 +435,41 @@ async function generateVoiceovers(scenes, outputDir = './public') {
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`✅ 配音生成完成 (耗时 ${elapsed}秒)`);
+
+  // 合并 intro 的两个音频文件（主字幕 + 次字幕）
+  const introMainPath = path.join(outputDir, 'intro-main.mp3');
+  const introSubPath = path.join(outputDir, 'intro-sub.mp3');
+  const introCombinedPath = path.join(outputDir, 'intro.mp3');
+
+  if (fs.existsSync(introMainPath) && fs.existsSync(introSubPath)) {
+    console.log('   🔗 合并 intro 音频...');
+    try {
+      // 使用 ffmpeg 合并两个 mp3 文件
+      execSync(`ffmpeg -y -i "concat:${introMainPath}|${introSubPath}" -acodec copy "${introCombinedPath}"`, {
+        stdio: 'pipe'
+      });
+      console.log('   ✅ intro.mp3 已生成（主字幕 + 次字幕合并）');
+    } catch (e) {
+      console.log(`   ⚠️ 合并 intro 音频失败: ${e.message}`);
+    }
+  }
+
+  // 同样处理 outro（如果有的话）
+  const outroMainPath = path.join(outputDir, 'outro-main.mp3');
+  const outroSubPath = path.join(outputDir, 'outro-sub.mp3');
+  const outroCombinedPath = path.join(outputDir, 'outro.mp3');
+
+  if (fs.existsSync(outroMainPath) && fs.existsSync(outroSubPath)) {
+    console.log('   🔗 合并 outro 音频...');
+    try {
+      execSync(`ffmpeg -y -i "concat:${outroMainPath}|${outroSubPath}" -acodec copy "${outroCombinedPath}"`, {
+        stdio: 'pipe'
+      });
+      console.log('   ✅ outro.mp3 已生成（主字幕 + 次字幕合并）');
+    } catch (e) {
+      console.log(`   ⚠️ 合并 outro 音频失败: ${e.message}`);
+    }
+  }
 
   // 转换为按场景分组的格式
   const audioDurations = [];
