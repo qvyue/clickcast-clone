@@ -327,17 +327,26 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       // 过渡期间淡入淡出效果
       const fadeIn = interpolate(transitionFrame, [0, transitionDuration * 0.5], [0, 1], { extrapolateRight: 'clamp' });
 
+      // 保持与 Phase 1 相同的布局位置
+      const imageJustifyContent = isCenterMode
+        ? 'center'
+        : (layout === 'left' ? 'flex-end' : 'flex-start');
+      const transformOrigin = isCenterMode
+        ? 'center center'
+        : (layout === 'left' ? 'right center' : 'left center');
+
       return (
         <AbsoluteFill style={{
-          flexDirection: 'column',
+          flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
           justifyContent: 'center', alignItems: 'center',
-          padding: isPortrait ? '0 40px' : '0 120px',
+          padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
           perspective: '1500px'
         }}>
           {/* 过渡期间只显示图片，没有音频 */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: fadeIn }}>
+          <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: imageJustifyContent, alignItems: 'center', opacity: fadeIn }}>
             <div style={{
               transform: `scale(${interpolate(transitionFrame, [0, transitionDuration], [1.05, 1.1])})`,
+              transformOrigin: transformOrigin,
               boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
               borderRadius: '16px',
               border: '1px solid rgba(255,255,255,0.15)',
@@ -364,13 +373,13 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
     // 阶段2: 次文案阶段 - 图片放大到100%，标题淡出
     const renderPhase2 = () => {
       const phase2Frame = frame - mainDuration - transitionDuration;
-      const zoomTransitionDuration = fps; // 1秒过渡
       const enterPhase2 = spring({ frame: phase2Frame, fps, config: { damping: 14 } });
 
       // 图片放大动画：从当前尺寸过渡到更大的尺寸
       // 使用 spring 动画让过渡更平滑
       const zoomProgress = spring({ frame: phase2Frame, fps, config: { damping: 20, stiffness: 100 } });
-      const imageScale = interpolate(zoomProgress, [0, 1], [1.1, 1.25]);
+      // 从 Phase 1 结束时的 1.05 开始，放大到 1.2
+      const imageScale = interpolate(zoomProgress, [0, 1], [1.1, 1.2]);
 
       // 文字淡出动画 - 更快地淡出
       const textOpacity = interpolate(phase2Frame, [0, fps * 0.5], [1, 0], { extrapolateRight: 'clamp' });
@@ -381,14 +390,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       // 在次配音快结束时才淡出（最后 0.5 秒）
       const fadeOutPhase2 = interpolate(phase2Frame, [actualSubDuration - fps * 0.5, actualSubDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' });
 
-      // 计算图片实际尺寸 - 确保图片在容器中居中且足够大
-      const containerWidth = isPortrait ? '100%' : '90%';
-      const containerHeight = isPortrait ? '60%' : '75%';
-
-      // 根据布局决定图片的位置和缩放起点
-      // layout === 'left': 文字在左边，图片在右边 -> 放大时从右边开始
-      // layout === 'right': 图片在左边，文字在右边 -> 放大时从左边开始
-      // layout === 'center': 居中 -> 从中间放大
+      // 根据布局决定图片的位置和缩放起点 - 保持与 Phase 1 一致
       const imageJustifyContent = isCenterMode
         ? 'center'
         : (layout === 'left' ? 'flex-end' : 'flex-start');
@@ -396,32 +398,58 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
         ? 'center center'
         : (layout === 'left' ? 'right center' : 'left center');
 
-      // 文字位置也需要根据布局调整
-      const textAlign = isCenterMode ? 'center' : (layout === 'left' ? 'left' : 'right');
-      const textPaddingLeft = isCenterMode ? '40px' : (layout === 'left' ? '120px' : '40px');
-      const textPaddingRight = isCenterMode ? '40px' : (layout === 'left' ? '40px' : '120px');
-
       return (
         <AbsoluteFill style={{
-          flexDirection: 'column',
+          flexDirection: isCenterMode ? 'column' : (layout === 'left' ? 'row' : 'row-reverse'),
           justifyContent: 'center', alignItems: 'center',
-          padding: isPortrait ? '0 20px' : '0 40px',
+          padding: isPortrait ? '0 40px' : (isCenterMode ? '100px' : '0 120px'),
           perspective: '1500px'
         }}>
           <Sequence from={0}>
             <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
 
-          {/* 文字层 - 淡出 */}
+          {/* 图片层 - 从原位置放大显示 */}
+          <div style={{
+            flex: isCenterMode ? 0 : 1,
+            display: 'flex',
+            justifyContent: imageJustifyContent,
+            alignItems: 'center',
+            opacity: fadeOutPhase2
+          }}>
+            <div style={{
+              transform: `scale(${imageScale})`,
+              transformOrigin: transformOrigin,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: imageWidth,
+              aspectRatio: '1440 / 900',
+              overflow: 'hidden',
+              background: '#111'
+            }}>
+              <Img
+                src={staticFile(sceneData.img)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: imageFit,
+                  objectPosition: objectPosition
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 文字层 - 绝对定位淡出 */}
           <div style={{
             position: 'absolute',
-            top: isPortrait ? '5%' : '8%',
-            left: 0,
-            right: 0,
-            textAlign: textAlign,
+            top: isPortrait ? '5%' : (isCenterMode ? '10%' : '15%'),
+            left: isCenterMode ? 0 : (layout === 'left' ? '120px' : 'auto'),
+            right: isCenterMode ? 0 : (layout === 'left' ? 'auto' : '120px'),
+            textAlign: isCenterMode ? 'center' : (layout === 'left' ? 'left' : 'right'),
             opacity: textOpacity,
-            paddingLeft: textPaddingLeft,
-            paddingRight: textPaddingRight,
+            paddingLeft: isCenterMode ? '40px' : 0,
+            paddingRight: isCenterMode ? '40px' : 0,
             zIndex: 10
           }}>
             <h2 style={{
@@ -431,40 +459,6 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
               margin: '0 0 15px 0',
               textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
             }}>{sceneData.title}</h2>
-          </div>
-
-          {/* 图片层 - 放大显示，根据布局调整位置 */}
-          <div style={{
-            display: 'flex',
-            justifyContent: imageJustifyContent,
-            alignItems: 'center',
-            width: containerWidth,
-            height: containerHeight,
-            opacity: fadeOutPhase2
-          }}>
-            <div style={{
-              transform: `scale(${imageScale})`,
-              transformOrigin: transformOrigin,
-              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
-              borderRadius: '16px',
-              border: '1px solid rgba(255,255,255,0.15)',
-              width: '100%',
-              height: '100%',
-              maxWidth: isPortrait ? '100%' : '1400px',
-              maxHeight: isPortrait ? '100%' : '900px',
-              overflow: 'hidden',
-              background: '#111'
-            }}>
-              <Img
-                src={staticFile(sceneData.img)}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  objectPosition: objectPosition
-                }}
-              />
-            </div>
           </div>
         </AbsoluteFill>
       );
