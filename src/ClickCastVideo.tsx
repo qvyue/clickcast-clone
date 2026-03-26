@@ -165,7 +165,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
     const currentOpacity = isPhase2 ? fadeOutPhase2 : fadeOut;
 
     return (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0', opacity: currentOpacity }}>
+      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 60px', opacity: currentOpacity }}>
         {/* 阶段1: 主配音 */}
         {isPhase1 && (
           <Sequence from={sceneData.audioStartFrame}>
@@ -178,7 +178,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
         )}
-        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center' }}>
+        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: '1400px', width: '100%' }}>
           {isIntro ? (
             <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
           ) : null}
