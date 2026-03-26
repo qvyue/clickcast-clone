@@ -283,16 +283,39 @@ app.delete('/api/delete/:domain', async (req, res) => {
   const { domain } = req.params;
   const websiteDir = path.join(__dirname, 'websites', domain);
 
-  if (!fs.existsSync(websiteDir)) {
-    return res.status(404).json({ error: 'Website not found' });
+  // Check R2 storage
+  const { isR2Configured, deleteVideo: deleteFromR2 } = require('./r2-storage.js');
+  const useR2 = isR2Configured();
+  let r2Deleted = false;
+
+  // Delete from R2 if configured
+  if (useR2) {
+    try {
+      // Delete both landscape and portrait videos
+      await deleteFromR2(`videos/${domain}/landscape.mp4`);
+      await deleteFromR2(`videos/${domain}/portrait.mp4`);
+      r2Deleted = true;
+      console.log(`R2 deleted: ${domain}`);
+    } catch (e) {
+      console.error('R2 delete error:', e.message);
+    }
+  }
+
+  // Check local storage
+  const localExists = fs.existsSync(websiteDir);
+
+  if (!localExists && !r2Deleted) {
+    return res.status(404).json({ error: 'Video not found' });
   }
 
   try {
-    // 删除整个网站目录（包含视频、截图、缓存等）
-    fs.rmSync(websiteDir, { recursive: true, force: true });
-    console.log(`Deleted: ${websiteDir}`);
+    // Delete local files if exist
+    if (localExists) {
+      fs.rmSync(websiteDir, { recursive: true, force: true });
+      console.log(`Deleted local: ${websiteDir}`);
+    }
 
-    // 清除 R2 URL 缓存
+    // Clear R2 URL cache
     for (const [key] of r2VideoUrls) {
       if (key.includes(domain)) {
         r2VideoUrls.delete(key);
