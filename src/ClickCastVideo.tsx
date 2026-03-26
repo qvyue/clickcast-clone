@@ -106,6 +106,8 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const hasTwoPhase = sceneData.audioFileSub && sceneData.subDuration;
   const mainDuration = sceneData.mainDuration || sceneData.durationInFrames;
   const subDuration = sceneData.subDuration || 0;
+  // 主配音和次配音之间的过渡时间（帧数）
+  const transitionDuration = Math.round((sceneData.transitionDuration || 0.5) * fps);
 
   // 根据背景颜色自动计算所有文字颜色，确保最佳对比度
   const bgColor = colors.background || '#05010d';
@@ -227,6 +229,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
     const renderPhase1 = () => {
       const phase1Frame = frame;
       const enterPhase1 = spring({ frame: phase1Frame - 5, fps, config: { damping: 14 } });
+      // 主文案阶段结束时淡出（在 mainDuration 结束前开始淡出）
       const fadeOutPhase1 = interpolate(phase1Frame, [mainDuration - 15, mainDuration], [1, 0], { extrapolateRight: 'clamp' });
 
       return (
@@ -285,70 +288,27 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       );
     };
 
-    // 阶段2: 次文案阶段 - 图片放大到100%，标题淡出
-    const renderPhase2 = () => {
-      const phase2Frame = frame - mainDuration;
-      const zoomTransitionDuration = fps; // 1秒过渡
-      const enterPhase2 = spring({ frame: phase2Frame, fps, config: { damping: 14 } });
-
-      // 图片放大动画：从当前宽度过渡到100%
-      const imageScale = interpolate(phase2Frame, [0, zoomTransitionDuration], [1, 1.15], { extrapolateRight: 'clamp' });
-
-      // 文字淡出动画
-      const textOpacity = interpolate(phase2Frame, [0, zoomTransitionDuration], [1, 0], { extrapolateRight: 'clamp' });
-
-      // 场景结束时淡出
-      const fadeOutPhase2 = interpolate(phase2Frame, [subDuration - 15, subDuration], [1, 0], { extrapolateRight: 'clamp' });
-
-      // 100%宽度的图片尺寸
-      const fullImageWidth = isPortrait ? '100%' : '100%';
+    // 过渡阶段: 主配音结束后，次配音开始前的过渡
+    const renderTransition = () => {
+      const transitionFrame = frame - mainDuration;
+      // 过渡期间淡入淡出效果
+      const fadeIn = interpolate(transitionFrame, [0, transitionDuration * 0.5], [0, 1], { extrapolateRight: 'clamp' });
 
       return (
         <AbsoluteFill style={{
           flexDirection: 'column',
           justifyContent: 'center', alignItems: 'center',
-          padding: isPortrait ? '0 20px' : '0 40px',
-          opacity: fadeOutPhase2, perspective: '1500px'
+          padding: isPortrait ? '0 40px' : '0 120px',
+          perspective: '1500px'
         }}>
-          <Sequence from={0}>
-            <Audio src={staticFile(sceneData.audioFileSub)} />
-          </Sequence>
-
-          {/* 文字层 - 淡出 */}
-          <div style={{
-            position: 'absolute',
-            top: isPortrait ? '5%' : '10%',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
-            opacity: textOpacity,
-            padding: '0 40px',
-            zIndex: 10
-          }}>
-            <h2 style={{
-              fontSize: titleFontSize,
-              lineHeight: isLongText ? 1.15 : 1.1,
-              color: textColor,
-              margin: '0 0 15px 0',
-              textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
-            }}>{sceneData.title}</h2>
-          </div>
-
-          {/* 图片层 - 放大到100% */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-            height: '100%'
-          }}>
+          {/* 过渡期间只显示图片，没有音频 */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: fadeIn }}>
             <div style={{
-              transform: `scale(${imageScale})`,
+              transform: `scale(${interpolate(transitionFrame, [0, transitionDuration], [1.05, 1.1])})`,
               boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
               borderRadius: '16px',
               border: '1px solid rgba(255,255,255,0.15)',
-              width: fullImageWidth,
-              maxWidth: '95%',
+              width: imageWidth,
               aspectRatio: '1440 / 900',
               overflow: 'hidden',
               background: '#111'
@@ -368,12 +328,105 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
       );
     };
 
+    // 阶段2: 次文案阶段 - 图片放大到100%，标题淡出
+    const renderPhase2 = () => {
+      const phase2Frame = frame - mainDuration - transitionDuration;
+      const zoomTransitionDuration = fps; // 1秒过渡
+      const enterPhase2 = spring({ frame: phase2Frame, fps, config: { damping: 14 } });
+
+      // 图片放大动画：从当前尺寸过渡到更大的尺寸
+      // 使用 spring 动画让过渡更平滑
+      const zoomProgress = spring({ frame: phase2Frame, fps, config: { damping: 20, stiffness: 100 } });
+      const imageScale = interpolate(zoomProgress, [0, 1], [1.1, 1.25]);
+
+      // 文字淡出动画 - 更快地淡出
+      const textOpacity = interpolate(phase2Frame, [0, fps * 0.5], [1, 0], { extrapolateRight: 'clamp' });
+
+      // 场景结束时淡出 - 确保 subDuration 有效，默认至少 3 秒
+      const actualSubDuration = Math.max(subDuration, fps * 3);
+      const fadeOutPhase2 = interpolate(phase2Frame, [actualSubDuration - 15, actualSubDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' });
+
+      // 计算图片实际尺寸 - 确保图片在容器中居中且足够大
+      const containerWidth = isPortrait ? '100%' : '90%';
+      const containerHeight = isPortrait ? '60%' : '75%';
+
+      return (
+        <AbsoluteFill style={{
+          flexDirection: 'column',
+          justifyContent: 'center', alignItems: 'center',
+          padding: isPortrait ? '0 20px' : '0 40px',
+          perspective: '1500px'
+        }}>
+          <Sequence from={0}>
+            <Audio src={staticFile(sceneData.audioFileSub)} />
+          </Sequence>
+
+          {/* 文字层 - 淡出 */}
+          <div style={{
+            position: 'absolute',
+            top: isPortrait ? '5%' : '8%',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            opacity: textOpacity,
+            padding: '0 40px',
+            zIndex: 10
+          }}>
+            <h2 style={{
+              fontSize: titleFontSize,
+              lineHeight: isLongText ? 1.15 : 1.1,
+              color: textColor,
+              margin: '0 0 15px 0',
+              textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
+            }}>{sceneData.title}</h2>
+          </div>
+
+          {/* 图片层 - 放大显示 */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: containerWidth,
+            height: containerHeight,
+            opacity: fadeOutPhase2
+          }}>
+            <div style={{
+              transform: `scale(${imageScale})`,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: '100%',
+              height: '100%',
+              maxWidth: isPortrait ? '100%' : '1400px',
+              maxHeight: isPortrait ? '100%' : '900px',
+              overflow: 'hidden',
+              background: '#111'
+            }}>
+              <Img
+                src={staticFile(sceneData.img)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  objectPosition: objectPosition
+                }}
+              />
+            </div>
+          </div>
+        </AbsoluteFill>
+      );
+    };
+
     // 根据当前帧判断渲染哪个阶段
+    // 阶段1: 主配音播放中
+    // 过渡阶段: 主配音结束后，次配音开始前
+    // 阶段2: 次配音播放中
     const isPhase1 = frame < mainDuration;
+    const isTransition = frame >= mainDuration && frame < mainDuration + transitionDuration;
 
     return (
       <>
-        {isPhase1 ? renderPhase1() : renderPhase2()}
+        {isPhase1 ? renderPhase1() : (isTransition ? renderTransition() : renderPhase2())}
       </>
     );
   };

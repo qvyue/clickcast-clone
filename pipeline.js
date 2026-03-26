@@ -278,10 +278,12 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       }
     }
 
-    // 根据配音时长计算场景时长（主配音 + 次配音）
+    // 根据配音时长计算场景时长（主配音 + 过渡时间 + 次配音）
     const audioInfo = audioDurations[i] || { mainDuration: 3, subDuration: 0 };
-    // 总时长 = 主配音时长 + 次配音时长 + 缓冲时间
-    const totalAudioDuration = audioInfo.mainDuration + audioInfo.subDuration;
+    // 主配音和次配音之间的过渡时间（秒）
+    const transitionDuration = 0.5;
+    // 总时长 = 主配音时长 + 过渡时间 + 次配音时长 + 缓冲时间
+    const totalAudioDuration = audioInfo.mainDuration + transitionDuration + audioInfo.subDuration;
     const sceneDurationFrames = Math.ceil((totalAudioDuration + 0.5) * FPS); // 加0.5秒缓冲
 
     timeline.scenes.push({
@@ -297,6 +299,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       audioFileSub: i === 0 ? 'intro-sub.mp3' : `scene${i - 1}-sub.mp3`,
       mainDuration: audioInfo.mainDuration,
       subDuration: audioInfo.subDuration,
+      transitionDuration: transitionDuration,
       startFrame: currentStartFrame,
       durationInFrames: sceneDurationFrames,
       audioStartFrame: 10,
