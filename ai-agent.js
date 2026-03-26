@@ -482,7 +482,7 @@ async function runAIAgent(scrapedData, screenshotPaths) {
     console.log('   🔧 AI 返回了数组，转换为标准格式');
     script = {
       product: scrapedData.productName || 'This Product',
-      tagline: scrapedData.description?.substring(0, 50) || 'Amazing Solution',
+      tagline: scrapedData.description || 'Amazing Solution',
       scenes: script
     };
   }
