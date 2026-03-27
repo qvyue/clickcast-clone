@@ -142,9 +142,8 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 
   // Intro 和 Outro 样式 - 支持两阶段
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
-    // 减小动画幅度，避免文字被 3D 旋转裁剪
-    const scale = interpolate(enter, [0, 1], [1.15, 1]);
-    const rotateX = interpolate(enter, [0, 1], [12, 0]);
+    const scale = interpolate(enter, [0, 1], [3, 1]);
+    const rotateX = interpolate(enter, [0, 1], [40, 0]);
     const isIntro = sceneData.id === 'intro';
 
     // 检查是否有次配音
@@ -167,10 +166,10 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 
     // 动态计算 subText 的字体大小，根据文本长度调整
     const subTextLength = (sceneData.subText || '').length;
-    const subTextFontSize = subTextLength > 120 ? '20px' : (subTextLength > 80 ? '22px' : (subTextLength > 50 ? '24px' : '26px'));
+    const subTextFontSize = subTextLength > 100 ? '24px' : (subTextLength > 60 ? '28px' : '30px');
 
     return (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', padding: isPortrait ? '0 60px' : '0 120px', opacity: currentOpacity }}>
+      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px', opacity: currentOpacity }}>
         {/* 阶段1: 主配音 */}
         {isPhase1 && (
           <Sequence from={sceneData.audioStartFrame}>
@@ -183,18 +182,18 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
         )}
-        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '90%' : '1100px', width: '100%' }}>
+        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%' }}>
           {isIntro ? (
-            <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '18px', fontWeight: 800, letterSpacing: '2px', marginBottom: '25px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
+            <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
           ) : null}
-          <h1 style={{ fontSize: isPortrait ? '72px' : (isIntro ? '80px' : '65px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 15px 0', color: textColor, fontWeight: 800 }}>{sceneData.title}</h1>
+          <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{sceneData.title}</h1>
 
           {isIntro ? (
-            <p style={{ fontSize: isPortrait ? '32px' : '24px', color: subTextColor, marginTop: '25px', maxWidth: '1000px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
+            <p style={{ fontSize: isPortrait ? '40px' : '30px', color: subTextColor, marginTop: '30px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
           ) : (
             <>
-              <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '16px 40px', borderRadius: '12px', display: 'inline-block', fontSize: '26px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '12px', ...buttonTextStyle }}>GET STARTED</div>
-              <p style={{ color: subTextColor, fontSize: subTextFontSize, marginTop: '25px', maxWidth: '1000px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
+              <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '20px 50px', borderRadius: '12px', display: 'inline-block', fontSize: '30px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '20px', ...buttonTextStyle }}>GET STARTED</div>
+              <p style={{ color: subTextColor, fontSize: subTextFontSize, marginTop: '40px', maxWidth: '1100px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
             </>
           )}
         </div>
