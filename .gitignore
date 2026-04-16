@@ -3,6 +3,7 @@ node_modules/
 out/
 .env
 .playwright-tmp/
+tmp/
 *.mp4
 *.wav
 .DS_Store

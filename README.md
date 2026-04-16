@@ -17,10 +17,11 @@
 - 🎯 **一键生成** - 输入 URL，自动截图、分析、生成视频
 - 📦 **DOM 元素截图** - AI 智能挑选最佳区块，精准截取，完美贴合边缘
 - 🤖 **AI 驱动** - 使用 DeepSeek/GPT-4 智能分析网站内容
-- 🎙️ **自动配音** - edge-TTS 高质量语音合成
-- 🎵 **智能配乐** - 自动匹配背景音乐
+- 🎙️ **自动配音** - edge-TTS 高质量语音合成，可选 ElevenLabs 专业配音
+- 🎵 **智能配乐** - AI 分析内容情绪，自动匹配最佳背景音乐
 - 🎨 **主题适配** - 根据网站主色调自动调整视频配色
 - 📱 **多比例支持** - 横屏 16:9 / 竖屏 9:16
+- ☁️ **云存储** - 支持 Cloudflare R2 自动上传
 - 🌐 **Web UI** - 可视化操作界面
 
 ### 🚀 快速开始
@@ -43,14 +44,28 @@ cp .env.example .env
 编辑 `.env` 文件：
 
 ```env
+# AI 配置 (必填)
 DEEPSEEK_API_KEY=your_api_key_here
 API_BASE_URL=https://api.deepseek.com
 AI_MODEL=deepseek-chat
+
+# TTS 配音配置 (可选 - 升级 ElevenLabs 高质量配音)
+ELEVENLABS_API_KEY=your_elevenlabs_key
+
+# 云存储配置 (可选 - Cloudflare R2)
+R2_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=your_bucket
+R2_PUBLIC_URL=https://your-domain.com
+
+# 其他配置
 VOICE=en-US-ChristopherNeural
 BGM_VOLUME=0.15
 ```
 
 > 获取 DeepSeek API Key: https://platform.deepseek.com
+> 获取 ElevenLabs API Key: https://elevenlabs.io
 
 #### 3. 启动 Web 界面
 
@@ -80,14 +95,59 @@ URL → DOM注入探针 → AI挑选区块 → 精准截图 → AI分析 → 生
 - ✅ AI 理解内容，智能决定截图数量
 - ✅ 每张截图都有语义价值，无冗余内容
 
+### 🎙️ 配音选项
+
+#### edge-TTS (默认，免费)
+
+```env
+VOICE=en-US-ChristopherNeural
+```
+
+| 男声 | 女声 |
+|------|------|
+| `en-US-ChristopherNeural` | `en-US-JennyNeural` |
+| `en-US-EricNeural` | `en-US-AriaNeural` |
+| `en-US-GuyNeural` | `en-US-SaraNeural` |
+
+#### ElevenLabs (可选，高质量)
+
+配置 `ELEVENLABS_API_KEY` 后自动启用，支持声音：
+
+| 男声 | 女声 |
+|------|------|
+| `Adam` - 专业可信 | `Rachel` - 友好温暖 |
+| `Antoni` - 充满活力 | `Bella` - 柔和优雅 |
+| `Josh` - 深沉权威 | `Dallin` - 默认声音 |
+
+### 🎵 智能配乐
+
+AI 分析网站内容和情绪，自动选择最佳背景音乐：
+
+| 风格 | 适用场景 |
+|------|----------|
+| tech | 科技产品、SaaS、开发工具 |
+| corporate | 企业官网、商业服务 |
+| ecommerce | 电商、购物、促销 |
+| creative | 创意作品、设计、艺术 |
+| utility | 效率工具、生产力应用 |
+| storytelling | 博客、故事、文章 |
+
+### ☁️ 云存储 (R2)
+
+配置 Cloudflare R2 后，生成的视频会自动上传到云端：
+
+1. 在 Cloudflare 创建 R2 存储桶
+2. 配置环境变量 (`R2_ENDPOINT`, `R2_ACCESS_KEY_ID` 等)
+3. 视频生成后自动上传，返回公开访问 URL
+
 ### 🎨 命令行使用
 
 ```bash
 # 横屏视频 (1920x1080)
-node pipeline.js "https://stripe.com" landscape
+node bin/cli.js "https://stripe.com" landscape
 
 # 竖屏视频 (1080x1920)
-node pipeline.js "https://stripe.com" portrait
+node bin/cli.js "https://stripe.com" portrait
 
 # 预览视频
 npm start
@@ -99,39 +159,58 @@ npm run render-portrait   # 竖屏
 
 ### ⚙️ 配置选项
 
-| 配置项 | 说明 | 默认值 |
-|--------|------|--------|
-| `DEEPSEEK_API_KEY` | DeepSeek API Key | (必填) |
-| `API_BASE_URL` | API 地址 | `https://api.deepseek.com` |
-| `AI_MODEL` | AI 模型 | `deepseek-chat` |
-| `VOICE` | 配音声音 | `en-US-ChristopherNeural` |
-| `BGM_VOLUME` | 背景音乐音量 | `0.15` |
-
-**可选配音声音：**
-
-| 男声 | 女声 |
-|------|------|
-| `en-US-ChristopherNeural` | `en-US-JennyNeural` |
-| `en-US-EricNeural` | `en-US-AriaNeural` |
-| `en-US-GuyNeural` | `en-US-SaraNeural` |
+| 配置项 | 说明 | 必填 | 默认值 |
+|--------|------|------|--------|
+| `DEEPSEEK_API_KEY` | DeepSeek API Key | ✅ | - |
+| `API_BASE_URL` | API 地址 | | `https://api.deepseek.com` |
+| `AI_MODEL` | AI 模型 | | `deepseek-chat` |
+| `VOICE` | edge-TTS 配音声音 | | `en-US-ChristopherNeural` |
+| `ELEVENLABS_API_KEY` | ElevenLabs API Key | | - |
+| `BGM_VOLUME` | 背景音乐音量 | | `0.15` |
+| `R2_ENDPOINT` | R2 存储端点 | | - |
+| `R2_ACCESS_KEY_ID` | R2 访问密钥 ID | | - |
+| `R2_SECRET_ACCESS_KEY` | R2 访问密钥 | | - |
+| `R2_BUCKET_NAME` | R2 存储桶名称 | | - |
+| `R2_PUBLIC_URL` | R2 公开访问 URL | | - |
 
 ### 📁 项目结构
 
 ```
 clickcast-clone/
-├── server.js          # Web 服务器
-├── pipeline.js        # 主流程控制
-├── capture.js         # Playwright 截图
-├── ai-agent.js        # AI 分析模块
-├── generate-script.js # 文案生成
-├── generate-audio.js  # TTS 配音
-├── build-timeline.js  # 时间轴生成
-├── src/               # Remotion 视频组件
-├── public/            # 静态资源（BGM 等）
-└── websites/          # 网站专属数据
+├── bin/                     # 入口脚本
+│   ├── server.js            # Web 服务器
+│   └── cli.js               # CLI 入口
+├── lib/                     # 核心库模块
+│   ├── capture.js           # Playwright 截图
+│   ├── ai-agent.js          # AI Agent 核心模块
+│   ├── ai-analyze.js        # AI 内容分析
+│   ├── style-generator.js   # 样式生成
+│   ├── video-styles.js      # 视频样式配置
+│   ├── elevenlabs-tts.js    # ElevenLabs TTS 模块
+│   ├── bgm-selector.js      # AI BGM 智能选择
+│   ├── industry-research.js # 行业研究
+│   └── r2-storage.js        # Cloudflare R2 存储
+├── tools/                   # 独立工具脚本
+│   ├── generate-audio.js    # TTS 配音
+│   ├── generate-script.js   # 文案生成
+│   ├── build-timeline.js    # 时间轴生成
+│   ├── evaluate.js          # 视频评估
+│   ├── video-quality-checker.js
+│   └── preview.js           # 预览生成
+├── utils/                   # 工具模块
+│   ├── ai-client.js         # AI 客户端
+│   ├── color.js             # 颜色处理
+│   ├── domain.js            # 域名工具
+│   └── env.js               # 环境变量
+├── src/                     # Remotion 视频组件
+│   ├── ClickCastVideo.tsx
+│   ├── ClickCastScene.tsx
+│   └── Root.tsx
+├── public/                  # 静态资源（BGM 等）
+└── websites/                # 网站专属数据
     └── {domain}/
-        ├── public/    # 截图、配音等
-        └── out/       # 输出视频
+        ├── public/          # 截图、配音等
+        └── out/             # 输出视频
 ```
 
 ### 🚢 部署
@@ -142,8 +221,9 @@ clickcast-clone/
 
 ### 📝 注意事项
 
-- 需要 Node.js 18+ 和 Python 3
+- 需要 Node.js 18+
 - API 费用：DeepSeek 约 ¥1/次，GPT-4o 约 $0.02/次
+- ElevenLabs 配音费用：约 $0.18/分钟
 - 部分网站有反爬虫，可能需要手动截图
 
 ---
@@ -155,10 +235,11 @@ clickcast-clone/
 - 🎯 **One-click generation** - Enter URL, auto screenshot, analyze, generate video
 - 📦 **DOM Element Screenshot** - AI selects best sections, precise capture with pixel-perfect edges
 - 🤖 **AI Powered** - Smart content analysis with DeepSeek/GPT-4
-- 🎙️ **Auto Voiceover** - High-quality TTS with edge-TTS
-- 🎵 **Smart BGM** - Auto-matched background music
+- 🎙️ **Auto Voiceover** - High-quality TTS with edge-TTS, optional ElevenLabs professional voice
+- 🎵 **Smart BGM** - AI analyzes content mood and auto-matches best background music
 - 🎨 **Theme Adaptation** - Auto-adjust video colors based on website theme
 - 📱 **Multi-ratio** - Landscape 16:9 / Portrait 9:16
+- ☁️ **Cloud Storage** - Auto-upload to Cloudflare R2
 - 🌐 **Web UI** - Visual operation interface
 
 ### 🚀 Quick Start
@@ -181,14 +262,28 @@ cp .env.example .env
 Edit `.env` file:
 
 ```env
+# AI Config (Required)
 DEEPSEEK_API_KEY=your_api_key_here
 API_BASE_URL=https://api.deepseek.com
 AI_MODEL=deepseek-chat
+
+# TTS Voice (Optional - ElevenLabs premium voice)
+ELEVENLABS_API_KEY=your_elevenlabs_key
+
+# Cloud Storage (Optional - Cloudflare R2)
+R2_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=your_bucket
+R2_PUBLIC_URL=https://your-domain.com
+
+# Other
 VOICE=en-US-ChristopherNeural
 BGM_VOLUME=0.15
 ```
 
 > Get DeepSeek API Key: https://platform.deepseek.com
+> Get ElevenLabs API Key: https://elevenlabs.io
 
 #### 3. Start Web UI
 
@@ -218,6 +313,51 @@ Advantages:
 - ✅ AI understands content, smartly decides screenshot count
 - ✅ Every screenshot has semantic value, no redundant content
 
+### 🎙️ Voice Options
+
+#### edge-TTS (Default, Free)
+
+```env
+VOICE=en-US-ChristopherNeural
+```
+
+| Male | Female |
+|------|--------|
+| `en-US-ChristopherNeural` | `en-US-JennyNeural` |
+| `en-US-EricNeural` | `en-US-AriaNeural` |
+| `en-US-GuyNeural` | `en-US-SaraNeural` |
+
+#### ElevenLabs (Optional, Premium)
+
+Set `ELEVENLABS_API_KEY` to enable. Available voices:
+
+| Male | Female |
+|------|--------|
+| `Adam` - Professional | `Rachel` - Friendly |
+| `Antoni` - Energetic | `Bella` - Elegant |
+| `Josh` - Authoritative | `Dallin` - Default |
+
+### 🎵 Smart BGM
+
+AI analyzes website content and mood to select best background music:
+
+| Style | Use Case |
+|-------|----------|
+| tech | Tech products, SaaS, dev tools |
+| corporate | Corporate sites, business services |
+| ecommerce | E-commerce, shopping, promotions |
+| creative | Portfolios, design, art |
+| utility | Productivity tools, efficiency apps |
+| storytelling | Blogs, stories, articles |
+
+### ☁️ Cloud Storage (R2)
+
+Configure Cloudflare R2 to auto-upload generated videos:
+
+1. Create R2 bucket in Cloudflare
+2. Set environment variables (`R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, etc.)
+3. Videos auto-upload after generation, return public URL
+
 ### 🎨 Command Line Usage
 
 ```bash
@@ -237,39 +377,58 @@ npm run render-portrait   # Portrait
 
 ### ⚙️ Configuration
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `DEEPSEEK_API_KEY` | DeepSeek API Key | (required) |
-| `API_BASE_URL` | API URL | `https://api.deepseek.com` |
-| `AI_MODEL` | AI Model | `deepseek-chat` |
-| `VOICE` | Voice for TTS | `en-US-ChristopherNeural` |
-| `BGM_VOLUME` | Background music volume | `0.15` |
-
-**Available Voices:**
-
-| Male | Female |
-|------|--------|
-| `en-US-ChristopherNeural` | `en-US-JennyNeural` |
-| `en-US-EricNeural` | `en-US-AriaNeural` |
-| `en-US-GuyNeural` | `en-US-SaraNeural` |
+| Option | Description | Required | Default |
+|--------|-------------|----------|---------|
+| `DEEPSEEK_API_KEY` | DeepSeek API Key | ✅ | - |
+| `API_BASE_URL` | API URL | | `https://api.deepseek.com` |
+| `AI_MODEL` | AI Model | | `deepseek-chat` |
+| `VOICE` | edge-TTS voice | | `en-US-ChristopherNeural` |
+| `ELEVENLABS_API_KEY` | ElevenLabs API Key | | - |
+| `BGM_VOLUME` | Background music volume | | `0.15` |
+| `R2_ENDPOINT` | R2 storage endpoint | | - |
+| `R2_ACCESS_KEY_ID` | R2 access key ID | | - |
+| `R2_SECRET_ACCESS_KEY` | R2 secret key | | - |
+| `R2_BUCKET_NAME` | R2 bucket name | | - |
+| `R2_PUBLIC_URL` | R2 public URL | | - |
 
 ### 📁 Project Structure
 
 ```
 clickcast-clone/
-├── server.js          # Web server
-├── pipeline.js        # Main pipeline
-├── capture.js         # Playwright screenshot
-├── ai-agent.js        # AI analysis module
-├── generate-script.js # Script generation
-├── generate-audio.js  # TTS voiceover
-├── build-timeline.js  # Timeline generation
-├── src/               # Remotion video components
-├── public/            # Static assets (BGM, etc.)
-└── websites/          # Website-specific data
+├── bin/                     # Entry scripts
+│   ├── server.js            # Web server
+│   └── cli.js               # CLI entry
+├── lib/                     # Core library modules
+│   ├── capture.js           # Playwright screenshot
+│   ├── ai-agent.js          # AI Agent core module
+│   ├── ai-analyze.js        # AI content analysis
+│   ├── style-generator.js   # Style generation
+│   ├── video-styles.js      # Video style config
+│   ├── elevenlabs-tts.js    # ElevenLabs TTS module
+│   ├── bgm-selector.js      # AI BGM smart selection
+│   ├── industry-research.js # Industry research
+│   └── r2-storage.js        # Cloudflare R2 storage
+├── tools/                   # Standalone tool scripts
+│   ├── generate-audio.js    # TTS voiceover
+│   ├── generate-script.js   # Script generation
+│   ├── build-timeline.js    # Timeline generation
+│   ├── evaluate.js          # Video evaluation
+│   ├── video-quality-checker.js
+│   └── preview.js           # Preview generation
+├── utils/                   # Utility modules
+│   ├── ai-client.js         # AI client
+│   ├── color.js             # Color utilities
+│   ├── domain.js            # Domain utilities
+│   └── env.js               # Environment
+├── src/                     # Remotion video components
+│   ├── ClickCastVideo.tsx
+│   ├── ClickCastScene.tsx
+│   └── Root.tsx
+├── public/                  # Static assets (BGM, etc.)
+└── websites/                # Website-specific data
     └── {domain}/
-        ├── public/    # Screenshots, audio, etc.
-        └── out/       # Output videos
+        ├── public/          # Screenshots, audio, etc.
+        └── out/             # Output videos
 ```
 
 ### 🚢 Deployment
@@ -280,8 +439,9 @@ See [Dockerfile](./Dockerfile) and [render.yaml](./render.yaml).
 
 ### 📝 Notes
 
-- Requires Node.js 18+ and Python 3
+- Requires Node.js 18+
 - API costs: DeepSeek ~¥1/video, GPT-4o ~$0.02/video
+- ElevenLabs voiceover: ~$0.18/minute
 - Some websites may block automated screenshots
 
 ---

@@ -1,95 +1,360 @@
 {
-  "url": "https://www.deepseek.com/",
-  "title": "DeepSeek | 深度求索",
-  "description": "深度求索（DeepSeek），成立于2023年，专注于研究世界领先的通用人工智能底层模型与技术，挑战人工智能前沿性难题。基于自研训练框架、自建智算集群和万卡算力等资源，深度求索团队仅用半年时间便已发布并开源多个百亿级参数大模型，如DeepSeek-LLM通用大语言模型、DeepSeek-Coder代码大模型，并在2024年1月率先开源国内首个MoE大模型（DeepSeek-MoE），各大模型在公开评测榜单及真实样本外的泛化效果均有超越同级别模型的出色表现。和 DeepSeek AI 对话，轻松接入 API。",
-  "keywords": "深度求索, AGI, 人工智能底层模型, 开源模型, LLM, DeepSeek, DeepSeek Coder, DeepSeek Chat, DeepSeek Platform",
-  "productName": "DeepSeek",
+  "url": "https://www.clickcast.tech/",
+  "title": "ClickCast - Turn Website into Promo Video in minutes.",
+  "description": "Transform any website into stunning marketing videos instantly with AI. No recording, no editing just paste your URL and generate professional demo videos in minutes.",
+  "keywords": "AI video generator, website to video, demo video generator, marketing videos, SaaS video, product videos, automated video, video marketing",
+  "productName": "ClickCast",
   "colorPalette": {
-    "primary": "#94A3B8",
-    "secondary": "#808FA4",
-    "accent": "#A8B7CC",
+    "primary": "#FFFFFF",
+    "secondary": "#000000",
+    "accent": "#FFFFFF",
     "background": null,
     "text": null,
     "brand": [
       {
-        "source": "link text",
-        "value": "#94A3B8",
-        "priority": 3,
+        "source": "cta background",
+        "value": "#FFFFFF",
+        "priority": 1,
+        "isBrandColor": false
+      },
+      {
+        "source": "cta text",
+        "value": "#000000",
+        "priority": 1,
         "isBrandColor": false
       }
     ],
     "css": []
   },
   "raw": {
-    "url": "https://www.deepseek.com/",
+    "url": "https://www.clickcast.tech/",
     "seo": {
-      "title": "DeepSeek | 深度求索",
-      "description": "深度求索（DeepSeek），成立于2023年，专注于研究世界领先的通用人工智能底层模型与技术，挑战人工智能前沿性难题。基于自研训练框架、自建智算集群和万卡算力等资源，深度求索团队仅用半年时间便已发布并开源多个百亿级参数大模型，如DeepSeek-LLM通用大语言模型、DeepSeek-Coder代码大模型，并在2024年1月率先开源国内首个MoE大模型（DeepSeek-MoE），各大模型在公开评测榜单及真实样本外的泛化效果均有超越同级别模型的出色表现。和 DeepSeek AI 对话，轻松接入 API。",
-      "keywords": "深度求索, AGI, 人工智能底层模型, 开源模型, LLM, DeepSeek, DeepSeek Coder, DeepSeek Chat, DeepSeek Platform",
-      "ogTitle": "DeepSeek | 深度求索",
-      "ogDescription": "深度求索（DeepSeek），成立于2023年，专注于研究世界领先的通用人工智能底层模型与技术，挑战人工智能前沿性难题。基于自研训练框架、自建智算集群和万卡算力等资源，深度求索团队仅用半年时间便已发布并开源多个百亿级参数大模型，如DeepSeek-LLM通用大语言模型、DeepSeek-Coder代码大模型，并在2024年1月率先开源国内首个MoE大模型（DeepSeek-MoE），各大模型在公开评测榜单及真实样本外的泛化效果均有超越同级别模型的出色表现。和 DeepSeek AI 对话，轻松接入 API。",
-      "twitterTitle": "DeepSeek | 深度求索",
-      "twitterDescription": "深度求索（DeepSeek），成立于2023年，专注于研究世界领先的通用人工智能底层模型与技术，挑战人工智能前沿性难题。基于自研训练框架、自建智算集群和万卡算力等资源，深度求索团队仅用半年时间便已发布并开源多个百亿级参数大模型，如DeepSeek-LLM通用大语言模型、DeepSeek-Coder代码大模型，并在2024年1月率先开源国内首个MoE大模型（DeepSeek-MoE），各大模型在公开评测榜单及真实样本外的泛化效果均有超越同级别模型的出色表现。和 DeepSeek AI 对话，轻松接入 API。"
+      "title": "ClickCast - Turn Website into Promo Video in minutes.",
+      "description": "Transform any website into stunning marketing videos instantly with AI. No recording, no editing just paste your URL and generate professional demo videos in minutes.",
+      "keywords": "AI video generator, website to video, demo video generator, marketing videos, SaaS video, product videos, automated video, video marketing",
+      "ogTitle": "ClickCast - AI Website to Video Generator",
+      "ogDescription": "Transform any website into stunning marketing videos instantly with AI. No recording, no editing just paste your URL and generate professional demo videos in minutes.",
+      "twitterTitle": "",
+      "twitterDescription": ""
     },
-    "jsonLd": [],
+    "jsonLd": [
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "ClickCast SaaS Explainer Video Generator",
+            "description": "The premier highly customizable AI video generator and website to video tool. Generate SaaS explainer videos with 4 distinct modes including bespoke Script Explainer storytelling, Motion Graphics, and automated product demos directly from a URL.",
+            "url": "https://www.clickcast.tech",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "Free plan available. Best saas explainer video tool pricing."
+            },
+            "creator": {
+              "@type": "Organization",
+              "name": "ClickCast Team"
+            },
+            "keywords": "ai video generator, website to video tool, ai promo video generator, saas explainer video tool, generate video from url, product demo video ai, startup promo video maker, ai marketing video generator, no code video creation tool, ai content repurposing tool, convert website into video, automated video creation saas, ai reel generator, social media video generator ai"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is the best AI video generator for SaaS?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "ClickCast is a leading AI video generator specifically built for SaaS explainer videos. Unlike traditional video templates from Envato or generic tools like Invideo and Medeo, ClickCast automates the entire process."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I convert my website into a video?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes! ClickCast is a powerful website to video tool. Simply paste your URL and our no code video creation tool will analyze the page to generate a professional product demo video automatically."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
     "headings": {
-      "h1": [],
-      "h2": [],
-      "h3": [],
-      "h4": []
+      "h1": [
+        "Paste your URL,\nGet \nwebsite video\nin minutes"
+      ],
+      "h2": [
+        "Workflow Simplified",
+        "Why ClickCast?",
+        "Built for Builders",
+        "See it in Action",
+        "Loved by\nfounders.",
+        "Simple Pricing",
+        "Common Questions"
+      ],
+      "h3": [
+        "Paste your URL",
+        "AI Analyzes Flows",
+        "Cinematic Video",
+        "SaaS Founders",
+        "Indie Hackers",
+        "Marketing Teams",
+        "Students",
+        "Professionals",
+        "Businesses",
+        "Top 3 Fastest Growing\nStartup globally",
+        "Pro",
+        "Credit Pack",
+        "What is the best AI video generator for SaaS product videos?",
+        "How can I convert website into video?",
+        "Is ClickCast customizable or just an automated screenshot tool?",
+        "How does Clickcast compare to tools like Synthesia or Vyond?",
+        "Does it work on authenticated pages?",
+        "Can I reuse this for social media marketing?",
+        "How long does video generation take?",
+        "PRODUCT",
+        "RESOURCES",
+        "COMPANY"
+      ],
+      "h4": [
+        "THE OLD WAY",
+        "WITH CLICKCAST"
+      ]
     },
-    "paragraphs": [],
-    "listItems": [],
-    "ctaTexts": [],
+    "paragraphs": [
+      "Transform any website into a professional marketing video instantly. No recording , no editing just paste your URL. Skip the hassle of hiring freelancers in hundreds of dollars or spending days creating videos yourself.",
+      "From URL to master cut in three simple steps.",
+      "Simply enter the website address you want to showcase. No complex setup or installation required.",
+      "Our agent explores your site, understanding key user flows, features, and optimal capture paths.",
+      "Receive a professionally directed, edited, and rendered representation video ready for your website.",
+      "Creating marketing or launch videos is time consuming and expensive. You either have to hire a freelancer for hundred of dollars or spend hours creating the video yourself.",
+      "ClickCast solves this forever by offering 4 distinct, highly customizable video modes including bespoke Script Explainer storytelling with in just cost of $1 for 1 video with a free trial too.",
+      "Launch your product with a professional video that makes you look like a Series A company from Day 1.",
+      "Stop spending days editing videos. Ship your features, paste your URL, and get back to coding.",
+      "Need assets for social media, ads, and changelogs? Generate unlimited variations in minutes.",
+      "Showcase your projects and assignments with cinematic intros that impress professors and recruiters.",
+      "Present your portfolio website in a dynamic way that stands out from static screenshots.",
+      "Enhance your corporate presence and internal videos with high-quality, consistent video assets.",
+      "Skyline Studio",
+      "Automated Capture • 1080p",
+      "KidsMindsGrow",
+      "Automated Capture • 1080p",
+      "Here's what our users have to say!",
+      "Just stumbled upon @clickcasttech and I have to admit it's actually pretty cool.\n\nYou just paste a website URL and it magically turns the entire site into a clean promo video in minutes. No scripting, no editing, no stress. This feels like one of those tools that quietly removes a big pain point.",
+      "I think that's a good idea ngl it's so useful"
+    ],
+    "listItems": [
+      "Manual recording",
+      "Rigid timeline editing",
+      "Hardcoded scripts",
+      "Zero automation",
+      "Full script customization",
+      "Bespoke storytelling",
+      "Editable AI visuals",
+      "4 Video Modes",
+      "30 Videos / Month",
+      "1080p Export",
+      "60 FPS Export",
+      "Priority Support",
+      "3 videos to use anytime",
+      "1080p & 60 FPS Export",
+      "Credits do not expire",
+      "AI Video Generator",
+      "Website to Video",
+      "URL to Video",
+      "SaaS Explainer Videos",
+      "Blogs",
+      "Showcase",
+      "Contact Us",
+      "Privacy Policy",
+      "Terms of Service"
+    ],
+    "ctaTexts": [
+      "Sign In",
+      "Get Started Free",
+      "Watch Promo",
+      "View all examples",
+      "Start Free Trial",
+      "Buy Credits"
+    ],
     "features": [],
-    "productName": "DeepSeek",
-    "navItems": [],
-    "footerText": [],
+    "productName": "ClickCast",
+    "navItems": [
+      "ClickCast",
+      "How it Works",
+      "Examples",
+      "Pricing",
+      "Blog"
+    ],
+    "footerText": [
+      "ClickCast",
+      "",
+      "Transform your ideas, websites, and URLs into stunning, high-converting video automatically with the power of AI.",
+      "",
+      "PRODUCT",
+      "AI Video Generator",
+      "Website to Video",
+      "URL to Video",
+      "SaaS Explainer Videos",
+      "RESOURCES"
+    ],
     "formLabels": [],
     "imageAlts": [
-      "DeepSeek Logo",
-      "DeepSeek Logo"
+      "Unicorne Top 20 Fastest Growing Startups - Clickcast #3",
+      "clickcast.tech - Featured on Startup Fame",
+      "ElevenLabs Startup Grants"
     ],
     "dataDescriptions": [],
     "colorPalette": {
-      "primary": "#94A3B8",
-      "secondary": "#808FA4",
-      "accent": "#A8B7CC",
+      "primary": "#FFFFFF",
+      "secondary": "#000000",
+      "accent": "#FFFFFF",
       "background": null,
       "text": null,
       "brand": [
         {
-          "source": "link text",
-          "value": "#94A3B8",
-          "priority": 3,
+          "source": "cta background",
+          "value": "#FFFFFF",
+          "priority": 1,
+          "isBrandColor": false
+        },
+        {
+          "source": "cta text",
+          "value": "#000000",
+          "priority": 1,
           "isBrandColor": false
         }
       ],
       "css": []
     }
   },
-  "core_text": "【页面标题】DeepSeek | 深度求索\n\n【页面描述】深度求索（DeepSeek），成立于2023年，专注于研究世界领先的通用人工智能底层模型与技术，挑战人工智能前沿性难题。基于自研训练框架、自建智算集群和万卡算力等资源，深度求索团队仅用半年时间便已发布并开源多个百亿级参数大模型，如DeepSeek-LLM通用大语言模型、DeepSeek-Coder代码大模型，并在2024年1月率先开源国内首个MoE大模型（DeepSeek-MoE），各大模型在公开评测榜单及真实样本外的泛化效果均有超越同级别模型的出色表现。和 DeepSeek AI 对话，轻松接入 API。\n\n【关键词】深度求索, AGI, 人工智能底层模型, 开源模型, LLM, DeepSeek, DeepSeek Coder, DeepSeek Chat, DeepSeek Platform\n\n【产品名称】DeepSeek",
-  "headings": [],
+  "core_text": "【页面标题】ClickCast - Turn Website into Promo Video in minutes.\n\n【页面描述】Transform any website into stunning marketing videos instantly with AI. No recording, no editing just paste your URL and generate professional demo videos in minutes.\n\n【关键词】AI video generator, website to video, demo video generator, marketing videos, SaaS video, product videos, automated video, video marketing\n\n【产品名称】ClickCast\n\n【主标题】Paste your URL,\nGet \nwebsite video\nin minutes\n\n【副标题】Workflow Simplified | Why ClickCast? | Built for Builders | See it in Action | Loved by\nfounders.\n\n【要点列表】Manual recording\n  - Rigid timeline editing\n  - Hardcoded scripts\n  - Zero automation\n  - Full script customization\n  - Bespoke storytelling\n  - Editable AI visuals\n  - 4 Video Modes\n  - 30 Videos / Month\n  - 1080p Export\n  - 60 FPS Export\n  - Priority Support\n  - 3 videos to use anytime\n  - 1080p & 60 FPS Export\n  - Credits do not expire\n\n【正文段落】Transform any website into a professional marketing video instantly. No recording , no editing just paste your URL. Skip the hassle of hiring freelancers in hundreds of dollars or spending days creating videos yourself.\n\nFrom URL to master cut in three simple steps.\n\nSimply enter the website address you want to showcase. No complex setup or installation required.\n\nOur agent explores your site, understanding key user flows, features, and optimal capture paths.\n\nReceive a professionally directed, edited, and rendered representation video ready for your website.\n\n【行动号召】Sign In | Get Started Free | Watch Promo | View all examples | Start Free Trial | Buy Credits\n\n【导航菜单】ClickCast | How it Works | Examples | Pricing | Blog",
+  "headings": [
+    "Paste your URL,\nGet \nwebsite video\nin minutes",
+    "Workflow Simplified",
+    "Why ClickCast?",
+    "Built for Builders",
+    "See it in Action",
+    "Loved by\nfounders.",
+    "Simple Pricing",
+    "Common Questions",
+    "Paste your URL",
+    "AI Analyzes Flows",
+    "Cinematic Video",
+    "SaaS Founders",
+    "Indie Hackers",
+    "Marketing Teams",
+    "Students",
+    "Professionals",
+    "Businesses",
+    "Top 3 Fastest Growing\nStartup globally",
+    "Pro",
+    "Credit Pack",
+    "What is the best AI video generator for SaaS product videos?",
+    "How can I convert website into video?",
+    "Is ClickCast customizable or just an automated screenshot tool?",
+    "How does Clickcast compare to tools like Synthesia or Vyond?",
+    "Does it work on authenticated pages?",
+    "Can I reuse this for social media marketing?",
+    "How long does video generation take?",
+    "PRODUCT",
+    "RESOURCES",
+    "COMPANY"
+  ],
   "features": [],
-  "ctaTexts": [],
+  "ctaTexts": [
+    "Sign In",
+    "Get Started Free",
+    "Watch Promo",
+    "View all examples",
+    "Start Free Trial",
+    "Buy Credits"
+  ],
   "screenshots": [
     {
       "file": "shot1.png",
-      "id": "fallback-0",
+      "id": 6,
       "type": "content",
-      "desc": "🎉 DeepSeek-V3.2 正式版发布，强化 Agent 能力，融入思考推理，在网页端、APP",
-      "text": "🎉 DeepSeek-V3.2 正式版发布，强化 Agent 能力，融入思考推理，在网页端、APP 和 API 全面上线，点击查看详情。\n探索未至之境\n开始对话\n与 DeepSeek-V3.2 免费对话\n体验全新旗舰模型\n\nAPI 开放平台\n调用 DeepSeek 最新模型\n快速集成、流畅体验\n\n获取手机 App\nEnglish",
-      "reason": "This is the hero section containing the key announcement of DeepSeek-V3.2 launch, highlighting enhanced Agent capabilities, reasoning features, and availability across web, app, and API platforms. It includes the main value proposition and call-to-action buttons for starting conversations, API access, and mobile app download.",
+      "desc": "Paste your URL,\nGet \nwebsite video\nin minutes",
+      "text": "SAAS EXPLAINER VIDEO TOOL Paste your URL, Get  website video in minutes Transform any website into a professional marketing video instantly. No record",
+      "reason": "",
       "width": 1440,
-      "height": 691.25
+      "height": 900
     },
     {
       "file": "shot2.png",
-      "type": "scroll",
-      "desc": "页面滚动位置 0px",
-      "text": "",
+      "id": 5,
+      "type": "content",
+      "desc": "Workflow Simplified",
+      "text": "Workflow Simplified From URL to master cut in three simple steps. Paste your URL Simply enter the website address you want to showcase. No complex set",
+      "reason": "",
       "width": 1440,
-      "height": 900
+      "height": 602
+    },
+    {
+      "file": "shot3.png",
+      "id": 4,
+      "type": "content",
+      "desc": "Why ClickCast?",
+      "text": "Why ClickCast? Creating marketing or launch videos is time consuming and expensive. You either have to hire a freelancer for hundred of dollars or spe",
+      "reason": "",
+      "width": 1440,
+      "height": 532
+    },
+    {
+      "file": "shot4.png",
+      "id": 3,
+      "type": "content",
+      "desc": "Built for Builders",
+      "text": "Built for Builders SaaS Founders Launch your product with a professional video that makes you look like a Series A company from Day 1. Indie Hackers S",
+      "reason": "",
+      "width": 1440,
+      "height": 848
+    },
+    {
+      "file": "shot5.png",
+      "id": 8,
+      "type": "content",
+      "desc": "See it in Action",
+      "text": "See it in Action Skyline Studio Automated Capture • 1080p KidsMindsGrow Automated Capture • 1080p View all examples",
+      "reason": "",
+      "width": 1440,
+      "height": 709
+    },
+    {
+      "file": "shot6.png",
+      "id": 2,
+      "type": "content",
+      "desc": "Loved by\nfounders.",
+      "text": "Loved by founders. Here's what our users have to say! V Vaishnavi Just stumbled upon @clickcasttech and I have to admit it's actually pretty cool. You",
+      "reason": "",
+      "width": 1440,
+      "height": 2499
+    },
+    {
+      "file": "shot7.png",
+      "id": 7,
+      "type": "pricing",
+      "desc": "Simple Pricing",
+      "text": "Simple Pricing Cancel anytime • No hidden fees Most Popular Pro $29 /month 2 day Free trial 30 Videos / Month 1080p Export 60 FPS Export Priority Supp",
+      "reason": "",
+      "width": 1440,
+      "height": 948
+    },
+    {
+      "file": "shot8.png",
+      "id": 1,
+      "type": "faq",
+      "desc": "Common Questions",
+      "text": "Common Questions What is the best AI video generator for SaaS product videos? ClickCast is specifically designed as an ai video generator and saas exp",
+      "reason": "",
+      "width": 1440,
+      "height": 1520
     }
   ]
 }

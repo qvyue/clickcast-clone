@@ -207,6 +207,12 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const imageFocus = sceneData.imageFocus || 'center';
   const objectPosition = getObjectPosition(imageFocus);
 
+  // 长图滚动支持
+  const isScrollImage = sceneData.scrollImage === true;
+  const scrollProgress = isScrollImage
+    ? interpolate(frame, [0, durationInFrames], [0, 1], { extrapolateRight: 'clamp' })
+    : 0;
+
   // AI 智能布局决策
   const imageImportance = sceneData.imageImportance || 'medium';
   const layoutReason = sceneData.layoutReason || '';
@@ -305,14 +311,27 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             }}>{sceneData.subText}</p>}
           </div>
           <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ transform: `translateY(${interpolate(enterPhase1, [0, 1], [200, 0])}px) rotateY(${interpolate(enterPhase1, [0, 1], [targetRotateY > 0 ? 40 : -40, targetRotateY])}deg) scale(${interpolate(phase1Frame, [0, mainDuration], [1, 1.05])})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+            <div style={{
+              transform: `translateY(${interpolate(enterPhase1, [0, 1], [200, 0])}px) rotateY(${interpolate(enterPhase1, [0, 1], [targetRotateY > 0 ? 40 : -40, targetRotateY])}deg) scale(${interpolate(phase1Frame, [0, mainDuration], [1, 1.05])})`,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: imageWidth,
+              aspectRatio: isScrollImage ? undefined : '1440 / 900',
+              height: isScrollImage ? (isPortrait ? '55%' : '65%') : undefined,
+              overflow: 'hidden',
+              background: '#111',
+              flexShrink: 0
+            }}>
               <Img
                 src={staticFile(sceneData.img)}
                 style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: imageFit,
-                  objectPosition: objectPosition
+                  height: isScrollImage ? 'auto' : '100%',
+                  minHeight: isScrollImage ? '100%' : undefined,
+                  objectFit: isScrollImage ? 'cover' : imageFit,
+                  objectPosition: objectPosition,
+                  transform: isScrollImage ? `translateY(${-scrollProgress * 30}%)` : undefined
                 }}
               />
             </div>
@@ -390,7 +409,8 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
               border: '1px solid rgba(255,255,255,0.15)',
               width: largeImageWidth,
               maxWidth: isPortrait ? '100%' : '1300px',
-              aspectRatio: '1440 / 900',
+              aspectRatio: isScrollImage ? undefined : '1440 / 900',
+              height: isScrollImage ? '70%' : undefined,
               overflow: 'hidden',
               background: '#111'
             }}>
@@ -398,9 +418,11 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
                 src={staticFile(sceneData.img)}
                 style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: imageFit,
-                  objectPosition: objectPosition
+                  height: isScrollImage ? 'auto' : '100%',
+                  minHeight: isScrollImage ? '100%' : undefined,
+                  objectFit: isScrollImage ? 'cover' : imageFit,
+                  objectPosition: objectPosition,
+                  transform: isScrollImage ? `translateY(${-scrollProgress * 30}%)` : undefined
                 }}
               />
             </div>
@@ -494,14 +516,27 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             }}>{sceneData.subText}</p>}
           </div>
           <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`, boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.15)', width: imageWidth, aspectRatio: '1440 / 900', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+            <div style={{
+              transform: `translateY(${translateY}px) rotateY(${rotateY}deg) scale(${slowZoom})`,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.6), 0 0 40px ${hexToRgba(colors.primary, 0.3)}`,
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: imageWidth,
+              aspectRatio: isScrollImage ? undefined : '1440 / 900',
+              height: isScrollImage ? (isPortrait ? '55%' : '65%') : undefined,
+              overflow: 'hidden',
+              background: '#111',
+              flexShrink: 0
+            }}>
               <Img
                 src={staticFile(sceneData.img)}
                 style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: imageFit,
-                  objectPosition: objectPosition
+                  height: isScrollImage ? 'auto' : '100%',
+                  minHeight: isScrollImage ? '100%' : undefined,
+                  objectFit: isScrollImage ? 'cover' : imageFit,
+                  objectPosition: objectPosition,
+                  transform: isScrollImage ? `translateY(${-scrollProgress * 30}%)` : undefined
                 }}
               />
             </div>

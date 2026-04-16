@@ -5,12 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "npx remotion studio",
-    "web": "node server.js",
-    "web:py": "python server.py",
+    "web": "node bin/server.js",
+    "cli": "node bin/cli.js",
     "render-landscape": "npx remotion render ClickCastPromo-Landscape websites/_preview/out/landscape.mp4",
-    "render-portrait": "npx remotion render ClickCastPromo-Portrait websites/_preview/out/portrait.mp4",
-    "capture": "node capture.js",
-    "pipeline": "node pipeline.js"
+    "render-portrait": "npx remotion render ClickCastPromo-Portrait websites/_preview/out/portrait.mp4"
   },
   "keywords": [],
   "author": "",
@@ -23,12 +21,15 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "dotenv": "^17.3.1",
+    "edge-tts": "^1.0.1",
     "express": "^5.2.1",
     "mp3-duration": "^1.1.0",
+    "multer": "^1.4.5-lts.1",
     "playwright": "^1.58.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "remotion": "^4.0.436",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3"
   }
 }

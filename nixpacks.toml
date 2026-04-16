@@ -2,7 +2,7 @@
 # Railway 使用 Nixpacks 构建
 
 [start]
-cmd = "bash start.sh"
+cmd = "bash scripts/start.sh"
 
 [install]
 # 安装 Playwright 浏览器依赖

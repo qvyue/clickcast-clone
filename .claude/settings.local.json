@@ -1,8 +1,9 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(node capture.js \"https://github.com/\")"
-    ]
+      "Bash(node capture.js \"https://github.com/\")",
+      "Bash(node:*)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

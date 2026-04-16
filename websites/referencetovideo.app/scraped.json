@@ -1,0 +1,504 @@
+{
+  "url": "https://referencetovideo.app/",
+  "title": "Reference to Video Generator | AI Video from Source Media",
+  "description": "Reference to Video Generator for image-to-video, video-to-video, and reference-guided AI video creation. Compare top models in one workflow.",
+  "keywords": "",
+  "productName": "AI Product Template",
+  "colorPalette": {
+    "primary": "#FFFFFF",
+    "secondary": "oklab(0.999994 0.0000455678 0.0000200868 / 0.25)",
+    "accent": "oklch(0.366 0.0251 49.6085)",
+    "background": null,
+    "text": null,
+    "brand": [
+      {
+        "source": "cta text",
+        "value": "#FFFFFF",
+        "priority": 1,
+        "isBrandColor": false
+      },
+      {
+        "source": "link background",
+        "value": "oklab(0.999994 0.0000455678 0.0000200868 / 0.25)",
+        "priority": 3,
+        "isBrandColor": false
+      },
+      {
+        "source": "heading text",
+        "value": "oklch(0.366 0.0251 49.6085)",
+        "priority": 4,
+        "isBrandColor": false
+      }
+    ],
+    "css": []
+  },
+  "raw": {
+    "url": "https://referencetovideo.app/",
+    "seo": {
+      "title": "Reference to Video Generator | AI Video from Source Media",
+      "description": "Reference to Video Generator for image-to-video, video-to-video, and reference-guided AI video creation. Compare top models in one workflow.",
+      "keywords": "",
+      "ogTitle": "Reference to Video Generator | AI Video from Source Media",
+      "ogDescription": "Reference to Video Generator for image-to-video, video-to-video, and reference-guided AI video creation. Compare top models in one workflow.",
+      "twitterTitle": "Reference to Video Generator | AI Video from Source Media",
+      "twitterDescription": "Reference to Video Generator for image-to-video, video-to-video, and reference-guided AI video creation. Compare top models in one workflow."
+    },
+    "jsonLd": [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Reference to Video Generator",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Any",
+        "url": "https://referencetovideo.app",
+        "keywords": [
+          "reference to video",
+          "reference image to video",
+          "reference-guided video generation",
+          "image to video",
+          "video to video"
+        ],
+        "featureList": [
+          "Reference-guided AI video creation",
+          "Image-to-video and video-to-video workflows",
+          "Multi-model video generator",
+          "Source image and source video guidance"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Choose the best model for your workflow, load example presets or upload your own source media, and generate a new AI video with better subject consistency and flexible scene control.",
+        "author": {
+          "@type": "Organization",
+          "name": "Reference to Video",
+          "url": "https://referencetovideo.app"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is reference to video generation?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Reference to video generation is a workflow where a reference image or source video is used to guide a new AI-generated video. It helps improve consistency, subject recognition, and visual direction compared with fully prompt-based AI video generation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the difference between reference to video and image to video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Image to video usually means animating a still image. Reference to video is broader and can include both image-guided and video-to-video workflows, depending on whether you want to preserve appearance, motion, or both."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "When should I use a reference image?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use a reference image when the main priority is preserving how a character, object, or product looks. This is common in character content, branded visuals, product storytelling, and concept design."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "When should I use a source video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use a source video when you want to preserve motion direction, scene structure, rhythm, or camera flow more closely. This is useful for motion-guided creation, remixing, and controlled video-to-video variation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What kind of source material works best?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Clear inputs usually produce better outputs. A strong reference image should have a visible subject, stable lighting, and minimal clutter. A good source video should have readable motion and a clear focal point."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does my AI video look inconsistent?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Inconsistency can come from weak source material, crowded scenes, overly complex prompts, or choosing the wrong model for the task. Better source inputs and clearer creative direction usually improve reference to video results."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use reference to video for product marketing?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Many teams use reference-guided video generation for product demo videos, landing page visuals, short social ads, concept testing, and campaign exploration."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I get better results?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use stronger source media, simplify your prompt, focus on one main subject, and test multiple variations. The best reference to video results usually come from combining a clear visual anchor with a simple creative goal."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is reference to video good for character consistency?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. One of the biggest advantages of reference to video is improved character consistency. A clear reference image gives the model a stronger visual anchor than text prompts alone."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use reference to video for social media content?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Reference to video works well for short-form content on TikTok, Reels, Shorts, and other creator workflows where fast production and visual consistency both matter."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I turn product photos into short AI demo videos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. A product photo can be used as a reference image to generate short AI demo videos for ecommerce, ads, product launches, and landing pages."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who is this reference to video generator for?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "It is useful for creators, marketers, ecommerce brands, agencies, and visual teams who want more controlled AI video creation for characters, products, scenes, and creative concepts."
+            }
+          }
+        ]
+      }
+    ],
+    "headings": {
+      "h1": [
+        "Reference to Video Generator for More Consistent AI Videos"
+      ],
+      "h2": [
+        "Reference to Video for Consistent Subjects in New Scenes",
+        "Key Features of Our Reference to Video Generator",
+        "How to Use Reference to Video",
+        "Use Cases for Reference-Guided Video Generation",
+        "Pricing for reference-driven video creation",
+        "Reference to Video FAQ",
+        "Ready to generate your first reference-driven video?"
+      ],
+      "h3": [
+        "Better Subject Consistency Across AI Video Generation",
+        "Flexible Workflows with Reference Images and Source Videos",
+        "Create New Scenes While Keeping the Main Subject Stable",
+        "Multi-Model AI Video Workflow for Different Output Goals",
+        "Built for Social Content, Product Demos, and Creative Production",
+        "Upload a Reference Image",
+        "Add Source Video When Needed",
+        "Generate and Export",
+        "Character Motion",
+        "Product Demo Videos",
+        "Creative Variations",
+        "Social Media Content",
+        "Source Video Variations",
+        "Generate and export clean videos from just $12.90",
+        "Basic",
+        "Pro",
+        "Max",
+        "What is reference to video generation?",
+        "What is the difference between reference to video and image to video?",
+        "When should I use a reference image?",
+        "When should I use a source video?",
+        "What kind of source material works best?",
+        "Why does my AI video look inconsistent?",
+        "Can I use reference to video for product marketing?",
+        "How can I get better results?",
+        "Is reference to video good for character consistency?",
+        "Can I use reference to video for social media content?",
+        "Can I turn product photos into short AI demo videos?",
+        "Who is this reference to video generator for?"
+      ],
+      "h4": []
+    },
+    "paragraphs": [
+      "Turn a reference image or source video into a new AI video with better control over subject identity, styling, and scene direction.",
+      "Uploads are processed securely for generation only. Use only media you have the rights to transform.",
+      "Use a reference image, additional visual cues, and a prompt to create new scenes while keeping the main character, object, or product visually consistent.",
+      "PROMPT",
+      "The lion is singing.",
+      "OUTPUT PREVIEW",
+      "Singing Lion",
+      "BETTER CONTROL FOR PRACTICAL AI VIDEO CREATION",
+      "Our reference to video generator is built for users who need more than random AI video output. By combining reference images, source videos, prompt guidance, and flexible generation workflows, it helps creators and teams produce videos with stronger consistency, clearer visual direction, and more practical value for real content, marketing, and creative production.",
+      "One of the biggest advantages of reference to video is the ability to keep a character, object, or product more recognizable throughout the generated video. Instead of relying only on text prompts, you can use a reference image or source video to anchor identity, styling, and visual structure. This makes the workflow much more useful for character motion, branded content, product storytelling, and other projects where subject consistency matters.",
+      "Different projects need different kinds of control. You can start with a reference image when your priority is preserving appearance, styling, or product details, or use a source video when motion flow, scene timing, and camera direction matter more. This flexibility allows the same platform to support both image to video and video to video workflows, making it easier to adapt reference-guided video generation to different creative goals.",
+      "Reference to video is especially useful when you want to place the same subject into new environments, moods, or storytelling contexts without losing the core visual identity. A creator can test multiple scene concepts around one character. A brand can showcase the same product in different campaign settings. A visual team can generate creative variations more efficiently by preserving the main subject while changing the scene around it.",
+      "Not every AI video project has the same goal. Some workflows require faster testing and iteration, while others need stronger motion quality, better visual polish, or a more presentation-ready result. A flexible reference to video generator should support different model choices so users can match the generation workflow to the actual task, whether that means concept exploration, social content production, or short product demo videos.",
+      "This is not just a novelty AI video tool. Reference-guided video generation can be used to create short videos for landing pages, ecommerce content, ad creatives, Reels, Shorts, TikTok, product demo videos, and internal concept development. By making AI video creation more controlled and repeatable, the workflow becomes much more practical for creators, marketers, agencies, and visual teams that need usable output rather than random experiments.",
+      "Go from source media to a usable clip in three straightforward steps.",
+      "Start with a clear image of the subject you want to keep consistent. Clean framing and visible details usually improve results.",
+      "Use a source video when the selected model supports reference-guided generation or video-to-video transformation.",
+      "Choose resolution, aspect ratio, and model, then generate a new video you can review, refine, and export.",
+      "BUILT FOR CREATORS, MARKETERS, AND VISUAL TEAMS",
+      "Reference to video works best when you need more control over identity, scene direction, or visual continuity than prompt-only generation can provide."
+    ],
+    "listItems": [
+      "AI Videos",
+      "AI Images",
+      "Pricing",
+      "My Creations",
+      "3600 credits/year (delivered monthly)",
+      "Up to ~360 videos/year",
+      "Up to ~1800 images/year",
+      "Monthly subscription credits never expire",
+      "Watermark-free exports",
+      "HD generation and downloads",
+      "Private generation",
+      "Commercial usage rights",
+      "Subscription credits never expire",
+      "13200 credits/year (delivered monthly)",
+      "Up to ~1320 videos/year",
+      "Up to ~6600 images/year",
+      "Monthly subscription credits never expire",
+      "Priority generation queue",
+      "Watermark-free exports",
+      "HD generation and downloads",
+      "Private generation",
+      "Commercial usage rights",
+      "Priority support",
+      "38400 credits/year (delivered monthly)",
+      "Up to ~3840 videos/year",
+      "Up to ~19200 images/year",
+      "Monthly subscription credits never expire",
+      "Fastest queue priority",
+      "Watermark-free exports",
+      "HD generation and downloads"
+    ],
+    "ctaTexts": [
+      "AI Videos",
+      "AI Images",
+      "🎁\nGET 30 FREE CREDITS",
+      "Sign in",
+      "🎁30 Credits",
+      "Image to Video",
+      "Kling 2.6 Motion Control",
+      "720p · Video",
+      "Cinematic Product Ad",
+      "Travel Aerial Narrative"
+    ],
+    "features": [],
+    "productName": "AI Product Template",
+    "navItems": [
+      "AI Product Template",
+      "Pricing",
+      "My Creations"
+    ],
+    "footerText": [
+      "AI Product Template",
+      "",
+      "Turn a reference image and source media into a new AI video with workflows built for creators, marketers, and teams.",
+      "",
+      "Support:",
+      "support@example.com",
+      "AI VIDEOS",
+      "Kling 2.6 Motion Control",
+      "Seedance 1.5 Pro",
+      "Sora 2 Pro"
+    ],
+    "formLabels": [],
+    "imageAlts": [
+      "Reference image of a lion used as the source for video generation.",
+      "Featured on saasfame.com",
+      "Featured on Findly.tools"
+    ],
+    "dataDescriptions": [],
+    "colorPalette": {
+      "primary": "#FFFFFF",
+      "secondary": "oklab(0.999994 0.0000455678 0.0000200868 / 0.25)",
+      "accent": "oklch(0.366 0.0251 49.6085)",
+      "background": null,
+      "text": null,
+      "brand": [
+        {
+          "source": "cta text",
+          "value": "#FFFFFF",
+          "priority": 1,
+          "isBrandColor": false
+        },
+        {
+          "source": "link background",
+          "value": "oklab(0.999994 0.0000455678 0.0000200868 / 0.25)",
+          "priority": 3,
+          "isBrandColor": false
+        },
+        {
+          "source": "heading text",
+          "value": "oklch(0.366 0.0251 49.6085)",
+          "priority": 4,
+          "isBrandColor": false
+        }
+      ],
+      "css": []
+    }
+  },
+  "core_text": "【页面标题】Reference to Video Generator | AI Video from Source Media\n\n【页面描述】Reference to Video Generator for image-to-video, video-to-video, and reference-guided AI video creation. Compare top models in one workflow.\n\n【产品名称】AI Product Template\n\n【主标题】Reference to Video Generator for More Consistent AI Videos\n\n【副标题】Reference to Video for Consistent Subjects in New Scenes | Key Features of Our Reference to Video Generator | How to Use Reference to Video | Use Cases for Reference-Guided Video Generation | Pricing for reference-driven video creation\n\n【要点列表】AI Videos\n  - AI Images\n  - Pricing\n  - My Creations\n  - 3600 credits/year (delivered monthly)\n  - Up to ~360 videos/year\n  - Up to ~1800 images/year\n  - Monthly subscription credits never expire\n  - Watermark-free exports\n  - HD generation and downloads\n  - Private generation\n  - Commercial usage rights\n  - Subscription credits never expire\n  - 13200 credits/year (delivered monthly)\n  - Up to ~1320 videos/year\n\n【正文段落】Turn a reference image or source video into a new AI video with better control over subject identity, styling, and scene direction.\n\nUploads are processed securely for generation only. Use only media you have the rights to transform.\n\nUse a reference image, additional visual cues, and a prompt to create new scenes while keeping the main character, object, or product visually consistent.\n\nBETTER CONTROL FOR PRACTICAL AI VIDEO CREATION\n\nOur reference to video generator is built for users who need more than random AI video output. By combining reference images, source videos, prompt guidance, and flexible generation workflows, it helps creators and teams produce videos with stronger consistency, clearer visual direction, and more practical value for real content, marketing, and creative production.\n\n【行动号召】AI Videos | AI Images | 🎁\nGET 30 FREE CREDITS | Sign in | 🎁30 Credits | Image to Video | Kling 2.6 Motion Control | 720p · Video | Cinematic Product Ad | Travel Aerial Narrative\n\n【导航菜单】AI Product Template | Pricing | My Creations\n\n【结构化名称】Reference to Video Generator\n\n【结构化描述】Choose the best model for your workflow, load example presets or upload your own source media, and generate a new AI video with better subject consistency and flexible scene control.\n\n【价格】0",
+  "headings": [
+    "Reference to Video Generator for More Consistent AI Videos",
+    "Reference to Video for Consistent Subjects in New Scenes",
+    "Key Features of Our Reference to Video Generator",
+    "How to Use Reference to Video",
+    "Use Cases for Reference-Guided Video Generation",
+    "Pricing for reference-driven video creation",
+    "Reference to Video FAQ",
+    "Ready to generate your first reference-driven video?",
+    "Better Subject Consistency Across AI Video Generation",
+    "Flexible Workflows with Reference Images and Source Videos",
+    "Create New Scenes While Keeping the Main Subject Stable",
+    "Multi-Model AI Video Workflow for Different Output Goals",
+    "Built for Social Content, Product Demos, and Creative Production",
+    "Upload a Reference Image",
+    "Add Source Video When Needed",
+    "Generate and Export",
+    "Character Motion",
+    "Product Demo Videos",
+    "Creative Variations",
+    "Social Media Content",
+    "Source Video Variations",
+    "Generate and export clean videos from just $12.90",
+    "Basic",
+    "Pro",
+    "Max",
+    "What is reference to video generation?",
+    "What is the difference between reference to video and image to video?",
+    "When should I use a reference image?",
+    "When should I use a source video?",
+    "What kind of source material works best?",
+    "Why does my AI video look inconsistent?",
+    "Can I use reference to video for product marketing?",
+    "How can I get better results?",
+    "Is reference to video good for character consistency?",
+    "Can I use reference to video for social media content?",
+    "Can I turn product photos into short AI demo videos?",
+    "Who is this reference to video generator for?"
+  ],
+  "features": [],
+  "ctaTexts": [
+    "AI Videos",
+    "AI Images",
+    "🎁\nGET 30 FREE CREDITS",
+    "Sign in",
+    "🎁30 Credits",
+    "Image to Video",
+    "Kling 2.6 Motion Control",
+    "720p · Video",
+    "Cinematic Product Ad",
+    "Travel Aerial Narrative"
+  ],
+  "screenshots": [
+    {
+      "file": "shot1.png",
+      "id": 7,
+      "type": "hero",
+      "desc": "Reference to Video Generator for More Consistent AI Videos",
+      "text": "Reference-Guided AI Video Generation Reference to Video Generator for More Consistent AI Videos Turn a reference image or source video into a new AI v",
+      "reason": "",
+      "width": 1440,
+      "height": 812
+    },
+    {
+      "file": "shot2.png",
+      "id": 9,
+      "type": "content",
+      "desc": "Reference to Video for Consistent Subjects in New Scenes",
+      "text": "Reference to Video for Consistent Subjects in New Scenes Use a reference image, additional visual cues, and a prompt to create new scenes while keepin",
+      "reason": "",
+      "width": 1440,
+      "height": 1170
+    },
+    {
+      "file": "shot3.png",
+      "id": 1,
+      "type": "features",
+      "desc": "Key Features of Our Reference to Video Generator",
+      "text": "BETTER CONTROL FOR PRACTICAL AI VIDEO CREATION Key Features of Our Reference to Video Generator Our reference to video generator is built for users wh",
+      "reason": "",
+      "width": 1440,
+      "height": 3091
+    },
+    {
+      "file": "shot4.png",
+      "id": 8,
+      "type": "content",
+      "desc": "See what reference-driven video can look like in practice",
+      "text": "REFERENCE TO VIDEO GALLERY See what reference-driven video can look like in practice Browse a curated gallery of cinematic edits, stylized character c",
+      "reason": "",
+      "width": 1440,
+      "height": 1316
+    },
+    {
+      "file": "shot5.png",
+      "id": 6,
+      "type": "content",
+      "desc": "How to Use Reference to Video",
+      "text": "How to Use Reference to Video Go from source media to a usable clip in three straightforward steps. 1 Upload a Reference Image Start with a clear imag",
+      "reason": "",
+      "width": 1440,
+      "height": 672
+    },
+    {
+      "file": "shot6.png",
+      "id": 5,
+      "type": "about",
+      "desc": "Use Cases for Reference-Guided Video Generation",
+      "text": "BUILT FOR CREATORS, MARKETERS, AND VISUAL TEAMS Use Cases for Reference-Guided Video Generation Reference to video works best when you need more contr",
+      "reason": "",
+      "width": 1440,
+      "height": 1469
+    },
+    {
+      "file": "shot7.png",
+      "id": 2,
+      "type": "pricing",
+      "desc": "Pricing for reference-driven video creation",
+      "text": "Pricing for reference-driven video creation Choose a plan based on how often you test reference-driven generation, image-to-video, and video-to-video ",
+      "reason": "",
+      "width": 1440,
+      "height": 1306
+    },
+    {
+      "file": "shot8.png",
+      "id": 3,
+      "type": "testimonials",
+      "desc": "WHAT USERS SAY",
+      "text": "WHAT USERS SAY Teams use Reference to Video for practical production work Maya Turner Creative Producer The model switcher is the real win. We can tes",
+      "reason": "",
+      "width": 1440,
+      "height": 656
+    },
+    {
+      "file": "shot9.png",
+      "id": 4,
+      "type": "faq",
+      "desc": "Reference to Video FAQ",
+      "text": "Reference to Video FAQ Answers about reference-guided AI video generation What is reference to video generation? What is the difference between refere",
+      "reason": "",
+      "width": 1440,
+      "height": 1459
+    },
+    {
+      "file": "shot10.png",
+      "id": 10,
+      "type": "pricing",
+      "desc": "Ready to generate your first reference-driven video?",
+      "text": "Ready to generate your first reference-driven video? Open the generator, choose the model that matches your workflow, and turn your source media into ",
+      "reason": "",
+      "width": 1440,
+      "height": 388
+    }
+  ]
+}

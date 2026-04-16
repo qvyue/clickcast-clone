@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>截图区块可视化 - AI Product Template</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #fff; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    .url { text-align: center; color: #94a3b8; margin-bottom: 20px; }
+    .legend { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-box { width: 30px; height: 20px; border-radius: 4px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+    .stat { text-align: center; padding: 20px; background: #1e293b; border-radius: 12px; }
+    .stat-number { font-size: 48px; font-weight: bold; }
+    .stat-label { color: #94a3b8; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 截图区块可视化分析</h1>
+  <p class="url">https://referencetovideo.app/</p>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-box" style="background:#ef4444;"></div>
+      <span>AI 选中的 (10个)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box" style="background:#eab308;"></div>
+      <span>AI 丢弃的 (4个)</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number" style="color:#fff;">14</div>
+        <div class="stat-label">候选区块总数</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" style="color:#ef4444;">10</div>
+        <div class="stat-label">AI 选中</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" style="color:#eab308;">4</div>
+        <div class="stat-label">AI 丢弃</div>
+      </div>
+    </div>
+
+    
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#7</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">HERO</span>
+        <span style="flex:1;font-weight:500;">Reference to Video Generator for More Consistent AI Videos</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 812</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_7.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#9</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">Reference to Video for Consistent Subjects in New Scenes</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 1170</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_9.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#1</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">FEATURES</span>
+        <span style="flex:1;font-weight:500;">Key Features of Our Reference to Video Generator</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 3091</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_1.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#8</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">See what reference-driven video can look like in practice</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 1316</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_8.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#6</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">How to Use Reference to Video</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 672</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_6.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#5</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">ABOUT</span>
+        <span style="flex:1;font-weight:500;">Use Cases for Reference-Guided Video Generation</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 1469</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_5.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #eab308;">
+      <div style="background:rgba(234,179,8,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#11</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">Character Motion Start from a portrait or characte</span>
+        <span style="color:#94a3b8;font-size:13px;">1088 × 864</span>
+        <span style="background:#eab308;padding:2px 8px;border-radius:4px;font-size:12px;">AI丢弃</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_11.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#2</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">PRICING</span>
+        <span style="flex:1;font-weight:500;">Pricing for reference-driven video creation</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 1306</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_2.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #eab308;">
+      <div style="background:rgba(234,179,8,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#12</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">Pro Save $59.8 · 20% off $19.92 /month $24.9/mo $2</span>
+        <span style="color:#94a3b8;font-size:13px;">366 × 202</span>
+        <span style="background:#eab308;padding:2px 8px;border-radius:4px;font-size:12px;">AI丢弃</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_12.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #eab308;">
+      <div style="background:rgba(234,179,8,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#13</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">Max Save $240 · 40% off $29.9 /month $49.9/mo $358</span>
+        <span style="color:#94a3b8;font-size:13px;">366 × 202</span>
+        <span style="background:#eab308;padding:2px 8px;border-radius:4px;font-size:12px;">AI丢弃</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_13.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #eab308;">
+      <div style="background:rgba(234,179,8,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#14</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">CONTENT</span>
+        <span style="flex:1;font-weight:500;">Basic Save $16.8 · 15% off $7.5 /month $8.9/mo $90</span>
+        <span style="color:#94a3b8;font-size:13px;">366 × 202</span>
+        <span style="background:#eab308;padding:2px 8px;border-radius:4px;font-size:12px;">AI丢弃</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_14.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#3</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">TESTIMONIALS</span>
+        <span style="flex:1;font-weight:500;">WHAT USERS SAY</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 656</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_3.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#4</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">FAQ</span>
+        <span style="flex:1;font-weight:500;">Reference to Video FAQ</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 1459</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_4.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+
+    <div style="background:#1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;border:2px solid #ef4444;">
+      <div style="background:rgba(239,68,68,0.2);padding:15px;display:flex;align-items:center;gap:15px;">
+        <span style="background:#0f172a;padding:4px 12px;border-radius:20px;font-weight:bold;">#10</span>
+        <span style="background:#7c3aed;padding:4px 12px;border-radius:20px;font-size:12px;">PRICING</span>
+        <span style="flex:1;font-weight:500;">Ready to generate your first reference-driven video?</span>
+        <span style="color:#94a3b8;font-size:13px;">1440 × 388</span>
+        <span style="background:#ef4444;padding:2px 8px;border-radius:4px;font-size:12px;">AI选中</span>
+      </div>
+      
+      <div style="padding:15px;">
+        <img src="candidate_10.png" style="max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+      </div>
+      
+    </div>
+  </div>
+</body>
+</html>
