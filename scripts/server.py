@@ -75,7 +75,6 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
             data = json.loads(body)
             url = data.get('url', '')
             aspect_ratio = data.get('aspectRatio', 'landscape')  # landscape 或 portrait
-            custom_description = data.get('customDescription', '')  # 用户自定义描述
         except:
             self.send_error(400, 'Invalid JSON')
             return
@@ -95,17 +94,10 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
 
         job_id = str(int(time.time() * 1000))
 
-        # 保存自定义描述到文件
-        if custom_description:
-            desc_file = os.path.join(os.path.dirname(__file__), 'public', 'custom-description.txt')
-            with open(desc_file, 'w', encoding='utf-8') as f:
-                f.write(custom_description)
-
         # 初始化任务状态 - 所有步骤pending
         jobs[job_id] = {
             'url': url,
             'aspectRatio': aspect_ratio,
-            'customDescription': custom_description,
             'status': 'running',
             'currentStep': 0,
             'steps': [
@@ -443,12 +435,6 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
     </div>
 
     <div class="input-group">
-      <label for="customDescription">自定义功能描述 <span style="color:#888;font-weight:normal">(可选)</span></label>
-      <textarea id="customDescription" placeholder="描述您希望视频突出的核心功能和卖点...&#10;&#10;例如：这是一款 AI 代码助手，可以帮助开发者快速编写代码。主要功能包括：代码自动补全、智能代码审查、Bug 自动修复。我们的卖点是速度快、准确率高、支持所有主流编程语言。"></textarea>
-      <p class="hint">AI 会将您的描述与自动提取的信息融合，生成更精准的视频内容</p>
-    </div>
-
-    <div class="input-group">
       <label for="aspectRatio">视频比例</label>
       <div class="ratio-selector">
         <button type="button" class="ratio-btn active" data-ratio="landscape" onclick="selectRatio('landscape')">
@@ -535,7 +521,6 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
 
     async function generateVideo() {
       const url = document.getElementById('url').value.trim();
-      const customDescription = document.getElementById('customDescription').value.trim();
       const btn = document.getElementById('generateBtn');
       const pipeline = document.getElementById('pipeline');
       const result = document.getElementById('result');
@@ -557,7 +542,7 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
         const res = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, aspectRatio: selectedRatio, customDescription })
+          body: JSON.stringify({ url, aspectRatio: selectedRatio })
         });
         
         const data = await res.json();

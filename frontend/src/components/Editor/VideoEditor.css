@@ -31,10 +31,88 @@
 
 .domain-badge {
   background: #4a4a6a;
-  padding: 4px 12px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
   font-family: monospace;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.auto-save-message {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.render-status {
+  font-size: 12px;
+  color: #fbbf24;
+  padding: 6px 12px;
+  background: rgba(251, 191, 36, 0.15);
+  border-radius: 6px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+/* 覆盖 index.css 中的样式，确保 header 中对齐 */
+.editor-header .aspect-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.editor-header .aspect-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid #4a4a6a;
+  background: #2a2a4a;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #b8b8d0;
+  height: 32px;
+  transition: all 0.2s;
+}
+
+.editor-header .aspect-btn:hover {
+  background: #3a3a5a;
+  border-color: #5a5a7a;
+}
+
+.editor-header .aspect-btn.active {
+  background: #9b4dff;
+  color: #fff;
+  border-color: #9b4dff;
+}
+
+.editor-header .aspect-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Header 中的按钮统一高度 */
+.editor-header .btn {
+  height: 32px;
+  padding: 0 14px;
 }
 
 .editor-main {
@@ -70,7 +148,7 @@
 }
 
 .editor-timeline {
-  height: 160px;
+  height: 120px;
   background: #1a1a2e;
   border-top: 1px solid #2a2a4a;
 }
@@ -302,7 +380,7 @@
 
 /* Timeline */
 .timeline-container {
-  padding: 12px 16px;
+  padding: 8px 16px;
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -312,7 +390,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .timeline-header h4 {
@@ -323,14 +401,16 @@
 
 .timeline-duration {
   font-size: 11px;
-  color: #666;
+  color: #888;
+  background: #2a2a4a;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .timeline-track {
   display: flex;
   gap: 4px;
   height: 80px;
-  position: relative;
 }
 
 .timeline-block {
@@ -403,33 +483,6 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Action Bar */
-.action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
-  background: #1a1a2e;
-  border-top: 1px solid #2a2a4a;
-}
-
-.action-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-bar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dirty-indicator {
-  font-size: 12px;
-  color: #f0ad4e;
-}
-
 /* Duration warning styles */
 .duration-warning {
   display: inline-flex;
@@ -439,6 +492,7 @@
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
+  height: 32px;
 }
 
 .duration-warning-info {
@@ -465,33 +519,271 @@
   50% { opacity: 0.7; }
 }
 
-/* Save toast styles */
-.save-toast {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  animation: fadeInOut 3s ease-in-out forwards;
-}
-
-.save-toast-success {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.save-toast-error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateY(-10px); }
   10% { opacity: 1; transform: translateY(0); }
   80% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ========== Focus States ========== */
+*:focus-visible {
+  outline: 2px solid #9b4dff;
+  outline-offset: 2px;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(155, 77, 255, 0.4);
+}
+
+.scene-editor-group input:focus-visible,
+.scene-editor-group textarea:focus-visible,
+.scene-editor-group select:focus-visible {
+  border-color: #9b4dff;
+  box-shadow: 0 0 0 3px rgba(155, 77, 255, 0.2);
+}
+
+.timeline-block:focus-visible {
+  box-shadow: 0 0 0 2px #9b4dff, 0 4px 12px rgba(155, 77, 255, 0.3);
+}
+
+.aspect-btn:focus-visible {
+  box-shadow: 0 0 0 2px #9b4dff;
+}
+
+/* ========== Empty States ========== */
+.empty-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+  border-radius: 12px;
+  border: 2px dashed #3a3a5a;
+  text-align: center;
+}
+
+.empty-image-placeholder-icon {
+  opacity: 0.4;
+}
+
+.empty-image-placeholder-title {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.empty-image-placeholder-hint {
+  font-size: 11px;
+  color: #555;
+}
+
+/* ========== Error Boundary ========== */
+.editor-error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0f0f1a;
+  color: #fff;
+  text-align: center;
+  padding: 40px;
+}
+
+.editor-error-boundary-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.editor-error-boundary-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.editor-error-boundary-message {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 24px;
+  max-width: 400px;
+}
+
+.editor-error-boundary-details {
+  background: #1a1a2e;
+  border: 1px solid #3a3a5a;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  max-width: 600px;
+  overflow: auto;
+  text-align: left;
+  font-family: monospace;
+  font-size: 12px;
+  color: #f87171;
+}
+
+/* ========== Image Modal ========== */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.image-modal-content {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.image-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========== Voiceover Message Styles ========== */
+.voiceover-message {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.voiceover-message-success {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+}
+
+.voiceover-message-error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+/* ========== Scene Editor Enhancements ========== */
+.scene-image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.scene-image-preview {
+  width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  cursor: pointer;
+  border-radius: 8px;
+  background: #0f0f1a;
+}
+
+.scene-image-zoom-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.scene-image-zoom-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* ========== Progress Indicator ========== */
+.progress-indicator {
+  margin-top: 8px;
+}
+
+.progress-indicator-bar {
+  height: 4px;
+  background: #1a1a2e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-indicator-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9b4dff, #6b21a8);
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
+}
+
+.progress-indicator-text {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* ========== Timeline Block Tab Index ========== */
+.timeline-block {
+  tab-index: 0;
+}
+
+/* ========== Render Success Banner ========== */
+.render-success-banner {
+  background: rgba(34, 197, 94, 0.15);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 12px 20px;
+}
+
+.render-success-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.render-success-icon {
+  font-size: 16px;
+}
+
+.render-success-content span:not(.render-success-icon) {
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.render-success-content .btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.render-success-content .btn-primary {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.render-success-content .btn-primary:hover {
+  background: #16a34a;
 }

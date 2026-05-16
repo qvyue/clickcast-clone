@@ -12,7 +12,7 @@ const router = express.Router();
  * Query render job status
  * @route GET /api/status/:jobId
  * @param {string} jobId - Job ID (URL parameter)
- * @returns {Object} { status, progress, message, videoUrl?, aspectRatio? }
+ * @returns {Object} { status, progress, message, videoUrl?, aspectRatio?, domain? }
  * @throws {404} Job not found
  * @description Used for frontend polling to query render progress
  */
@@ -31,7 +31,8 @@ router.get('/:jobId', (req, res) => {
     progress: job.progress,
     message: job.message,
     videoUrl: job.videoUrl,
-    aspectRatio: job.aspectRatio
+    aspectRatio: job.aspectRatio,
+    domain: job.domain
   });
 });
 

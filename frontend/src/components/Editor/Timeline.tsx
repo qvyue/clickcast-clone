@@ -76,6 +76,15 @@ export const Timeline: React.FC<TimelineProps> = ({ timeline }) => {
               className={`timeline-block ${selectedSceneIndex === index ? 'selected' : ''}`}
               style={{ width: `${Math.max(widthPercent, 3)}%` }}
               onClick={() => handleBlockClick(index, scene.startFrame)}
+              tabIndex={0}
+              role="button"
+              aria-label={`${getSceneLabel(scene.id, index)} - ${formatTime(duration)}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleBlockClick(index, scene.startFrame);
+                }
+              }}
             >
               {/* 缩略图容器 */}
               <div className="timeline-block-thumbnail">

@@ -42,12 +42,8 @@ const CONFIG = {
   API_KEY: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || '',
   API_BASE_URL: process.env.API_BASE_URL || 'https://api.deepseek.com',
   AI_MODEL: process.env.AI_MODEL || 'deepseek-chat',
-  VOICE: process.env.VOICE || 'en-US-ChristopherNeural',
   BGM_VOLUME: parseFloat(process.env.BGM_VOLUME) || 0.15,
   MAX_SCENES: 6,
-  // TTS 服务选择: 'edge-tts' (免费) 或 'elevenlabs' (高质量)
-  TTS_SERVICE: process.env.TTS_SERVICE || 'elevenlabs',
-  // ElevenLabs 声音: Dallin, Adam, Rachel, Antoni, Josh, Bella
   ELEVENLABS_VOICE: process.env.ELEVENLABS_VOICE || 'Dallin',
 };
 
@@ -152,11 +148,11 @@ function generateDefaultScript() {
     product: "Your Product",
     tagline: "Amazing Solution",
     scenes: [
-      { title: "Welcome", subText: "Discover the future" },
-      { title: "Powerful Features", subText: "Built for you" },
-      { title: "Easy to Use", subText: "Intuitive design" },
-      { title: "Trusted by Millions", subText: "Join our community" },
-      { title: "Get Started", subText: "Try it free" }
+      { title: "Welcome", subTitle: "Discover the future" },
+      { title: "Powerful Features", subTitle: "Built for you" },
+      { title: "Easy to Use", subTitle: "Intuitive design" },
+      { title: "Trusted by Millions", subTitle: "Join our community" },
+      { title: "Get Started", subTitle: "Try it free" }
     ]
   };
 }
@@ -226,7 +222,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     // AI 智能布局决策（从 AI 生成的 script 中获取）
     // 如果 AI 没有返回，使用智能默认值
     const titleLength = (scene.title || '').length;
-    const subTextLength = (scene.subText || '').length;
+    const subTextLength = (scene.subTitle || '').length;
     const totalTextLength = titleLength + subTextLength;
 
     let layout = scene.layout;
@@ -277,7 +273,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
       imageImportance: imageImportance,
       layoutReason: scene.layoutReason || `AI决策: ${totalTextLength}字符文本 + ${imageImportance}重要性图片`,
       title: scene.title,
-      subText: scene.subText,
+      subTitle: scene.subTitle,
       img: screenshotFile,
       text: isIntro ? `${script.product}. ${scene.title}.` : scene.title,
       audioFile: audioFile,
@@ -306,7 +302,7 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
     id: 'outro',
     layout: 'center',
     title: `Try ${script.product}`,
-    subText: script.tagline,
+    subTitle: script.tagline,
     text: `${script.product}. ${script.tagline}.`,
     audioFile: 'outro.mp3',
     mainDuration: outroTotalDuration,
@@ -333,18 +329,11 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 async function generateVoiceovers(scenes, outputDir = './public') {
   console.log('\n[3/5] 🎤 生成 AI 配音 (并发模式)...');
 
-  // 检查是否使用 ElevenLabs
-  const useElevenLabs = CONFIG.TTS_SERVICE === 'elevenlabs';
-  if (useElevenLabs) {
-    const { isElevenLabsConfigured } = require('../lib/elevenlabs-tts.js');
-    if (!isElevenLabsConfigured()) {
-      console.log('   ⚠️ ElevenLabs 未配置，回退到 edge-tts');
-    } else {
-      console.log(`   🎯 使用 ElevenLabs (${CONFIG.ELEVENLABS_VOICE})`);
-    }
-  } else {
-    console.log(`   🎯 使用 edge-tts (${CONFIG.VOICE})`);
+  const { isElevenLabsConfigured, generateSpeech } = require('../lib/elevenlabs-tts.js');
+  if (!isElevenLabsConfigured()) {
+    throw new Error('ElevenLabs API Key not configured. Please set ELEVENLABS_API_KEY in .env');
   }
+  console.log(`   🎯 使用 ElevenLabs (${CONFIG.ELEVENLABS_VOICE})`);
 
   // 收集所有需要生成的配音任务
   const tasks = [];
@@ -352,9 +341,8 @@ async function generateVoiceovers(scenes, outputDir = './public') {
     const isIntroOrOutro = scene.id === 'intro' || scene.id === 'outro';
 
     if (isIntroOrOutro) {
-      // intro 和 outro: 合并 title 和 subText 为单个音频
-      const mergedText = scene.subText && scene.subText.trim()
-        ? `${scene.title} ${scene.subText}`
+      const mergedText = scene.subTitle && scene.subTitle.trim()
+        ? `${scene.title} ${scene.subTitle}`
         : scene.title;
       tasks.push({
         id: scene.id,
@@ -372,11 +360,11 @@ async function generateVoiceovers(scenes, outputDir = './public') {
           fileName: `${scene.id}-main.mp3`
         });
       }
-      if (scene.subText && scene.subText.trim()) {
+      if (scene.subTitle && scene.subTitle.trim()) {
         tasks.push({
           id: scene.id,
           type: 'sub',
-          text: scene.subText,
+          text: scene.subTitle,
           fileName: `${scene.id}-sub.mp3`
         });
       }
@@ -399,25 +387,8 @@ async function generateVoiceovers(scenes, outputDir = './public') {
         try {
           let success = false;
 
-          // 尝试使用 ElevenLabs
-          if (useElevenLabs) {
-            const { isElevenLabsConfigured, generateSpeech } = require('./elevenlabs-tts.js');
-            if (isElevenLabsConfigured()) {
-              success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
-            }
-          }
+          success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
 
-          // 回退到 edge-tts
-          if (!success) {
-            const text = task.text.replace(/"/g, '\\"');
-            const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-            execSync(`${pythonCmd} -m edge_tts --voice ${CONFIG.VOICE} --text "${text}" --write-media "${outputPath}"`, {
-              stdio: 'pipe'
-            });
-            success = true;
-          }
-
-          // 读取音频时长
           const duration = getAudioDuration(outputPath);
           console.log(`   ✅ ${task.id}-${task.type} 完成 (${duration.toFixed(2)}秒)`);
           return { id: task.id, type: task.type, duration, success: true };
@@ -710,15 +681,16 @@ async function main() {
       voiceoverScenes.push({
         id: i === 0 ? 'intro' : `scene${i - 1}`,
         title: title,
-        subText: scene.subText || ''  // 次文案
+        subTitle: scene.subTitle || '',
+        subVoiceover: scene.subTitle || ''
       });
     }
 
-    // 添加 outro
     voiceoverScenes.push({
       id: 'outro',
       title: `${script.product}. ${script.tagline}.`,
-      subText: ''  // outro 没有次文案
+      subTitle: '',
+      subVoiceover: ''
     });
 
     // 生成配音并获取时长

@@ -66,14 +66,22 @@ export interface Scene {
   /** 场景唯一标识符 */
   id: string;
 
-  /** 布局类型：左图右文/居中/右图左文 */
-  layout: 'left' | 'center' | 'right';
+  /** 布局类型 */
+  layout?: 'left' | 'center' | 'right';
 
-  /** 主标题文本 */
-  title: string;
+  // ===== 核心文本字段 =====
+  // mainTitle = 主文案 = 主配音文案（屏幕显示 + TTS 朗读，始终一致）
+  /** 主文案（屏幕标题 + 主配音朗读文本） */
+  mainTitle?: string;
+  // subTitle = 副文案 = 副配音文案（屏幕显示 + TTS 朗读，始终一致）
+  /** 副文案（屏幕副标题 + 副配音朗读文本） */
+  subTitle?: string;
 
-  /** 副标题/描述文本（可选） */
-  subText?: string;
+  // ===== 兼容字段（自动同步，不独立使用） =====
+  /** @deprecated 使用 mainTitle 代替，自动同步 */
+  title?: string;
+  /** @deprecated 使用 subTitle 代替，自动同步 */
+  subVoiceover?: string;
 
   /** 图片文件名（可选） */
   img?: string;
@@ -83,12 +91,6 @@ export interface Scene {
 
   /** 次配音文件名，用于两阶段动画（可选） */
   audioFileSub?: string;
-
-  /** 主配音脚本文本（可选） */
-  text?: string;
-
-  /** 次配音脚本文本，用于两阶段动画（可选） */
-  subVoiceover?: string;
 
   /** 场景起始帧号 */
   startFrame: number;

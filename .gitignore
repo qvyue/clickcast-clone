@@ -21,3 +21,23 @@ websites/*/out/
 
 # 保留 BGM 文件: public/bensound-*.mp3, public/bgm-*.mp3
 .gstack/
+
+# Debug/temp files
+public/_debug/
+public/custom_*.png
+public/preview_*.mp3
+public/test-*.mp3
+public/outro-sub.mp3
+screenshot-*.png
+test-tts.mp3
+test_se_tts.mp3
+
+# IDE
+.trae/
+
+# Test results
+test-results/
+frontend/test-results/
+
+# Claude worktrees
+.claude/worktrees/

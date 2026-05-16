@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
+const { getAudioDuration } = require('../utils/audio');
 
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
@@ -111,73 +112,158 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
     const timeline = JSON.parse(fs.readFileSync(timelinePath, 'utf-8'));
     const scenes = timeline.scenes || [];
 
-    // ========== Step 1: Generate voiceover ==========
-    // Only generate when ElevenLabs is configured and audio files don't exist
+    let timelineUpdated = false;
+
+    // ========== Step 0: Normalize audio filenames ==========
+    // 修复混合格式如 preview_scene0-main.mp3 → preview_scene0.mp3
+    // 确保文件名引用与实际文件一致
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+
+      if (scene.audioFile) {
+        const normalized = normalizeAudioFilename(scene.audioFile, scene.id || `scene${i}`, 'main');
+        if (normalized !== scene.audioFile) {
+          console.log(`   [${jobId}] Normalized audioFile: ${scene.audioFile} → ${normalized}`);
+          scene.audioFile = normalized;
+          timelineUpdated = true;
+        }
+
+        if (!fs.existsSync(path.join(publicDir, scene.audioFile))) {
+          const fallback = findAudioFallback(scene.audioFile, scene.id || `scene${i}`, 'main', publicDir);
+          if (fallback) {
+            console.log(`   [${jobId}] Audio fallback: ${scene.audioFile} not found, using ${fallback}`);
+            scene.audioFile = fallback;
+            timelineUpdated = true;
+          }
+        }
+      }
+
+      if (scene.audioFileSub) {
+        const normalized = normalizeAudioFilename(scene.audioFileSub, scene.id || `scene${i}`, 'sub');
+        if (normalized !== scene.audioFileSub) {
+          console.log(`   [${jobId}] Normalized audioFileSub: ${scene.audioFileSub} → ${normalized}`);
+          scene.audioFileSub = normalized;
+          timelineUpdated = true;
+        }
+
+        if (!fs.existsSync(path.join(publicDir, scene.audioFileSub))) {
+          const fallback = findAudioFallback(scene.audioFileSub, scene.id || `scene${i}`, 'sub', publicDir);
+          if (fallback) {
+            console.log(`   [${jobId}] Audio sub fallback: ${scene.audioFileSub} not found, using ${fallback}`);
+            scene.audioFileSub = fallback;
+            timelineUpdated = true;
+          }
+        }
+      }
+    }
+
+    // ========== Step 1: Verify voiceovers and sync durations ==========
     if (isElevenLabsConfigured()) {
-      jobs.set(jobId, { ...jobs.get(jobId), message: 'Generating voiceovers...', progress: 5 });
-      console.log(`[${jobId}] Starting voiceover generation for ${scenes.length} scenes...`);
+      jobs.set(jobId, { ...jobs.get(jobId), message: 'Verifying voiceovers...', progress: 5 });
+      console.log(`[${jobId}] Verifying voiceovers for ${scenes.length} scenes...`);
 
       let voiceoverProgress = 0;
       const totalScenes = scenes.length;
-      const progressPerScene = 10 / totalScenes; // Voiceover generation takes 5-15% of progress
 
-      // Iterate all scenes, generate voiceover for each
       for (let i = 0; i < scenes.length; i++) {
         const scene = scenes[i];
         const sceneLabel = scene.id || `scene${i}`;
 
-        // Generate main voiceover (scene primary text)
-        if (scene.text) {
-          // Determine audio filename
-          const audioFile = scene.audioFile || (scene.id === 'intro' ? 'intro.mp3' :
-                            scene.id === 'outro' ? 'outro.mp3' : `scene${i}-main.mp3`);
-          const audioPath = path.join(publicDir, audioFile);
+        if (scene.audioFile) {
+          const audioPath = path.join(publicDir, scene.audioFile);
 
-          // Check if voiceover file already exists, avoid regenerating
           if (!fs.existsSync(audioPath)) {
-            console.log(`   [${jobId}] Generating ${audioFile}...`);
-            const success = await generateSpeech(scene.text, audioPath);
-            if (success) {
-              console.log(`   [${jobId}] Generated: ${audioFile}`);
+            const mainText = scene.mainTitle || '';
+            if (mainText) {
+              console.log(`   [${jobId}] Audio missing, generating: ${scene.audioFile}...`);
+              const success = await generateSpeech(mainText, audioPath);
+              if (success) {
+                scene.voiceoverSource = 'elevenlabs';
+                timelineUpdated = true;
+                console.log(`   [${jobId}] Generated: ${scene.audioFile}`);
+              }
             } else {
-              console.log(`   [${jobId}] Failed to generate: ${audioFile}`);
+              console.log(`   [${jobId}] Audio missing and no text: ${scene.audioFile}`);
             }
-          } else {
-            console.log(`   [${jobId}] Audio already exists: ${audioFile}`);
+          }
+
+          if (fs.existsSync(audioPath)) {
+            const actualDuration = getAudioDuration(audioPath);
+            if (actualDuration > 0 && Math.abs((scene.mainDuration || 0) - actualDuration) > 0.5) {
+              console.log(`   [${jobId}] Synced mainDuration: ${actualDuration.toFixed(2)}s (was ${(scene.mainDuration || 0).toFixed(2)}s)`);
+              scene.mainDuration = actualDuration;
+              timelineUpdated = true;
+            }
+            if (!scene.voiceoverSource) {
+              scene.voiceoverSource = 'elevenlabs';
+              timelineUpdated = true;
+            }
           }
         }
 
-        // Generate sub voiceover (scene secondary text, for two-phase animation)
-        if (scene.subText) {
-          const audioFileSub = scene.audioFileSub || `scene${i}-sub.mp3`;
-          const audioPathSub = path.join(publicDir, audioFileSub);
+        if (scene.audioFileSub) {
+          const audioSubPath = path.join(publicDir, scene.audioFileSub);
 
-          if (!fs.existsSync(audioPathSub)) {
-            console.log(`   [${jobId}] Generating ${audioFileSub}...`);
-            const success = await generateSpeech(scene.subText, audioPathSub);
-            if (success) {
-              console.log(`   [${jobId}] Generated: ${audioFileSub}`);
-            } else {
-              console.log(`   [${jobId}] Failed to generate: ${audioFileSub}`);
+          if (!fs.existsSync(audioSubPath)) {
+            const subText = scene.subVoiceover || '';
+            if (subText) {
+              console.log(`   [${jobId}] Sub audio missing, generating: ${scene.audioFileSub}...`);
+              const success = await generateSpeech(subText, audioSubPath);
+              if (success) {
+                scene.subVoiceoverSource = 'elevenlabs';
+                timelineUpdated = true;
+                console.log(`   [${jobId}] Generated: ${scene.audioFileSub}`);
+              }
             }
-          } else {
-            console.log(`   [${jobId}] Audio already exists: ${audioFileSub}`);
+          }
+
+          if (fs.existsSync(audioSubPath)) {
+            const actualDuration = getAudioDuration(audioSubPath);
+            if (actualDuration > 0 && Math.abs((scene.subDuration || 0) - actualDuration) > 0.5) {
+              console.log(`   [${jobId}] Synced subDuration: ${actualDuration.toFixed(2)}s (was ${(scene.subDuration || 0).toFixed(2)}s)`);
+              scene.subDuration = actualDuration;
+              timelineUpdated = true;
+            }
+            if (!scene.subVoiceoverSource) {
+              scene.subVoiceoverSource = 'elevenlabs';
+              timelineUpdated = true;
+            }
           }
         }
 
-        // Update voiceover generation progress
         voiceoverProgress++;
         const progress = Math.round(5 + (voiceoverProgress / totalScenes) * 10);
         jobs.set(jobId, {
           ...jobs.get(jobId),
-          message: `Generating voiceovers (${voiceoverProgress}/${totalScenes})...`,
+          message: `Verifying voiceovers (${voiceoverProgress}/${totalScenes})...`,
           progress
         });
       }
 
-      console.log(`[${jobId}] Voiceover generation completed.`);
+      if (timelineUpdated) {
+        console.log(`[${jobId}] Recalculating timeline...`);
+        let currentFrame = 0;
+        for (const s of scenes) {
+          s.startFrame = currentFrame;
+          if (s.audioFileSub && s.subDuration > 0) {
+            const mainDur = s.mainDuration || 0;
+            const subDur = s.subDuration;
+            const transDur = s.transitionDuration || 0.5;
+            s.durationInFrames = Math.ceil((mainDur + transDur + subDur + 0.5) * (timeline.fps || 30));
+          } else if (s.mainDuration > 0) {
+            s.durationInFrames = Math.ceil((s.mainDuration + 0.5) * (timeline.fps || 30));
+          }
+          currentFrame += s.durationInFrames;
+        }
+        timeline.totalFrames = currentFrame;
+
+        fs.writeFileSync(timelinePath, JSON.stringify(timeline, null, 2));
+        console.log(`[${jobId}] Timeline updated and saved. Total frames: ${timeline.totalFrames}`);
+      }
+
+      console.log(`[${jobId}] Voiceover verification completed.`);
     } else {
-      console.log(`[${jobId}] ElevenLabs not configured, skipping voiceover generation.`);
+      console.log(`[${jobId}] ElevenLabs not configured, skipping voiceover verification.`);
     }
 
     // Update status: prepare to copy files
@@ -189,7 +275,7 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
     fs.copyFileSync(timelinePath, globalTimelinePath);
 
     // ========== Step 3: Copy screenshot files to global public directory ==========
-    const screenshotFiles = fs.readdirSync(publicDir).filter(f => f.startsWith('shot') && f.endsWith('.png'));
+    const screenshotFiles = fs.readdirSync(publicDir).filter(f => f.endsWith('.png'));
     for (const file of screenshotFiles) {
       const src = path.join(publicDir, file);
       const dest = path.join(globalPublicDir, file);
@@ -214,13 +300,18 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
 
     await new Promise((resolve, reject) => {
       // Use spawn to start Remotion CLI render process
+      // Calculate optimal concurrency based on CPU cores (leave 2 for system)
+      const os = require('os');
+      const cpuCores = os.cpus().length;
+      const concurrency = Math.max(1, Math.min(cpuCores - 2, 6));
+
       const remotionProcess = spawn('npx', [
         'remotion',
         'render',
         compositionId,
         outputFile,
-        '--concurrency=1',  // Single-threaded render, avoid resource contention
-        '--gl=angle'        // Use ANGLE graphics library, improve Windows compatibility
+        `--concurrency=${concurrency}`,
+        '--gl=swiftshader'     // Software rendering, more stable than angle
       ], {
         cwd: path.join(__dirname, '../..'),
         shell: true,
@@ -293,6 +384,66 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       message: error.message || 'Render failed'
     });
   }
+}
+
+function normalizeAudioFilename(filename, sceneId, type) {
+  if (!filename) return filename;
+
+  const isPreview = filename.startsWith('preview_');
+  if (!isPreview) return filename;
+
+  const isIntro = sceneId === 'intro';
+  const isOutro = sceneId === 'outro';
+  const sceneNum = sceneId.startsWith('scene') ? sceneId.replace('scene', '') : null;
+
+  if (isIntro) {
+    return type === 'sub' ? 'intro-sub.mp3' : 'intro.mp3';
+  } else if (isOutro) {
+    return type === 'sub' ? 'outro-sub.mp3' : 'outro.mp3';
+  } else if (sceneNum !== null) {
+    return type === 'sub' ? `scene${sceneNum}-sub.mp3` : `scene${sceneNum}-main.mp3`;
+  }
+
+  return filename;
+}
+
+function findAudioFallback(filename, sceneId, type, publicDir) {
+  if (!filename) return null;
+
+  const isIntro = sceneId === 'intro';
+  const isOutro = sceneId === 'outro';
+  const sceneNum = sceneId.startsWith('scene') ? sceneId.replace('scene', '') : null;
+  const isPreview = filename.startsWith('preview_');
+
+  let candidates = [];
+
+  if (isIntro) {
+    candidates = type === 'sub'
+      ? ['intro-sub.mp3', 'preview_intro_sub.mp3']
+      : ['intro.mp3', 'preview_intro.mp3'];
+  } else if (isOutro) {
+    candidates = type === 'sub'
+      ? ['outro-sub.mp3', 'preview_outro_sub.mp3']
+      : ['outro.mp3', 'preview_outro.mp3'];
+  } else if (sceneNum !== null) {
+    if (isPreview) {
+      candidates = type === 'sub'
+        ? [`scene${sceneNum}-sub.mp3`, `preview_scene${sceneNum}_sub.mp3`]
+        : [`scene${sceneNum}-main.mp3`, `preview_scene${sceneNum}.mp3`];
+    } else {
+      candidates = type === 'sub'
+        ? [`scene${sceneNum}-sub.mp3`, `preview_scene${sceneNum}_sub.mp3`]
+        : [`scene${sceneNum}-main.mp3`, `preview_scene${sceneNum}.mp3`];
+    }
+  }
+
+  for (const candidate of candidates) {
+    if (candidate !== filename && fs.existsSync(path.join(publicDir, candidate))) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 module.exports = router;

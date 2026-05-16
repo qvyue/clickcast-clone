@@ -11,6 +11,52 @@ const { validateDomain } = require('../utils/state');
 const router = express.Router();
 
 /**
+ * 强制执行 timeline 数据规则
+ * 与 generate.js 中的 enforceTimelineRules 逻辑一致
+ * 确保所有写入 timeline.json 的数据满足业务约束
+ */
+function enforceTimelineRules(timeline) {
+  if (!timeline || !timeline.scenes) return;
+
+  const product = timeline.product || 'this product';
+
+  for (const scene of timeline.scenes) {
+    // 旧格式映射
+    if (!scene.mainTitle) {
+      if (scene.text) {
+        scene.mainTitle = scene.text;
+        delete scene.text;
+      } else if (scene.title) {
+        scene.mainTitle = scene.title;
+      }
+    }
+
+    if (!scene.subTitle) {
+      if (scene.subVoiceover) {
+        scene.subTitle = scene.subVoiceover;
+      } else if (scene.subText) {
+        scene.subTitle = scene.subText;
+        delete scene.subText;
+      }
+    }
+
+    // 核心规则：title = mainTitle，subVoiceover = subTitle（文案 = 配音）
+    scene.title = scene.mainTitle;
+    scene.subVoiceover = scene.subTitle;
+
+    delete scene.text;
+    delete scene.subText;
+
+    // 所有场景：填充空的 subTitle（不再拆分 mainTitle）
+    if (!scene.subTitle || !scene.subTitle.trim()) {
+      scene.subTitle = `Discover more about ${product}.`;
+      scene.title = scene.mainTitle;
+      scene.subVoiceover = scene.subTitle;
+    }
+  }
+}
+
+/**
  * Save timeline configuration
  * @route POST /api/timeline/:domain
  * @param {string} domain - Website domain (URL parameter)
@@ -38,6 +84,9 @@ router.post('/:domain', (req, res) => {
   }
 
   try {
+    // 保存前强制执行数据规则
+    enforceTimelineRules(req.body);
+
     // Write JSON file with 2-space indentation
     fs.writeFileSync(timelinePath, JSON.stringify(req.body, null, 2));
     console.log(`Timeline saved: ${domain}`);

@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { validateDomain } = require('../utils/state');
+const { getAudioDuration } = require('../utils/audio');
 
 const router = express.Router();
 
@@ -190,6 +191,42 @@ router.get('/:domain/audio', async (req, res) => {
   });
 
   res.json(audioFiles);
+});
+
+/**
+ * Get audio file duration
+ * @route GET /api/websites/:domain/audio/:filename/duration
+ * @param {string} domain - Website domain (URL parameter)
+ * @param {string} filename - Audio filename (URL parameter)
+ * @returns {Object} { filename, duration }
+ * @returns {Object} { error: string } on error
+ * @throws {400} Invalid domain
+ * @throws {404} Audio file not found
+ * @description Returns the duration of a specific audio file using ffprobe
+ */
+router.get('/:domain/audio/:filename/duration', (req, res) => {
+  const { domain, filename } = req.params;
+
+  // Validate domain format
+  if (!validateDomain(domain)) {
+    return res.status(400).json({ error: 'Invalid domain' });
+  }
+
+  // Security check: prevent path traversal
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+
+  const filePath = path.join(__dirname, '../../websites', domain, 'public', filename);
+
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'Audio file not found' });
+  }
+
+  // Get audio duration using ffprobe
+  const duration = getAudioDuration(filePath);
+  res.json({ filename, duration });
 });
 
 /**

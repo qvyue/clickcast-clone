@@ -9,8 +9,12 @@ const voiceoverRoutes = require('./voiceover');
 const renderRoutes = require('./render');
 const statusRoutes = require('./status');
 const videosRoutes = require('./videos');
+const generateRoutes = require('./generate');
 
 module.exports = (app) => {
+  // Generate routes: POST /api/generate (自动化流程 - 放在最前面)
+  app.use('/api/generate', generateRoutes);
+
   // Timeline routes: POST /api/timeline/:domain
   app.use('/api/timeline', timelineRoutes);
 

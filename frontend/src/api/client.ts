@@ -154,6 +154,21 @@ export function getAudioUrl(domain: string, filename: string): string {
 }
 
 /**
+ * 获取音频文件时长
+ *
+ * @param domain - 网站域名
+ * @param filename - 音频文件名
+ * @returns 音频时长（秒）
+ * @throws ApiError 请求失败时抛出错误
+ */
+export async function fetchAudioDuration(domain: string, filename: string): Promise<number> {
+  const url = `${API_BASE}/websites/${domain}/audio/${filename}/duration`;
+  const response = await fetchWithTimeout(url);
+  const data = await handleResponse<{ filename: string; duration: number }>(response, url);
+  return data.duration;
+}
+
+/**
  * 获取视频文件的完整URL
  *
  * @param domain - 网站域名
@@ -251,17 +266,24 @@ export async function regenerateVoiceover(domain: string, sceneIndex: number, te
  * @param domain - 网站域名
  * @param sceneIndex - 场景索引
  * @param text - 配音文本内容
+ * @param type - 配音类型 ('main' 主配音 / 'sub' 次配音)
  * @returns 包含新生成的音频文件名和时长
  * @throws ApiError 请求失败时抛出错误
  */
-export async function generatePreviewVoiceover(domain: string, sceneIndex: number, text: string): Promise<{ audioFile: string; duration: number }> {
+export async function generatePreviewVoiceover(
+  domain: string,
+  sceneIndex: number,
+  text: string,
+  type: 'main' | 'sub' = 'main',
+  sceneId?: string
+): Promise<{ audioFile: string; duration: number; type: string }> {
   const url = `${API_BASE}/websites/${domain}/voiceover/preview`;
   const response = await fetchWithTimeout(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sceneIndex, text })
+    body: JSON.stringify({ sceneIndex, text, type, sceneId })
   });
-  return handleResponse<{ audioFile: string; duration: number }>(response, url);
+  return handleResponse<{ audioFile: string; duration: number; type: string }>(response, url);
 }
 
 /**

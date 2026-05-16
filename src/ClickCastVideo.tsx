@@ -102,6 +102,11 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const isPortrait = height > width;
   const colors = videoStyle.colors;
 
+  // 向后兼容：字段名映射
+  // mainTitle 优先级：mainTitle > text > title
+  const mainTitle = sceneData.mainTitle || '';
+  const subTitle = sceneData.subTitle || '';
+
   // 检查是否有两阶段动画数据
   const hasTwoPhase = sceneData.audioFileSub && sceneData.subDuration;
   // mainDuration 和 subDuration 在 timeline.json 中是秒，需要转换成帧数
@@ -164,36 +169,38 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 
     const currentOpacity = isPhase2 ? fadeOutPhase2 : fadeOut;
 
-    // 动态计算 subText 的字体大小，根据文本长度调整
-    const subTextLength = (sceneData.subText || '').length;
-    const subTextFontSize = subTextLength > 100 ? '24px' : (subTextLength > 60 ? '28px' : '30px');
+    // 动态计算字幕的字体大小，根据文本长度调整
+    const mainTitleLength = mainTitle.length;
+    const mainTitleFontSize = mainTitleLength > 100 ? '24px' : (mainTitleLength > 60 ? '28px' : '30px');
 
     return (
       <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px', opacity: currentOpacity }}>
         {/* 阶段1: 主配音 */}
-        {isPhase1 && (
-          <Sequence from={sceneData.audioStartFrame}>
-            <Audio src={staticFile(sceneData.audioFile)} />
-          </Sequence>
-        )}
-        {/* 阶段2: 次配音 */}
-        {isPhase2 && (
-          <Sequence from={0}>
+        <Sequence from={sceneData.audioStartFrame} durationInFrames={hasSubAudio ? mainDur : undefined}>
+          <Audio src={staticFile(sceneData.audioFile)} />
+        </Sequence>
+        {/* 阶段2: 次配音 — 从主配音结束后播放 */}
+        {hasSubAudio && (
+          <Sequence from={sceneData.audioStartFrame + mainDur + transitionDur} durationInFrames={subDur}>
             <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
         )}
         <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%' }}>
-          {isIntro ? (
+          {isIntro && isPhase1 && (
             <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
-          ) : null}
-          <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{sceneData.title}</h1>
-
-          {isIntro ? (
-            <p style={{ fontSize: isPortrait ? '40px' : '30px', color: subTextColor, marginTop: '30px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
-          ) : (
+          )}
+          {/* Phase 1: 显示 mainTitle */}
+          {(isPhase1 || isTransition) && (
+            <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{mainTitle}</h1>
+          )}
+          {/* Phase 2: 显示 subTitle */}
+          {isPhase2 && (
+            <h1 style={{ fontSize: isPortrait ? '50px' : '40px', lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{subTitle}</h1>
+          )}
+          {/* Outro CTA button */}
+          {!isIntro && !hasSubAudio && (
             <>
               <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '20px 50px', borderRadius: '12px', display: 'inline-block', fontSize: '30px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '20px', ...buttonTextStyle }}>GET STARTED</div>
-              <p style={{ color: subTextColor, fontSize: subTextFontSize, marginTop: '40px', maxWidth: '1100px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{sceneData.subText}</p>
             </>
           )}
         </div>
@@ -210,7 +217,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   // 长图滚动支持
   const isScrollImage = sceneData.scrollImage === true;
   const scrollProgress = isScrollImage
-    ? interpolate(frame, [0, durationInFrames], [0, 1], { extrapolateRight: 'clamp' })
+    ? interpolate(frame, [0, duration], [0, 1], { extrapolateRight: 'clamp' })
     : 0;
 
   // AI 智能布局决策
@@ -218,9 +225,9 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   const layoutReason = sceneData.layoutReason || '';
 
   // 计算文本长度，动态调整布局
-  const titleLength = (sceneData.title || '').length;
-  const subTextLength = (sceneData.subText || '').length;
-  const totalTextLength = titleLength + subTextLength;
+  const titleLength = mainTitle.length;
+  const subTitleLength = subTitle.length;
+  const totalTextLength = titleLength + subTitleLength;
 
   // 根据文本长度和图片重要性智能调整
   const isLongText = totalTextLength > 80;
@@ -298,17 +305,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
               color: textColor,
               margin: '0 0 15px 0',
               textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
-            }}>{sceneData.title}</h2>
-            {sceneData.subText && <p style={{
-              fontSize: subTextFontSize,
-              lineHeight: 1.3,
-              color: subTextColor,
-              margin: 0,
-              display: isVeryLongText ? '-webkit-box' : 'block',
-              WebkitLineClamp: isVeryLongText ? 3 : 'unset',
-              WebkitBoxOrient: 'vertical',
-              overflow: isVeryLongText ? 'hidden' : 'visible'
-            }}>{sceneData.subText}</p>}
+            }}>{mainTitle}</h2>
           </div>
           <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{
@@ -428,7 +425,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
             </div>
           </div>
 
-          {/* 文字层 - 绝对定位淡出 */}
+          {/* 文字层 - 绝对定位，显示 subTitle */}
           <div style={{
             position: 'absolute',
             top: isPortrait ? '5%' : '8%',
@@ -446,7 +443,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
               color: textColor,
               margin: '0 0 15px 0',
               textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
-            }}>{sceneData.title}</h2>
+            }}>{subTitle}</h2>
           </div>
         </AbsoluteFill>
       );
@@ -503,17 +500,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
               color: textColor,
               margin: '0 0 15px 0',
               textShadow: isLongText ? '0 2px 4px rgba(0,0,0,0.5)' : 'none'
-            }}>{sceneData.title}</h2>
-            {sceneData.subText && <p style={{
-              fontSize: subTextFontSize,
-              lineHeight: 1.3,
-              color: subTextColor,
-              margin: 0,
-              display: isVeryLongText ? '-webkit-box' : 'block',
-              WebkitLineClamp: isVeryLongText ? 3 : 'unset',
-              WebkitBoxOrient: 'vertical',
-              overflow: isVeryLongText ? 'hidden' : 'visible'
-            }}>{sceneData.subText}</p>}
+            }}>{mainTitle}</h2>
           </div>
           <div style={{ flex: isCenterMode ? 0 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{

@@ -8,7 +8,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Scene } from '../../types';
 import { useEditorStore } from '../../store/editorStore';
-import { getScreenshotUrl, generatePreviewVoiceover, uploadImage } from '../../api/client';
+import { getScreenshotUrl, generatePreviewVoiceover, uploadImage, fetchAudioDuration } from '../../api/client';
+import { ProgressIndicator, useEstimatedTime } from './ProgressIndicator';
 
 interface SceneEditorProps {
   scene: Scene;
@@ -17,7 +18,7 @@ interface SceneEditorProps {
 
 export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
   // 从全局 store 获取状态和方法
-  const { domain, updateScene, deleteScene } = useEditorStore();
+  const { domain, updateScene, updateSceneAudioDuration, deleteScene } = useEditorStore();
 
   // 图片放大模态框显示状态
   const [showImageModal, setShowImageModal] = useState(false);
@@ -33,6 +34,10 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
 
   // 次配音预览消息
   const [subPreviewMessage, setSubPreviewMessage] = useState<string | null>(null);
+
+  // Estimated time for voiceover generation
+  const mainEstimatedTime = useEstimatedTime(scene.mainTitle || '');
+  const subEstimatedTime = useEstimatedTime(scene.subTitle || '');
 
   // 图片上传中状态
   const [isUploading, setIsUploading] = useState(false);
@@ -59,31 +64,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
   }, []);
 
   /**
-   * 处理标题变更
+   * 处理主文案变更（同步 mainTitle + title + 配音文案）
    */
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateScene(index, { title: e.target.value });
+  const handleMainTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    updateScene(index, { mainTitle: value, title: value } as Partial<Scene>);
   };
 
   /**
-   * 处理副标题变更
+   * 处理副文案变更（同步 subTitle + subVoiceover）
    */
-  const handleSubTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateScene(index, { subText: e.target.value });
-  };
-
-  /**
-   * 处理主配音文本变更
-   */
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateScene(index, { text: e.target.value } as Partial<Scene>);
-  };
-
-  /**
-   * 处理次配音文本变更
-   */
-  const handleSubVoiceoverChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateScene(index, { subVoiceover: e.target.value } as Partial<Scene>);
+  const handleSubTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    updateScene(index, { subTitle: value, subVoiceover: value } as Partial<Scene>);
   };
 
   /**
@@ -99,26 +92,46 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
   /**
    * 生成主配音
    * 调用后端 TTS 接口生成预览音频
+   *
+   * 步骤：
+   * 1. 校验文本是否为空
+   * 2. 调用后端 TTS 服务（StreamElements → Google Translate fallback）
+   * 3. 更新场景的音频文件路径
+   * 4. 更新音频时长（用于两阶段场景的时间计算）
+   * 5. 显示成功消息，5秒后自动消失
    */
   const handleGenerateMainVoiceover = async () => {
+    // 1. 前置校验
     if (!domain) return;
-    const text = scene.text;
+    const text = scene.mainTitle;
     if (!text || text.trim().length === 0) {
-      setMainPreviewMessage('Please enter main voiceover text first');
+      setMainPreviewMessage('Please enter main title text first (used for both subtitle and voiceover)');
       mainMessageTimeoutRef.current = setTimeout(() => setMainPreviewMessage(null), 3000);
       return;
     }
 
+    // 2. 设置加载状态
     setIsGeneratingMain(true);
     setMainPreviewMessage(null);
 
     try {
-      const result = await generatePreviewVoiceover(domain, index, text);
-      setMainPreviewMessage(`Generated: ${result.audioFile}`);
+      // 3. 调用后端 TTS 服务（传入 scene.id 用于确定文件名）
+      const result = await generatePreviewVoiceover(domain, index, text, 'main', scene.id);
+
+      // 4. 更新场景音频文件路径
+      updateScene(index, { audioFile: result.audioFile } as Partial<Scene>);
+
+      // 5. 更新音频时长（用于视频渲染时的场景时长计算）
+      if (result.duration > 0) {
+        updateSceneAudioDuration(index, result.duration, 'main');
+      }
+
+      // 6. 显示成功消息，5秒后自动消失
+      setMainPreviewMessage(`Generated: ${result.audioFile} (${result.duration.toFixed(1)}s)`);
       mainMessageTimeoutRef.current = setTimeout(() => setMainPreviewMessage(null), 5000);
     } catch (error) {
+      // 失败消息保持显示，让用户有时间查看错误并点击 Retry 按钮
       setMainPreviewMessage('Failed to generate voiceover');
-      mainMessageTimeoutRef.current = setTimeout(() => setMainPreviewMessage(null), 3000);
     } finally {
       setIsGeneratingMain(false);
     }
@@ -127,27 +140,57 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
   /**
    * 生成次配音
    * 次配音保存为 preview_scene{index}_sub.mp3
+   *
+   * 步骤：
+   * 1. 校验文本是否为空
+   * 2. 如果有主配音文件，先获取主配音的实际时长（用于两阶段场景时间计算）
+   * 3. 调用后端 TTS 服务
+   * 4. 更新场景的次配音文件路径和时长
    */
   const handleGenerateSubVoiceover = async () => {
+    // 1. 前置校验
     if (!domain) return;
-    const text = scene.subVoiceover;
+    const text = scene.subTitle;
     if (!text || text.trim().length === 0) {
-      setSubPreviewMessage('Please enter sub voiceover text first');
+      setSubPreviewMessage('Please enter sub title text first (used for both subtitle and voiceover)');
       subMessageTimeoutRef.current = setTimeout(() => setSubPreviewMessage(null), 3000);
       return;
     }
 
+    // 2. 设置加载状态
     setIsGeneratingSub(true);
     setSubPreviewMessage(null);
 
     try {
-      // 次配音保存为 preview_scene{index}_sub.mp3
-      const result = await generatePreviewVoiceover(domain, index, text);
-      setSubPreviewMessage(`Generated: ${result.audioFile}`);
+      // 3. 同步主配音的实际时长（生成次配音前确保时间计算准确）
+      if (scene.audioFile) {
+        try {
+          const mainDuration = await fetchAudioDuration(domain, scene.audioFile);
+          if (mainDuration > 0) {
+            updateScene(index, { mainDuration } as Partial<Scene>);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch main audio duration:', e);
+        }
+      }
+
+      // 4. 调用后端 TTS 服务（传入 scene.id 用于确定文件名）
+      const result = await generatePreviewVoiceover(domain, index, text, 'sub', scene.id);
+
+      // 5. 更新场景次配音文件路径
+      updateScene(index, { audioFileSub: result.audioFile } as Partial<Scene>);
+
+      // 6. 更新次配音时长
+      if (result.duration > 0) {
+        updateSceneAudioDuration(index, result.duration, 'sub');
+      }
+
+      // 7. 显示成功消息
+      setSubPreviewMessage(`Generated: ${result.audioFile} (${result.duration.toFixed(1)}s)`);
       subMessageTimeoutRef.current = setTimeout(() => setSubPreviewMessage(null), 5000);
     } catch (error) {
+      // 失败消息保持显示，让用户有时间点击 Retry 按钮
       setSubPreviewMessage('Failed to generate voiceover');
-      subMessageTimeoutRef.current = setTimeout(() => setSubPreviewMessage(null), 3000);
     } finally {
       setIsGeneratingSub(false);
     }
@@ -202,34 +245,13 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
         <span className="scene-index">#{index}</span>
       </div>
 
-      {/* 标题输入 */}
+      {/* 主文案输入（同时用于屏幕标题 + 主配音） */}
       <div className="scene-editor-group">
-        <label>Title</label>
-        <input
-          type="text"
-          value={scene.title || ''}
-          onChange={handleTitleChange}
-          placeholder="Scene title..."
-        />
-      </div>
-
-      {/* 副标题输入 */}
-      <div className="scene-editor-group">
-        <label>Subtitle</label>
+        <label>Main Title (Subtitle + Voiceover)</label>
         <textarea
-          value={scene.subText || ''}
-          onChange={handleSubTextChange}
-          placeholder="Scene subtitle..."
-        />
-      </div>
-
-      {/* 主配音编辑区 */}
-      <div className="scene-editor-group">
-        <label>Main Voiceover Script</label>
-        <textarea
-          value={scene.text || ''}
-          onChange={handleTextChange}
-          placeholder="Main voiceover text (plays first)..."
+          value={scene.mainTitle || ''}
+          onChange={handleMainTitleChange}
+          placeholder="Main text — shown as subtitle AND spoken as voiceover..."
         />
         {/* 生成主配音按钮 */}
         <button
@@ -255,31 +277,32 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
             </>
           )}
         </button>
+        {/* 进度条 */}
+        {isGeneratingMain && (
+          <ProgressIndicator estimatedSeconds={mainEstimatedTime} />
+        )}
         {/* 生成结果消息 */}
         {mainPreviewMessage && (
-          <div style={{
-            marginTop: '8px',
-            padding: '8px 12px',
-            background: mainPreviewMessage.includes('Generated') ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-            border: `1px solid ${mainPreviewMessage.includes('Generated') ? '#22c55e' : '#ef4444'}`,
-            borderRadius: '4px',
-            fontSize: '12px',
-            color: mainPreviewMessage.includes('Generated') ? '#22c55e' : '#ef4444'
-          }}>
-            {mainPreviewMessage}
+          <div className={`voiceover-message ${mainPreviewMessage.includes('Generated') ? 'voiceover-message-success' : 'voiceover-message-error'}`}>
+            <span>{mainPreviewMessage}</span>
+            {mainPreviewMessage.includes('Failed') && (
+              <button className="btn btn-sm" onClick={handleGenerateMainVoiceover} style={{ marginLeft: '8px', padding: '2px 8px', fontSize: '11px' }}>
+                Retry
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {/* 次配音编辑区 */}
+      {/* 副文案输入（同时用于屏幕副标题 + 副配音） */}
       <div className="scene-editor-group">
-        <label>Sub Voiceover Script</label>
+        <label>Sub Title (Subtitle + Voiceover)</label>
         <textarea
-          value={scene.subVoiceover || ''}
-          onChange={handleSubVoiceoverChange}
-          placeholder="Sub voiceover text (plays after main, optional)..."
+          value={scene.subTitle || ''}
+          onChange={handleSubTitleChange}
+          placeholder="Sub text — shown as subtitle AND spoken as voiceover..."
         />
-        {/* 生成次配音按钮 */}
+        {/* 生成副配音按钮 */}
         <button
           className="btn btn-secondary"
           onClick={handleGenerateSubVoiceover}
@@ -303,18 +326,19 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
             </>
           )}
         </button>
+        {/* 进度条 */}
+        {isGeneratingSub && (
+          <ProgressIndicator estimatedSeconds={subEstimatedTime + 1} />
+        )}
         {/* 生成结果消息 */}
         {subPreviewMessage && (
-          <div style={{
-            marginTop: '8px',
-            padding: '8px 12px',
-            background: subPreviewMessage.includes('Generated') ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-            border: `1px solid ${subPreviewMessage.includes('Generated') ? '#22c55e' : '#ef4444'}`,
-            borderRadius: '4px',
-            fontSize: '12px',
-            color: subPreviewMessage.includes('Generated') ? '#22c55e' : '#ef4444'
-          }}>
-            {subPreviewMessage}
+          <div className={`voiceover-message ${subPreviewMessage.includes('Generated') ? 'voiceover-message-success' : 'voiceover-message-error'}`}>
+            <span>{subPreviewMessage}</span>
+            {subPreviewMessage.includes('Failed') && (
+              <button className="btn btn-sm" onClick={handleGenerateSubVoiceover} style={{ marginLeft: '8px', padding: '2px 8px', fontSize: '11px' }}>
+                Retry
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -326,32 +350,17 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
         {/* 已有图片时显示预览 */}
         {scene.img && domain ? (
           <>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className="scene-image-wrapper">
               <img
                 src={getScreenshotUrl(domain, scene.img)}
                 alt={scene.img}
                 className="scene-image-preview"
-                style={{ maxHeight: '120px', objectFit: 'contain', cursor: 'pointer' }}
                 onClick={() => setShowImageModal(true)}
               />
               {/* 放大按钮 */}
               <button
                 onClick={() => setShowImageModal(true)}
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  background: 'rgba(0,0,0,0.6)',
-                  border: 'none',
-                  color: '#fff',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
+                className="scene-image-zoom-btn"
                 title="Enlarge image"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -362,43 +371,28 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
                 </svg>
               </button>
             </div>
-            <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>
-              {scene.img}
-            </div>
           </>
         ) : (
           /* 无图片时的占位区域 */
-          <div style={{
-            padding: '40px 20px',
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%)',
-            borderRadius: '12px',
-            border: '2px dashed #3a3a5a',
-            textAlign: 'center',
-            color: '#666',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.4 }}>
+          <div className="empty-image-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="empty-image-placeholder-icon">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
               <circle cx="8.5" cy="8.5" r="1.5"/>
               <polyline points="21 15 16 10 5 21"/>
             </svg>
             <div>
-              <div style={{ fontSize: '13px', color: '#888', marginBottom: '4px' }}>No image selected</div>
-              <div style={{ fontSize: '11px', color: '#555' }}>Upload an image below</div>
+              <div className="empty-image-placeholder-title">No image selected</div>
+              <div className="empty-image-placeholder-hint">Upload an image below</div>
             </div>
           </div>
         )}
 
         {/* 上传新图片按钮 */}
-        <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="scene-editor-actions">
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            style={{ fontSize: '12px' }}
           >
             {isUploading ? (
               <>
@@ -433,73 +427,23 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
       {showImageModal && scene.img && domain && (
         <div
           onClick={() => setShowImageModal(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            cursor: 'pointer'
-          }}
+          className="image-modal-overlay"
         >
           <img
             src={getScreenshotUrl(domain, scene.img)}
             alt={scene.img}
-            style={{
-              maxWidth: '90%',
-              maxHeight: '90%',
-              objectFit: 'contain',
-              borderRadius: '8px'
-            }}
+            className="image-modal-content"
             onClick={(e) => e.stopPropagation()}
           />
           {/* 关闭按钮 */}
           <button
             onClick={() => setShowImageModal(false)}
-            style={{
-              position: 'absolute',
-              top: 20,
-              right: 20,
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            className="image-modal-close"
           >
             ✕ Close
           </button>
         </div>
       )}
-
-      {/* 布局选择器 */}
-      <div className="scene-editor-group">
-        <label>Layout</label>
-        <select
-          value={scene.layout}
-          onChange={(e) => updateScene(index, { layout: e.target.value as 'left' | 'center' | 'right' })}
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: '#0f0f1a',
-            border: '1px solid #2a2a4a',
-            borderRadius: '6px',
-            color: '#fff',
-            fontSize: '13px'
-          }}
-        >
-          <option value="left">Left (Image Right)</option>
-          <option value="center">Center</option>
-          <option value="right">Right (Image Left)</option>
-        </select>
-      </div>
 
       {/* 删除场景按钮 */}
       <div className="scene-editor-actions" style={{ marginTop: '16px' }}>

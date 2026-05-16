@@ -1,34 +1,35 @@
 /**
  * Voiceover Routes
- * Handles voiceover generation (preview with Edge-TTS, production with ElevenLabs)
+ * Handles voiceover generation using ElevenLabs TTS
  */
 
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { validateDomain } = require('../utils/state');
+const { getAudioDuration } = require('../utils/audio');
 
-// ElevenLabs TTS - High quality speech synthesis service
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
 
 const router = express.Router();
 
-/**
- * Generate preview voiceover (using Edge-TTS free service)
- * @route POST /api/websites/:domain/voiceover/preview
- * @param {string} domain - Website domain (URL parameter)
- * @body {number} sceneIndex - Scene index
- * @body {string} text - Text content to convert
- * @returns {Object} { audioFile, duration } on success
- * @returns {Object} { error: string } on error
- * @throws {400} Missing required parameters
- * @throws {500} Voiceover generation failed
- */
+function getAudioFilename(sceneId, sceneIndex, type) {
+  if (sceneId === 'intro') {
+    return type === 'sub' ? 'intro-sub.mp3' : 'intro.mp3';
+  } else if (sceneId === 'outro') {
+    return type === 'sub' ? 'outro-sub.mp3' : 'outro.mp3';
+  } else if (sceneId && sceneId.startsWith('scene')) {
+    const sceneNum = sceneId.replace('scene', '');
+    return type === 'sub' ? `scene${sceneNum}-sub.mp3` : `scene${sceneNum}-main.mp3`;
+  } else {
+    return type === 'sub' ? `scene${sceneIndex}-sub.mp3` : `scene${sceneIndex}-main.mp3`;
+  }
+}
+
 router.post('/:domain/voiceover/preview', async (req, res) => {
   const { domain } = req.params;
-  const { sceneIndex, text } = req.body;
+  const { sceneIndex, text, type = 'main' } = req.body;
 
-  // Parameter validation
   if (!validateDomain(domain)) {
     return res.status(400).json({ error: 'Invalid domain' });
   }
@@ -41,64 +42,6 @@ router.post('/:domain/voiceover/preview', async (req, res) => {
     return res.status(400).json({ error: 'text is required' });
   }
 
-  const publicDir = path.join(__dirname, '../../websites', domain, 'public');
-
-  // Ensure target directory exists
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
-  }
-
-  // Generate preview audio filename
-  const outputFilename = `preview_scene${sceneIndex}.mp3`;
-  const outputPath = path.join(publicDir, outputFilename);
-
-  try {
-    // Call Edge-TTS to generate speech
-    const edgeTts = require('../../lib/edge-tts.js');
-    const success = await edgeTts.generateSpeech(text, outputPath);
-
-    if (success) {
-      console.log(`Preview voiceover generated: ${domain}/preview_scene${sceneIndex}.mp3`);
-      res.json({
-        audioFile: outputFilename,
-        duration: 0 // Duration would need audio parsing
-      });
-    } else {
-      res.status(500).json({ error: 'Failed to generate voiceover' });
-    }
-  } catch (e) {
-    console.error('Edge-TTS error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-/**
- * Generate production voiceover (using ElevenLabs high quality speech synthesis)
- * @route POST /api/websites/:domain/voiceover/generate
- * @param {string} domain - Website domain (URL parameter)
- * @body {number|string} sceneIndex - Scene index (number or 'intro'/'outro')
- * @body {string} text - Text content to convert
- * @body {string} [type='main'] - Voiceover type ('main' primary / 'sub' secondary)
- * @returns {Object} { success, audioFile, path, size, duration } on success
- * @returns {Object} { error: string } on error
- * @throws {400} Missing required parameters
- * @throws {503} ElevenLabs API not configured
- * @throws {500} Voiceover generation failed
- */
-router.post('/:domain/voiceover/generate', async (req, res) => {
-  const { domain } = req.params;
-  const { sceneIndex, text, type = 'main' } = req.body;
-
-  // Parameter validation
-  if (!validateDomain(domain)) {
-    return res.status(400).json({ error: 'Invalid domain' });
-  }
-
-  if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: 'Text is required' });
-  }
-
-  // Check if ElevenLabs API is configured
   if (!isElevenLabsConfigured()) {
     return res.status(503).json({ error: 'ElevenLabs API key not configured' });
   }
@@ -108,30 +51,70 @@ router.post('/:domain/voiceover/generate', async (req, res) => {
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  // Determine filename based on scene index and voiceover type
-  let audioFile;
-  if (sceneIndex === 'intro' || sceneIndex === undefined) {
-    audioFile = type === 'sub' ? `intro-sub.mp3` : 'intro.mp3';
-  } else if (sceneIndex === 'outro') {
-    audioFile = type === 'sub' ? `outro-sub.mp3` : 'outro.mp3';
-  } else {
-    audioFile = type === 'sub' ? `scene${sceneIndex}-sub.mp3` : `scene${sceneIndex}-main.mp3`;
-  }
-
-  const outputPath = path.join(publicDir, audioFile);
+  const { sceneId } = req.body;
+  const outputFilename = getAudioFilename(sceneId, sceneIndex, type);
+  const outputPath = path.join(publicDir, outputFilename);
+  const voiceName = process.env.ELEVENLABS_VOICE || 'Dallin';
 
   try {
-    // Call ElevenLabs API to generate high quality speech
-    const success = await generateSpeech(text, outputPath);
+    const success = await generateSpeech(text, outputPath, voiceName);
+
+    if (success) {
+      const duration = getAudioDuration(outputPath);
+      console.log(`Voiceover generated: ${domain}/${outputFilename} (${duration.toFixed(2)}s)`);
+      res.json({
+        audioFile: outputFilename,
+        duration,
+        type
+      });
+    } else {
+      console.error('ElevenLabs TTS generation failed');
+      res.status(500).json({ error: 'Voiceover generation failed. Please try again later.' });
+    }
+  } catch (e) {
+    console.error('ElevenLabs TTS error:', e.message);
+    res.status(500).json({ error: `TTS error: ${e.message}` });
+  }
+});
+
+router.post('/:domain/voiceover/generate', async (req, res) => {
+  const { domain } = req.params;
+  const { sceneIndex, text, type = 'main' } = req.body;
+
+  if (!validateDomain(domain)) {
+    return res.status(400).json({ error: 'Invalid domain' });
+  }
+
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'Text is required' });
+  }
+
+  if (!isElevenLabsConfigured()) {
+    return res.status(503).json({ error: 'ElevenLabs API key not configured' });
+  }
+
+  const publicDir = path.join(__dirname, '../../websites', domain, 'public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  const { sceneId } = req.body;
+  const audioFile = getAudioFilename(sceneId, sceneIndex, type);
+  const outputPath = path.join(publicDir, audioFile);
+  const voiceName = process.env.ELEVENLABS_VOICE || 'Dallin';
+
+  try {
+    const success = await generateSpeech(text, outputPath, voiceName);
 
     if (success) {
       const stats = fs.statSync(outputPath);
+      const duration = getAudioDuration(outputPath);
       res.json({
         success: true,
         audioFile,
         path: `/websites/${domain}/public/${audioFile}`,
         size: stats.size,
-        duration: 0
+        duration
       });
     } else {
       res.status(500).json({ error: 'Failed to generate speech' });

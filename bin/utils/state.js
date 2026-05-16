@@ -7,7 +7,20 @@ const path = require('path');
 
 // ========== Global State Storage ==========
 
-/** @type {Map<string, Object>} Job status map, key is jobId */
+/**
+ * Job status map, key is jobId
+ *
+ * ⚠️ 风险提示：Job 存储在内存 Map 中，服务重启后丢失
+ * 生产环境建议改用 Redis 或数据库持久化，避免渲染中的任务状态丢失
+ *
+ * Job 对象结构：
+ * - status: 'pending' | 'rendering' | 'completed' | 'failed'
+ * - progress: 0-100 进度百分比
+ * - message: 状态消息
+ * - domain: 网站域名
+ * - aspectRatio: 'landscape' | 'portrait'
+ * - createdAt: 创建时间戳
+ */
 const jobs = new Map();
 
 /** @type {Map<string, string>} R2 video URL cache */

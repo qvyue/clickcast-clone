@@ -79,37 +79,6 @@ const indexHtml = `<!DOCTYPE html>
       transition: border-color 0.3s;
     }
     input[type="url"]:focus { outline: none; border-color: #4a90e2; }
-    .ratio-selector { display: flex; gap: 15px; margin-bottom: 20px; }
-    .ratio-option {
-      flex: 1;
-      padding: 20px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.3s;
-    }
-    .ratio-option:hover { border-color: #4a90e2; }
-    .ratio-option.selected {
-      border-color: #4a90e2;
-      background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(123, 104, 238, 0.1) 100%);
-    }
-    .ratio-icon {
-      width: 60px;
-      height: 40px;
-      margin: 0 auto 10px;
-      border: 2px solid #666;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: #666;
-    }
-    .ratio-option.selected .ratio-icon { border-color: #4a90e2; color: #4a90e2; }
-    .ratio-option.selected .ratio-label { color: #4a90e2; font-weight: 600; }
-    .ratio-label { font-size: 14px; color: #333; }
-    .ratio-desc { font-size: 12px; color: #999; margin-top: 4px; }
     button {
       width: 100%;
       padding: 16px;
@@ -217,19 +186,6 @@ const indexHtml = `<!DOCTYPE html>
       <label for="url">Website URL</label>
       <input type="url" id="url" placeholder="github.com or https://example.com" required>
     </div>
-    <label>Aspect Ratio</label>
-    <div class="ratio-selector">
-      <div class="ratio-option selected" data-ratio="landscape" onclick="selectRatio('landscape')">
-        <div class="ratio-icon" style="width:70px;height:40px;">16:9</div>
-        <div class="ratio-label">Landscape</div>
-        <div class="ratio-desc">Best for YouTube, Web</div>
-      </div>
-      <div class="ratio-option" data-ratio="portrait" onclick="selectRatio('portrait')">
-        <div class="ratio-icon" style="width:34px;height:60px;">9:16</div>
-        <div class="ratio-label">Portrait</div>
-        <div class="ratio-desc">Best for TikTok, Reels</div>
-      </div>
-    </div>
     <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
     <div class="progress-container" id="progress">
       <p class="progress-text" id="progressText">Preparing...</p>
@@ -274,7 +230,6 @@ const indexHtml = `<!DOCTYPE html>
 
     let currentJobId = null;       // Current job ID
     let pollInterval = null;       // Polling timer
-    let selectedRatio = 'landscape'; // Selected video ratio
     let pollingStartTime = null;   // Polling start time
 
     /**
@@ -296,6 +251,7 @@ const indexHtml = `<!DOCTYPE html>
                 '<div class="video-meta">' + escapeHtml(v.file) + ' · ' + escapeHtml(v.size) + ' MB</div>' +
               '</div>' +
               '<div class="video-actions">' +
+                '<a href="/editor/' + escapeHtml(v.domain) + '">Edit</a>' +
                 '<a href="' + escapeHtml(v.url) + '" target="_blank">Play</a>' +
                 '<a href="' + escapeHtml(v.url) + '" download>Download</a>' +
                 '<a href="#" class="delete" data-domain="' + escapeHtml(v.domain) + '">Delete</a>' +
@@ -306,17 +262,6 @@ const indexHtml = `<!DOCTYPE html>
       } catch (e) {
         console.error('Failed to load video list:', e);
       }
-    }
-
-    /**
-     * Select video ratio
-     * @param {string} ratio - Ratio type ('landscape' or 'portrait')
-     */
-    function selectRatio(ratio) {
-      selectedRatio = ratio;
-      document.querySelectorAll('.ratio-option').forEach(el => {
-        el.classList.toggle('selected', el.dataset.ratio === ratio);
-      });
     }
 
     /**
@@ -345,7 +290,7 @@ const indexHtml = `<!DOCTYPE html>
         const res = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, aspectRatio: selectedRatio })
+          body: JSON.stringify({ url, aspectRatio: 'landscape' })
         });
         const data = await res.json();
 
@@ -378,8 +323,8 @@ const indexHtml = `<!DOCTYPE html>
     async function pollStatus() {
       if (!currentJobId) return;
 
-      // Timeout check (5 minutes)
-      if (pollingStartTime && Date.now() - pollingStartTime > 300000) {
+      // Timeout check (8 minutes)
+      if (pollingStartTime && Date.now() - pollingStartTime > 480000) {
         clearInterval(pollInterval);
         alert('Generation timed out. Please try again.');
         document.getElementById('generateBtn').disabled = false;
@@ -400,6 +345,14 @@ const indexHtml = `<!DOCTYPE html>
         // Render complete
         if (data.status === 'completed') {
           clearInterval(pollInterval);
+
+          // 如果有 domain 但没有 videoUrl，说明是 generate 流程完成，跳转到编辑器
+          if (data.domain && !data.videoUrl) {
+            window.location.href = '/editor/' + data.domain;
+            return;
+          }
+
+          // 如果有 videoUrl，说明是 render 流程完成，显示视频
           if (data.videoUrl) {
             const vp = document.getElementById('videoPlayer');
             vp.src = data.videoUrl;
@@ -483,6 +436,36 @@ app.get('/', (req, res) => {
   const html = indexHtml.replace('{{EXAMPLES_SECTION}}', generateExamplesHtml());
   res.send(html);
 });
+
+// ========== Frontend SPA Service ==========
+const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
+
+// Check if frontend is built
+if (fs.existsSync(frontendDistPath)) {
+  // Serve frontend static assets (JS, CSS, etc.)
+  app.use(express.static(frontendDistPath));
+
+  // SPA fallback: return index.html for frontend routes (e.g., /editor/:domain)
+  // Must be after API routes, so API calls are handled first
+  // Use middleware to catch all unmatched routes
+  app.use((req, res, next) => {
+    // Skip if it's an API route or static file request
+    if (req.path.startsWith('/api/') || req.path.startsWith('/websites/')) {
+      return next();
+    }
+    // Return index.html for SPA routes
+    res.sendFile('index.html', { root: frontendDistPath }, (err) => {
+      if (err) {
+        console.error('SendFile error:', err.message);
+        res.status(500).send('Error loading page');
+      }
+    });
+  });
+
+  console.log('Frontend SPA enabled (serving from ' + frontendDistPath + ')');
+} else {
+  console.log('Frontend not built. Run "cd frontend && npm run build" to enable SPA routes.');
+}
 
 // ========== Server Initialization ==========
 

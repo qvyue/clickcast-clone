@@ -371,14 +371,6 @@ body {
   color: var(--text-secondary);
 }
 
-.scene-layout {
-  padding: 4px 8px;
-  background: var(--border);
-  border-radius: 4px;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
 /* Audio List */
 .audio-list {
   display: flex;
@@ -517,6 +509,9 @@ body {
 }
 
 .aspect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 16px;
   border: 1px solid var(--border);
   background: var(--bg-card);

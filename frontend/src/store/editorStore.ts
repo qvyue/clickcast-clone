@@ -46,6 +46,9 @@ interface EditorState {
   /** 更新指定场景的部分属性 */
   updateScene: (index: number, updates: Partial<Scene>) => void
 
+  /** 更新场景配音时长并重新计算时间轴 */
+  updateSceneAudioDuration: (index: number, duration: number, type: 'main' | 'sub') => void
+
   /** 删除指定索引的场景 */
   deleteScene: (index: number) => void
 
@@ -93,8 +96,60 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   /**
    * 设置时间轴数据
    * 加载新的时间轴数据时清除脏标记
+   * 同时执行字段兼容性映射（旧格式 text/subText → mainTitle/subTitle）
+   * 核心规则：mainTitle = title（主文案=主配音），subTitle = subVoiceover（副文案=副配音）
    */
-  setTimeline: (timeline) => set({ timeline, isDirty: false }),
+  setTimeline: (timeline) => {
+    const product = timeline.product || 'this product';
+
+    if (timeline.scenes) {
+      for (const scene of timeline.scenes) {
+        // 旧格式映射：text → mainTitle
+        if (!scene.mainTitle) {
+          if ((scene as any).text) {
+            scene.mainTitle = (scene as any).text;
+            delete (scene as any).text;
+          } else if (scene.title) {
+            scene.mainTitle = scene.title;
+          }
+        }
+
+        // 旧格式映射：subText → subTitle
+        if (!scene.subTitle) {
+          if (scene.subVoiceover) {
+            scene.subTitle = scene.subVoiceover;
+          } else if ((scene as any).subText) {
+            scene.subTitle = (scene as any).subText;
+            delete (scene as any).subText;
+          }
+        }
+
+        // 核心规则：title = mainTitle，subVoiceover = subTitle
+        scene.title = scene.mainTitle;
+        scene.subVoiceover = scene.subTitle;
+
+        // 所有场景：填充空的 subTitle
+        if (!scene.subTitle || !scene.subTitle.trim()) {
+          const mainWords = (scene.mainTitle || '').split(/\s+/).filter(w => w);
+          if (mainWords.length >= 8) {
+            const midPoint = Math.ceil(mainWords.length / 2);
+            const mainPart = mainWords.slice(0, midPoint).join(' ');
+            const subPart = mainWords.slice(midPoint).join(' ');
+            scene.mainTitle = mainPart + (/[.!?]$/.test(mainPart) ? '' : '.');
+            scene.subTitle = subPart + (/[.!?]$/.test(subPart) ? '' : '.');
+            scene.title = scene.mainTitle;
+            scene.subVoiceover = scene.subTitle;
+          } else {
+            scene.subTitle = `Discover more about ${product}.`;
+            scene.title = scene.mainTitle;
+            scene.subVoiceover = scene.subTitle;
+          }
+        }
+      }
+    }
+
+    set({ timeline, isDirty: false });
+  },
 
   /**
    * 选中指定索引的场景
@@ -124,6 +179,68 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   /**
+   * 更新场景配音时长并重新计算时间轴
+   * - 根据 main/sub 类型更新对应的 duration 字段
+   * - 重新计算场景的 durationInFrames
+   * - 重新计算所有场景的 startFrame 和 totalFrames
+   */
+  updateSceneAudioDuration: (index, duration, type) => {
+    const { timeline } = get()
+    if (!timeline || index < 0 || index >= timeline.scenes.length) {
+      console.warn(`updateSceneAudioDuration: invalid index ${index}`)
+      return
+    }
+
+    const fps = timeline.fps || 30
+    const newScenes = [...timeline.scenes]
+    const scene = { ...newScenes[index] }
+
+    // 更新对应类型的时长
+    if (type === 'main') {
+      scene.mainDuration = duration
+    } else {
+      scene.subDuration = duration
+    }
+
+    const transitionDur = scene.transitionDuration ?? 0.5
+    const subDur = scene.subDuration != null ? scene.subDuration : 0
+
+    // ========== 两阶段音频时长计算 ==========
+    // 时序：[主配音] → [过渡淡出] → [次配音] → [结尾缓冲]
+    // - transitionDur: 主次配音之间的过渡时长，默认 0.5 秒
+    // - 结尾缓冲 0.5s: 确保最后一句配音播放完毕后的视觉收尾，避免视频突然结束
+    if (subDur > 0) {
+      // mainDuration 为 null 表示该场景无主配音（如纯次配音场景）
+      // 此时主配音时长视为 0，次配音从过渡后立即开始
+      const mainDur = scene.mainDuration != null ? scene.mainDuration : 0
+
+      // 有次配音：总时长 = 主配音 + 过渡 + 次配音 + 结尾缓冲(0.5s)
+      scene.durationInFrames = Math.ceil((mainDur + transitionDur + subDur + 0.5) * fps)
+    } else {
+      // 没有次配音，只用主配音时长
+      const mainDur = scene.mainDuration != null ? scene.mainDuration : 0
+      if (mainDur > 0) {
+        // 无次配音：总时长 = 主配音 + 结尾缓冲(0.5s)
+        scene.durationInFrames = Math.ceil((mainDur + 0.5) * fps)
+      }
+    }
+
+    newScenes[index] = scene
+
+    // 重新计算所有场景的 startFrame 和 totalFrames
+    let currentFrame = 0
+    newScenes.forEach((s) => {
+      s.startFrame = currentFrame
+      currentFrame += s.durationInFrames
+    })
+
+    set({
+      timeline: { ...timeline, scenes: newScenes, totalFrames: currentFrame },
+      isDirty: true
+    })
+  },
+
+  /**
    * 删除指定索引的场景
    * - 如果只剩一个场景则不允许删除
    * - 删除后重新计算所有场景的 startFrame
@@ -143,7 +260,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       currentFrame += scene.durationInFrames
     })
 
-    // 处理选中索引的调整
+    // 处理选中索引的调整：
+    // 1. 删除的是当前选中场景 → 取消选中(null)
+    // 2. 删除的场景在选中场景之前 → 选中索引前移1位
+    // 3. 删除的场景在选中场景之后 → 选中索引不变
     const newSelectedIndex = selectedSceneIndex === index ? null :
       selectedSceneIndex !== null && selectedSceneIndex > index ? selectedSceneIndex - 1 : selectedSceneIndex
 

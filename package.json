@@ -8,7 +8,11 @@
     "web": "node bin/server.js",
     "cli": "node bin/cli.js",
     "render-landscape": "npx remotion render ClickCastPromo-Landscape websites/_preview/out/landscape.mp4",
-    "render-portrait": "npx remotion render ClickCastPromo-Portrait websites/_preview/out/portrait.mp4"
+    "render-portrait": "npx remotion render ClickCastPromo-Portrait websites/_preview/out/portrait.mp4",
+    "test": "node --test bin/__tests__/*.test.js && cd frontend && npm test -- --run",
+    "test:backend": "node --test bin/__tests__/*.test.js",
+    "test:e2e": "npx playwright test",
+    "test:frontend": "cd frontend && npm test -- --run"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +25,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "dotenv": "^17.3.1",
-    "edge-tts": "^1.0.1",
     "express": "^5.2.1",
     "mp3-duration": "^1.1.0",
     "multer": "^1.4.5-lts.1",
@@ -31,5 +34,8 @@
     "remotion": "^4.0.436",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }
