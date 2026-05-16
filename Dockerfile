@@ -60,4 +60,4 @@ RUN mkdir -p out websites
 EXPOSE 3000
 
 # Start server with memory limit (4GB for Node.js, leaving 4GB for Chromium)
-CMD ["node", "--max-old-space-size=4096", "server.js"]
+CMD ["node", "--max-old-space-size=4096", "bin/server.js"]

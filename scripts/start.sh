@@ -5,4 +5,4 @@
 export NODE_OPTIONS="--max-old-space-size=768"
 
 # 启动服务器
-node server.js
+node bin/server.js
