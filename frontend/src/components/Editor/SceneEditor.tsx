@@ -247,7 +247,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
 
       {/* 主文案输入（同时用于屏幕标题 + 主配音） */}
       <div className="scene-editor-group">
-        <label>Main Title (Subtitle + Voiceover)</label>
+        <label>Main Title (On-screen Title + Main Voiceover)</label>
         <textarea
           value={scene.mainTitle || ''}
           onChange={handleMainTitleChange}
@@ -296,7 +296,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({ scene, index }) => {
 
       {/* 副文案输入（同时用于屏幕副标题 + 副配音） */}
       <div className="scene-editor-group">
-        <label>Sub Title (Subtitle + Voiceover)</label>
+        <label>Sub Title (On-screen Subtitle + Sub Voiceover)</label>
         <textarea
           value={scene.subTitle || ''}
           onChange={handleSubTitleChange}
