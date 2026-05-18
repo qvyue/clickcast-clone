@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 import { Player, PlayerRef } from '@remotion/player';
 import { useEditorStore } from '../../store/editorStore';
 import { fetchTimeline, renderVideo } from '../../api/client';
-import { ClickCastVideo } from '../../remotion/ClickCastVideo';
+import { VidGenVideo } from '../../remotion/ClickCastVideo';
 import { Timeline } from './Timeline';
 import { SceneEditor } from './SceneEditor';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -444,7 +444,7 @@ export const VideoEditor: React.FC = () => {
             <Player
               acknowledgeRemotionLicense
               ref={playerRef}
-              component={ClickCastVideo}
+              component={VidGenVideo}
               durationInFrames={timeline.totalFrames}
               compositionWidth={compositionWidth}
               compositionHeight={compositionHeight}

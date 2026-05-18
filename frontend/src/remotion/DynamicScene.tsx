@@ -141,7 +141,7 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    * - Phase 2: 显示 subTitle + 播放 audioFileSub（副配音）
    * - 无 subAudio 时：同时显示 mainTitle + subTitle，只播放主配音
    *
-   * 与后端 src/ClickCastVideo.tsx 的逻辑保持一致
+   * 与后端 src/ClickCastVideo.tsx (VidGenVideo) 的逻辑保持一致
    */
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
     const scale = interpolate(enter, [0, 1], [3, 1]);

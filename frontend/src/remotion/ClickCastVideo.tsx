@@ -15,12 +15,12 @@ import { Timeline } from '../types';
 import { Background } from './Background';
 import { DynamicScene } from './DynamicScene';
 
-interface ClickCastVideoProps {
+interface VidGenVideoProps {
   timeline: Timeline;
   domain: string;
 }
 
-export const ClickCastVideo: React.FC<ClickCastVideoProps> = ({ timeline, domain }) => {
+export const VidGenVideo: React.FC<VidGenVideoProps> = ({ timeline, domain }) => {
   const colors = timeline.style?.colors || {
     primary: '#9b4dff',
     secondary: '#6b21a8',

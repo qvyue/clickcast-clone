@@ -1,4 +1,4 @@
-# ClickCast - AI Website to Video Generator
+# VidGen - AI Website to Video Generator
 
 <div align="center">
 
@@ -203,8 +203,8 @@ clickcast-clone/
 │   ├── domain.js            # 域名工具
 │   └── env.js               # 环境变量
 ├── src/                     # Remotion 视频组件
-│   ├── ClickCastVideo.tsx
-│   ├── ClickCastScene.tsx
+│   ├── VidGenVideo.tsx
+│   ├── VidGenScene.tsx
 │   └── Root.tsx
 ├── public/                  # 静态资源（BGM 等）
 └── websites/                # 网站专属数据
@@ -421,8 +421,8 @@ clickcast-clone/
 │   ├── domain.js            # Domain utilities
 │   └── env.js               # Environment
 ├── src/                     # Remotion video components
-│   ├── ClickCastVideo.tsx
-│   ├── ClickCastScene.tsx
+│   ├── VidGenVideo.tsx
+│   ├── VidGenScene.tsx
 │   └── Root.tsx
 ├── public/                  # Static assets (BGM, etc.)
 └── websites/                # Website-specific data

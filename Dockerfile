@@ -1,4 +1,4 @@
-# ClickCast Docker Image - 优化内存使用
+# VidGen Docker Image - 优化内存使用
 FROM node:20-slim
 
 # 设置内存限制环境变量 (8GB实例，Node.js使用4GB)

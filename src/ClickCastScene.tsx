@@ -10,7 +10,7 @@ import {
   staticFile,
 } from 'remotion';
 
-export const ClickCastScene: React.FC = () => {
+export const VidGenScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 

@@ -1,5 +1,5 @@
 """
-ClickCast Web Server
+VidGen Web Server
 提供 URL 输入界面和视频生成服务
 """
 
@@ -28,7 +28,7 @@ PIPELINE_STEPS = [
     {'id': 'rendering', 'name': '渲染', 'icon': '🎬', 'desc': 'Remotion 渲染视频'},
 ]
 
-class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
+class VidGenHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.send_response(200)
@@ -214,7 +214,7 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickCast AI - URL 转视频</title>
+  <title>VidGen AI - URL 转视频</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -426,7 +426,7 @@ class ClickCastHandler(http.server.SimpleHTTPRequestHandler):
 </head>
 <body>
   <div class="container">
-    <h1>🎬 ClickCast AI</h1>
+    <h1>🎬 VidGen AI</h1>
     <p class="subtitle">输入网址，AI 自动生成营销视频</p>
     
     <div class="input-group">
@@ -625,9 +625,9 @@ if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
 # 添加静态文件路径
-ClickCastHandler.directory = os.path.dirname(os.path.abspath(__file__))
+VidGenHandler.directory = os.path.dirname(os.path.abspath(__file__))
 
-with socketserver.TCPServer(("", PORT), ClickCastHandler) as httpd:
+with socketserver.TCPServer(("", PORT), VidGenHandler) as httpd:
     print(f"""
 ========================================
    ClickCast Web UI Started

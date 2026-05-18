@@ -295,7 +295,7 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
 
     // ========== Step 5: Execute Remotion render ==========
     // Select corresponding Composition ID based on ratio
-    const compositionId = aspectRatio === 'portrait' ? 'ClickCastPromo-Portrait' : 'ClickCastPromo-Landscape';
+    const compositionId = aspectRatio === 'portrait' ? 'VidGenPromo-Portrait' : 'VidGenPromo-Landscape';
     const outputFile = path.join(outDir, `${aspectRatio}.mp4`);
 
     await new Promise((resolve, reject) => {

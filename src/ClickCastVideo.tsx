@@ -382,7 +382,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
 };
 
 // --- 主视频时间轴 ---
-export const ClickCastVideo: React.FC = () => {
+export const VidGenVideo: React.FC = () => {
   // BGM 配置
   const bgmConfig = timeline.bgm as any;
   const bgmSrc = bgmConfig?.src || 'bensound-slowlife.mp3';

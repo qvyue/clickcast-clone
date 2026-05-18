@@ -1,5 +1,5 @@
 /**
- * Shared state and utilities for ClickCast Web Server
+ * Shared state and utilities for VidGen Web Server
  */
 
 const fs = require('fs');

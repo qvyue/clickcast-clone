@@ -102,7 +102,7 @@ function detectTimelineIssues(timelinePath) {
   if (timeline.style?.colors) {
     const colors = timeline.style.colors;
 
-    // 计算按钮文字颜色（与 ClickCastVideo.tsx 逻辑一致）
+    // 计算按钮文字颜色（与 VidGenVideo/ClickCastVideo.tsx 逻辑一致）
     const primaryLum = getLuminance(colors.primary || '#000000');
     const secondaryLum = getLuminance(colors.secondary || '#000000');
     const avgButtonLum = (primaryLum + secondaryLum) / 2;

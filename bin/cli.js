@@ -1,5 +1,5 @@
 /**
- * ClickCast AI Video Pipeline
+ * VidGen AI Video Pipeline
  *
  * 完整流程：输入URL -> 截图 -> AI分析 -> 生成文案 -> 配音 -> 渲染视频
  *
@@ -439,8 +439,8 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
   console.log('\n[5/5] 渲染视频...');
 
   const compositionId = aspectRatio === 'portrait'
-    ? 'ClickCastPromo-Portrait'
-    : 'ClickCastPromo-Landscape';
+    ? 'VidGenPromo-Portrait'
+    : 'VidGenPromo-Landscape';
   const outputFile = aspectRatio === 'portrait' ? 'portrait.mp4' : 'landscape.mp4';
   const outputPath = path.join(outDir, outputFile);
 
@@ -574,7 +574,7 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
 // ==========================================
 async function main() {
   console.log('==========================================');
-  console.log('   ClickCast AI Video Pipeline');
+  console.log('   VidGen AI Video Pipeline');
   console.log('   URL -> 截图 -> AI分析 -> 配音 -> 视频');
   console.log('==========================================');
 

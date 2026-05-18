@@ -1,5 +1,5 @@
 /**
- * ClickCast Web Server
+ * VidGen Web Server
  * Provides URL input interface and video generation service
  *
  * Main features:
@@ -514,7 +514,7 @@ setInterval(() => {
 app.listen(PORT, () => {
   console.log(`
 ========================================
-   ClickCast Web UI
+   VidGen Web UI
    http://localhost:${PORT}
 ========================================
   `);
