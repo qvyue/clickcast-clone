@@ -300,23 +300,24 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
 
     await new Promise((resolve, reject) => {
       // Use spawn to start Remotion CLI render process
-      // Calculate optimal concurrency based on CPU cores (leave 2 for system)
-      const os = require('os');
-      const cpuCores = os.cpus().length;
-      const concurrency = Math.max(1, Math.min(cpuCores - 2, 6));
+      const cwd = path.join(__dirname, '../..');
 
-      const remotionProcess = spawn('npx', [
-        'remotion',
-        'render',
-        compositionId,
-        outputFile,
-        `--concurrency=${concurrency}`,
-        '--gl=swiftshader'     // Software rendering, more stable than angle
-      ], {
-        cwd: path.join(__dirname, '../..'),
-        shell: true,
-        env: { ...process.env, NODE_ENV: 'production' }
-      });
+      // On Windows, use cmd.exe to run npx to avoid EINVAL with shell:false
+      // Remove NODE_ENV=production to prevent Chromium heap corruption (exit code 3221225794)
+      let spawnCmd, spawnArgs, spawnOpts;
+      if (process.platform === 'win32') {
+        spawnCmd = process.env.ComSpec || 'cmd.exe';
+        spawnArgs = ['/c', 'npx', 'remotion', 'render', compositionId, outputFile, '--concurrency=1', '--gl=angle'];
+        spawnOpts = { cwd, env: { ...process.env } };
+      } else {
+        spawnCmd = 'npx';
+        spawnArgs = ['remotion', 'render', compositionId, outputFile, '--concurrency=1', '--gl=angle'];
+        spawnOpts = { cwd, env: { ...process.env } };
+      }
+
+      console.log(`[${jobId}] Spawning: ${spawnCmd} ${spawnArgs.join(' ')} (cwd: ${cwd})`);
+
+      const remotionProcess = spawn(spawnCmd, spawnArgs, spawnOpts);
 
       let lastProgress = 20;
 
@@ -325,8 +326,8 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
         const output = data.toString();
         console.log(`[Remotion ${jobId}] ${output}`);
 
-        // Parse progress (Remotion output format: "Rendering frame 100/300")
-        const frameMatch = output.match(/Rendering frame (\d+)\/(\d+)/);
+        // Parse progress — Remotion uses "Rendered 100/2244" format
+        const frameMatch = output.match(/Rendered?\s+(\d+)\/(\d+)/);
         if (frameMatch) {
           const current = parseInt(frameMatch[1]);
           const total = parseInt(frameMatch[2]);
