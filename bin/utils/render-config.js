@@ -1,0 +1,111 @@
+/**
+ * Render Configuration Module
+ * Dynamically computes optimal Remotion render settings based on platform and hardware.
+ *
+ * - Concurrency: CPU-aware (Linux) or conservative (Windows)
+ * - GL backend: swangle on Linux (ANGLE+SwiftShader, no GPU needed), angle on Windows
+ * - Chromium path: auto-discovery for Playwright installs in Docker
+ * - Environment variable overrides: REMOTION_CONCURRENCY, REMOTION_GL
+ */
+
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Validate GL backend availability at startup.
+ * If angle/vulkan is chosen but Vulkan ICD is missing, fall back to swangle.
+ */
+function validateGlBackend(gl) {
+  if (gl === 'angle' || gl === 'vulkan') {
+    const icdPaths = [
+      '/etc/vulkan/icd.d',
+      '/usr/share/vulkan/icd.d',
+      '/usr/local/share/vulkan/icd.d'
+    ];
+    const hasVulkanICD = icdPaths.some(p => {
+      try {
+        return fs.readdirSync(p).some(f => f.endsWith('.json'));
+      } catch { return false; }
+    });
+    if (!hasVulkanICD) {
+      console.warn(`[render-config] Vulkan ICD not found, falling back from '${gl}' to 'swangle'`);
+      return 'swangle';
+    }
+  }
+  return gl;
+}
+
+/**
+ * Discover Playwright's Chromium binary path (for Docker/Linux environments).
+ * @returns {string|null} Absolute path to Chromium, or null if not found
+ */
+function discoverChromiumPath() {
+  if (process.platform !== 'linux') return null;
+
+  const playwrightPath = '/root/.cache/ms-playwright';
+  if (!fs.existsSync(playwrightPath)) return null;
+
+  try {
+    const chromiumDirs = fs.readdirSync(playwrightPath)
+      .filter(d => d.startsWith('chromium'));
+    if (chromiumDirs.length === 0) return null;
+
+    const candidate = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
+    return fs.existsSync(candidate) ? candidate : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get optimal render configuration for the current platform.
+ * @returns {{ concurrency: number, gl: string, chromiumPath: string|null }}
+ */
+function getRenderConfig() {
+  const isLinux = process.platform === 'linux';
+  const cpuCount = os.cpus().length;
+
+  // --- Concurrency ---
+  // Linux (Railway production): use CPU count minus 2, capped at 6
+  // Windows (local dev): keep at 1 for stability
+  let concurrency;
+  if (isLinux) {
+    concurrency = Math.min(Math.max(cpuCount - 2, 2), 6);
+  } else {
+    concurrency = 1;
+  }
+
+  // Environment variable override
+  if (process.env.REMOTION_CONCURRENCY) {
+    concurrency = parseInt(process.env.REMOTION_CONCURRENCY, 10);
+  }
+
+  // --- GL backend ---
+  // Linux without GPU: 'swangle' (ANGLE on SwiftShader) — Remotion Lambda's default.
+  //   Faster than plain swiftshader, no Vulkan ICD required.
+  // Windows: 'angle' (works well after NODE_ENV fix)
+  let gl;
+  if (isLinux) {
+    gl = 'swangle';
+  } else {
+    gl = 'angle';
+  }
+
+  // Environment variable override
+  if (process.env.REMOTION_GL) {
+    gl = process.env.REMOTION_GL;
+  }
+
+  // Validate: fall back to swangle if Vulkan ICD is missing
+  if (isLinux) {
+    gl = validateGlBackend(gl);
+  }
+
+  // --- Chromium path ---
+  const chromiumPath = discoverChromiumPath();
+
+  return { concurrency, gl, chromiumPath };
+}
+
+module.exports = { getRenderConfig };

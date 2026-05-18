@@ -3,6 +3,7 @@ FROM node:20-slim
 
 # 设置内存限制环境变量 (8GB实例，Node.js使用4GB)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV REMOTION_GL=swangle
 
 # Install system dependencies for Playwright (最小化安装)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdrm2 \
     libgbm1 \
     libgtk-3-0 \
+    libvulkan1 \
     libnspr4 \
     libnss3 \
     libxcomposite1 \

@@ -513,18 +513,12 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
 
   console.log(`   ✅ 最终验证通过，文件数: ${finalFiles.length}`);
 
-  // 查找 Chromium 路径
-  let chromiumPath = null;
-  const playwrightPath = '/root/.cache/ms-playwright';
-  if (fs.existsSync(playwrightPath)) {
-    const chromiumDirs = fs.readdirSync(playwrightPath).filter(d => d.startsWith('chromium'));
-    if (chromiumDirs.length > 0) {
-      const chromePath = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
-      if (fs.existsSync(chromePath)) {
-        chromiumPath = chromePath;
-        console.log(`   🌐 Chromium: ${chromePath}`);
-      }
-    }
+  // 查找 Chromium 路径 & 渲染配置
+  const { getRenderConfig } = require('./utils/render-config');
+  const { concurrency, gl, chromiumPath } = getRenderConfig();
+
+  if (chromiumPath) {
+    console.log(`   🌐 Chromium: ${chromiumPath}`);
   }
 
   // 渲染命令
@@ -532,16 +526,17 @@ async function renderVideo(aspectRatio, outDir, publicDir) {
   if (chromiumPath) {
     renderCmd += ` --chromium-executable-path="${chromiumPath}"`;
   }
-  renderCmd += ' --concurrency=4';
+  renderCmd += ` --concurrency=${concurrency}`;
+  renderCmd += ` --gl=${gl}`;
 
-  console.log(`\n   🎬 开始渲染...`);
+  console.log(`\n   🎬 开始渲染... (concurrency=${concurrency}, gl=${gl})`);
   console.log(`   📝 命令: ${renderCmd}\n`);
 
   try {
     execSync(renderCmd, {
       cwd: __dirname,
       stdio: 'inherit',
-      env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=512' }
+      env: { ...process.env }
     });
     console.log(`\n✅ 视频渲染完成: ${outputFile}`);
 

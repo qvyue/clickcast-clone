@@ -304,20 +304,32 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
     await new Promise((resolve, reject) => {
       // Use spawn to start Remotion CLI render process
       const cwd = path.join(__dirname, '../..');
+      const { getRenderConfig } = require('../utils/render-config');
+      const { concurrency, gl, chromiumPath } = getRenderConfig();
 
-      // On Windows, use cmd.exe to run npx to avoid EINVAL with shell:false
+      // Build base args
+      const baseArgs = [
+        'remotion', 'render', compositionId, outputFile,
+        `--concurrency=${concurrency}`,
+        `--gl=${gl}`
+      ];
+      if (chromiumPath) {
+        baseArgs.push(`--chromium-executable-path=${chromiumPath}`);
+      }
+
       // Remove NODE_ENV=production to prevent Chromium heap corruption (exit code 3221225794)
       let spawnCmd, spawnArgs, spawnOpts;
       if (process.platform === 'win32') {
         spawnCmd = process.env.ComSpec || 'cmd.exe';
-        spawnArgs = ['/c', 'npx', 'remotion', 'render', compositionId, outputFile, '--concurrency=1', '--gl=angle'];
+        spawnArgs = ['/c', 'npx', ...baseArgs];
         spawnOpts = { cwd, env: { ...process.env } };
       } else {
         spawnCmd = 'npx';
-        spawnArgs = ['remotion', 'render', compositionId, outputFile, '--concurrency=1', '--gl=angle'];
+        spawnArgs = baseArgs;
         spawnOpts = { cwd, env: { ...process.env } };
       }
 
+      console.log(`[${jobId}] Render config: concurrency=${concurrency}, gl=${gl}, chromiumPath=${chromiumPath || 'default'}`);
       console.log(`[${jobId}] Spawning: ${spawnCmd} ${spawnArgs.join(' ')} (cwd: ${cwd})`);
 
       const remotionProcess = spawn(spawnCmd, spawnArgs, spawnOpts);
