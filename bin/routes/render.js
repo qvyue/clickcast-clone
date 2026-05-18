@@ -13,6 +13,9 @@ const { getAudioDuration } = require('../utils/audio');
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
 
+// R2 Storage
+const { isR2Configured, uploadVideo } = require('../../lib/r2-storage.js');
+
 const router = express.Router();
 
 /**
@@ -364,13 +367,28 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       });
     });
 
-    // ========== Step 6: Render success ==========
+    // ========== Step 6: Upload to R2 (if configured) ==========
+    let r2Url = null;
+    if (isR2Configured()) {
+      jobs.set(jobId, { ...jobs.get(jobId), message: 'Uploading to cloud...', progress: 97 });
+      console.log(`[${jobId}] Uploading to R2...`);
+      const r2Key = `videos/${domain}/${aspectRatio}.mp4`;
+      const uploadResult = await uploadVideo(outputFile, r2Key);
+      if (uploadResult.success) {
+        r2Url = uploadResult.url;
+        console.log(`[${jobId}] R2 upload success: ${r2Url}`);
+      } else {
+        console.log(`[${jobId}] R2 upload failed: ${uploadResult.error}`);
+      }
+    }
+
+    // ========== Step 7: Render success ==========
     jobs.set(jobId, {
       ...jobs.get(jobId),
       status: 'completed',
       progress: 100,
       message: 'Render completed!',
-      videoUrl: `/websites/${domain}/out/${aspectRatio}.mp4`,
+      videoUrl: r2Url || `/websites/${domain}/out/${aspectRatio}.mp4`,
       aspectRatio
     });
 
