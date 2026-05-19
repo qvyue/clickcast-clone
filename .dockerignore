@@ -1,0 +1,51 @@
+# Dependencies (rebuilt by npm ci)
+node_modules
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Generated video outputs (stored in runtime volume)
+websites/*/out
+out
+
+# Website source data (generated at runtime)
+websites/*/public
+
+# Keep websites dir structure but not contents
+websites/*/screenshots
+
+# Frontend source (only dist is needed)
+frontend/src
+frontend/node_modules
+frontend/package*.json
+frontend/tsconfig*.json
+frontend/vite.config.ts
+frontend/index.html
+
+# Test files
+lib/__tests__
+e2e
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+playwright.config.ts
+
+# Claude Code
+.claude
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# Misc
+*.log
+*.tmp
+.env
+.env.*
+!.env.example
