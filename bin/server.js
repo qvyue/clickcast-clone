@@ -507,7 +507,7 @@ const indexHtml = `<!DOCTYPE html>
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
       sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       // Check existing session
-      sb.auth.getSession().then(({ data: { session } }) {
+      sb.auth.getSession().then(({ data: { session } }) => {
         if (session) showUserInfo(session.user);
       });
       // Listen for auth changes (e.g. after OAuth callback redirect)
