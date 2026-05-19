@@ -80,16 +80,11 @@ function getRenderConfig() {
   const cpuCount = os.cpus().length;
 
   // --- Concurrency ---
-  // Linux (Railway production): 3 is optimal for 8 vCPU without GPU
+  // Linux (Railway production): 2 is optimal for 8 vCPU without GPU
   //   Chrome shares one process across all tabs; higher concurrency yields
   //   diminishing returns and can even slow down due to resource contention.
-  // Windows (local dev): keep at 1 for stability
-  let concurrency;
-  if (isLinux) {
-    concurrency = Math.min(Math.max(Math.round(cpuCount / 2) - 1, 2), 4);
-  } else {
-    concurrency = 1;
-  }
+  // Windows (local dev): keep at 2 for stability
+  let concurrency = 2;
 
   // Environment variable override
   if (process.env.REMOTION_CONCURRENCY) {
