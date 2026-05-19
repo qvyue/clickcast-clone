@@ -320,15 +320,18 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       }
 
       // Remove NODE_ENV=production to prevent Chromium heap corruption (exit code 3221225794)
+      const renderEnv = { ...process.env };
+      delete renderEnv.NODE_ENV;
+
       let spawnCmd, spawnArgs, spawnOpts;
       if (process.platform === 'win32') {
         spawnCmd = process.env.ComSpec || 'cmd.exe';
         spawnArgs = ['/c', 'npx', ...baseArgs];
-        spawnOpts = { cwd, env: { ...process.env } };
+        spawnOpts = { cwd, env: renderEnv };
       } else {
         spawnCmd = 'npx';
         spawnArgs = baseArgs;
-        spawnOpts = { cwd, env: { ...process.env } };
+        spawnOpts = { cwd, env: renderEnv };
       }
 
       console.log(`[${jobId}] Render config: concurrency=${concurrency}, gl=${gl}, chromiumPath=${chromiumPath || 'default'}`);

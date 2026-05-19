@@ -8,8 +8,8 @@ ENV REMOTION_GL=swangle
 # Browsers are installed at runtime to persistent volume
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/data/browsers
-# Use /data/tmp for temp files (NOT /dev/shm — only 64MB in Docker, causes Chromium crash)
-ENV TMPDIR=/data/tmp
+# TMPDIR is set at runtime in entrypoint.sh (after /data/tmp is created)
+# Do NOT set it here — /data doesn't exist during build, breaks apt-get/mktemp
 
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -74,6 +74,9 @@ set -e\n\
 # Create /data subdirectories if they dont exist\n\
 mkdir -p /data/browsers /data/websites /data/tmp\n\
 \n\
+# Set TMPDIR to /data/tmp (NOT /dev/shm — only 64MB in Docker, causes Chromium crash)\n\
+export TMPDIR=/data/tmp\n\
+\n\
 # Symlink /app/websites → /data/websites (persistent volume)\n\
 if [ ! -L /app/websites ]; then\n\
   rm -rf /app/websites\n\
@@ -91,7 +94,7 @@ else\n\
   echo "Playwright Chromium already installed."\n\
 fi\n\
 \n\
-exec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
+exec node bin/server.js\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]
