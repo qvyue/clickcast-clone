@@ -51,6 +51,7 @@ function runTest(concurrency, opts) {
 
     const startTime = Date.now();
     let stdout = '';
+    let stderr = '';
 
     let spawnCmd, spawnArgs, spawnOpts;
     if (process.platform === 'win32') {
@@ -66,6 +67,7 @@ function runTest(concurrency, opts) {
     const child = spawn(spawnCmd, spawnArgs, spawnOpts);
 
     child.stdout.on('data', (d) => { stdout += d.toString(); });
+    child.stderr.on('data', (d) => { stderr += d.toString(); });
 
     const timer = setTimeout(() => {
       if (!child.killed) {
@@ -79,7 +81,8 @@ function runTest(concurrency, opts) {
       const wallDuration = ((Date.now() - startTime) / 1000).toFixed(1);
 
       if (code !== 0) {
-        resolve({ concurrency, duration: parseFloat(wallDuration), fps: null, frames: null, error: `exit code ${code}` });
+        const errMsg = stderr.split('\n').slice(-3).join(' ').trim() || `exit code ${code}`;
+        resolve({ concurrency, duration: parseFloat(wallDuration), fps: null, frames: null, error: errMsg });
         return;
       }
 
@@ -123,6 +126,26 @@ async function runBenchmark(options = {}) {
   }
 
   const { gl, chromiumPath } = getRenderConfig();
+
+  // Copy website resources to global public directory (same as render.js)
+  // Remotion reads timeline.json, screenshots, and audio from global public/
+  const websitePublicDir = path.join(__dirname, '../websites', domain, 'public');
+  const globalPublicDir = path.join(__dirname, '../public');
+
+  // timeline.json
+  fs.copyFileSync(timelinePath, path.join(globalPublicDir, 'timeline.json'));
+
+  // Screenshots
+  for (const file of fs.readdirSync(websitePublicDir).filter(f => f.endsWith('.png'))) {
+    fs.copyFileSync(path.join(websitePublicDir, file), path.join(globalPublicDir, file));
+  }
+
+  // Audio
+  for (const file of fs.readdirSync(websitePublicDir).filter(f => f.endsWith('.mp3'))) {
+    fs.copyFileSync(path.join(websitePublicDir, file), path.join(globalPublicDir, file));
+  }
+
+  console.log('Resources copied to global public/');
 
   const opts = { domain, ratio, compositionId, gl, chromiumPath };
 
