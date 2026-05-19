@@ -37,8 +37,8 @@ function validateGlBackend(gl) {
 }
 
 /**
- * Discover Chromium binary path.
- * Tries Remotion's browser cache first, then Playwright's.
+ * Discover Chromium binary path for Remotion rendering.
+ * Finds Playwright's installed Chromium so Remotion can share it.
  * @returns {string|null} Absolute path to Chromium, or null if not found
  */
 function discoverChromiumPath() {
@@ -47,33 +47,20 @@ function discoverChromiumPath() {
     return process.env.CHROMIUM_EXECUTABLE_PATH;
   }
 
-  // 2. Remotion's browser cache
-  const remotionCache = path.join(os.homedir(), '.cache', 'remotion', 'chromium');
-  if (fs.existsSync(remotionCache)) {
+  // 2. Playwright's browser cache (primary — installed via npx playwright install chromium)
+  const playwrightPath = path.join(os.homedir(), '.cache', 'ms-playwright');
+  if (fs.existsSync(playwrightPath)) {
     try {
-      const dirs = fs.readdirSync(remotionCache);
+      const dirs = fs.readdirSync(playwrightPath)
+        .filter(d => d.startsWith('chromium'));
       for (const d of dirs) {
-        const linuxPath = path.join(remotionCache, d, 'chrome-linux64', 'chrome');
-        const winPath = path.join(remotionCache, d, 'chrome-win64', 'chrome.exe');
+        // Playwright v1.50+ uses chrome-headless-shell
+        const headlessPath = path.join(playwrightPath, d, 'chrome-headless-shell-linux64', 'chrome-headless-shell');
+        const linuxPath = path.join(playwrightPath, d, 'chrome-linux', 'chrome');
+        if (fs.existsSync(headlessPath)) return headlessPath;
         if (fs.existsSync(linuxPath)) return linuxPath;
-        if (fs.existsSync(winPath)) return winPath;
       }
     } catch { /* ignore */ }
-  }
-
-  // 3. Playwright's browser cache (Linux Docker)
-  if (process.platform === 'linux') {
-    const playwrightPath = '/root/.cache/ms-playwright';
-    if (fs.existsSync(playwrightPath)) {
-      try {
-        const chromiumDirs = fs.readdirSync(playwrightPath)
-          .filter(d => d.startsWith('chromium'));
-        if (chromiumDirs.length > 0) {
-          const candidate = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
-          if (fs.existsSync(candidate)) return candidate;
-        }
-      } catch { /* ignore */ }
-    }
   }
 
   return null;
