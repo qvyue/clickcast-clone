@@ -176,11 +176,60 @@ const indexHtml = `<!DOCTYPE html>
     .example-info { padding: 12px 15px; }
     .example-title { font-weight: 600; color: #333; margin-bottom: 4px; }
     .example-desc { font-size: 12px; color: #666; }
+    /* Sign In button & modal */
+    .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .header-row h1 { margin-bottom: 0; }
+    .sign-in-btn {
+      width: auto; padding: 8px 18px; font-size: 13px; font-weight: 500;
+      background: white; color: #171717; border: 1px solid #e0e0e0;
+      border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .sign-in-btn:hover { background: #f5f5f5; transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .user-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; }
+    .user-info img { width: 28px; height: 28px; border-radius: 50%; }
+    .user-info .sign-out { color: #999; cursor: pointer; font-size: 12px; margin-left: 4px; }
+    .user-info .sign-out:hover { color: #e53e3e; }
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 50;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      position: relative; width: 100%; max-width: 400px;
+      background: rgba(23,23,23,0.97); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+    .modal-accent { height: 3px; background: linear-gradient(to right, #9b4dff, #d946ef, #9b4dff); }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: #a3a3a3;
+      cursor: pointer; padding: 6px;
+    }
+    .modal-body { padding: 40px 32px 32px; }
+    .modal-body h2 { font-size: 22px; font-weight: 700; color: #fff; text-align: center; margin-bottom: 6px; }
+    .modal-body .modal-sub { font-size: 14px; color: #a3a3a3; text-align: center; margin-bottom: 28px; }
+    .google-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #fff; color: #171717; font-weight: 500; font-size: 14px;
+      padding: 12px 16px; border: none; border-radius: 10px; cursor: pointer;
+    }
+    .google-btn:hover { background: #f5f5f5; }
+    .modal-terms { font-size: 11px; color: #737373; text-align: center; margin-top: 20px; }
+    .modal-terms a { color: #c084fc; text-decoration: none; }
+    .modal-trial { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+    .modal-trial p { font-size: 13px; color: #c084fc; font-weight: 500; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>VidGen</h1>
+    <div class="header-row">
+      <h1>VidGen</h1>
+      <div id="authArea">
+        <button class="sign-in-btn" id="signInBtn" onclick="openLoginModal()">Sign In</button>
+      </div>
+    </div>
     <p class="subtitle">Enter a URL, AI automatically generates a marketing video</p>
     <div class="input-group">
       <label for="url">Website URL</label>
@@ -423,6 +472,86 @@ const indexHtml = `<!DOCTYPE html>
     // Load video list on page load
     loadVideoList();
   </script>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+      <div class="modal-accent"></div>
+      <button class="modal-close" onclick="closeLoginModal()">&#10005;</button>
+      <div class="modal-body">
+        <h2>Welcome to ClickCast</h2>
+        <p class="modal-sub">Sign in to create videos and manage your dashboard</p>
+        <button class="google-btn" onclick="signInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+        <p class="modal-terms">By signing in, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a></p>
+        <div class="modal-trial"><p>🎉 Get 2 day free trial</p></div>
+      </div>
+      <div class="modal-accent"></div>
+    </div>
+  </div>
+
+  <!-- Supabase Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = '{{SUPABASE_URL}}';
+    const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
+    let sb = null;
+
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Check existing session
+      sb.auth.getSession().then(({ data: { session } }) {
+        if (session) showUserInfo(session.user);
+      });
+      // Listen for auth changes (e.g. after OAuth callback redirect)
+      sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) showUserInfo(session.user);
+        if (event === 'SIGNED_OUT') showSignInBtn();
+      });
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+    async function signInWithGoogle() {
+      if (!sb) { alert('Auth not configured'); return; }
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/auth/callback' }
+      });
+      if (error) alert(error.message);
+    }
+    async function signOut() {
+      if (!sb) return;
+      await sb.auth.signOut();
+      showSignInBtn();
+    }
+    function showUserInfo(user) {
+      const name = user.user_metadata?.full_name || user.email || 'User';
+      const avatar = user.user_metadata?.avatar_url || '';
+      document.getElementById('authArea').innerHTML =
+        '<div class="user-info">' +
+          (avatar ? '<img src="' + escapeHtml(avatar) + '" alt="avatar">' : '') +
+          '<span>' + escapeHtml(name) + '</span>' +
+          '<span class="sign-out" onclick="signOut()">Sign Out</span>' +
+        '</div>';
+      closeLoginModal();
+    }
+    function showSignInBtn() {
+      document.getElementById('authArea').innerHTML =
+        '<button class="sign-in-btn" onclick="openLoginModal()">Sign In</button>';
+    }
+  </script>
 </body>
 </html>`;
 
@@ -432,8 +561,10 @@ const indexHtml = `<!DOCTYPE html>
  * @returns {string} Homepage HTML (including example videos section)
  */
 app.get('/', (req, res) => {
-  // Replace example videos placeholder in template
-  const html = indexHtml.replace('{{EXAMPLES_SECTION}}', generateExamplesHtml());
+  // Replace placeholders in template
+  let html = indexHtml.replace('{{EXAMPLES_SECTION}}', generateExamplesHtml());
+  html = html.replace('{{SUPABASE_URL}}', process.env.SUPABASE_URL || '');
+  html = html.replace('{{SUPABASE_ANON_KEY}}', process.env.SUPABASE_ANON_KEY || '');
   res.send(html);
 });
 

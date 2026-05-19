@@ -2,12 +2,15 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import VideoEditor from './components/Editor/VideoEditor'
 import { TermsPage } from './components/Terms'
 import { PrivacyPage } from './components/Privacy'
+import { AuthCallback } from './components/LoginModal'
 
 function App() {
   return (
     <Routes>
       {/* 编辑器页面 */}
       <Route path="/editor/:domain" element={<VideoEditor />} />
+      {/* OAuth callback */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
       {/* Terms of Service */}
       <Route path="/terms" element={<TermsPage />} />
       {/* Privacy Policy */}

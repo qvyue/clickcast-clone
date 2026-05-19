@@ -11,8 +11,12 @@ const statusRoutes = require('./status');
 const videosRoutes = require('./videos');
 const generateRoutes = require('./generate');
 const benchmarkRoutes = require('./benchmark');
+const { optionalAuth } = require('../utils/auth');
 
 module.exports = (app) => {
+  // Apply optional auth to all API routes (sets req.user if token present)
+  app.use('/api', optionalAuth);
+
   // Generate routes: POST /api/generate (自动化流程 - 放在最前面)
   app.use('/api/generate', generateRoutes);
 
