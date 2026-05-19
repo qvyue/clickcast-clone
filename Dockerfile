@@ -8,8 +8,8 @@ ENV REMOTION_GL=swangle
 # Browsers are installed at runtime to persistent volume
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/data/browsers
-# Use RAM disk for temp files (faster than disk IO for video rendering)
-ENV TMPDIR=/dev/shm
+# Use /data/tmp for temp files (NOT /dev/shm — only 64MB in Docker, causes Chromium crash)
+ENV TMPDIR=/data/tmp
 
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -71,14 +71,10 @@ EXPOSE 3000
 RUN printf '#!/bin/sh\n\
 set -e\n\
 \n\
-# Enlarge /dev/shm FIRST (default 64MB is too small for Chromium download)\n\
-mount -o remount,size=2G /dev/shm 2>/dev/null || true\n\
-\n\
 # Create /data subdirectories if they dont exist\n\
 mkdir -p /data/browsers /data/websites /data/tmp\n\
 \n\
 # Symlink /app/websites → /data/websites (persistent volume)\n\
-# Remove default dir if it exists and is not already a symlink\n\
 if [ ! -L /app/websites ]; then\n\
   rm -rf /app/websites\n\
   ln -s /data/websites /app/websites\n\
@@ -88,9 +84,8 @@ fi\n\
 # Install Playwright Chromium if not already present\n\
 if [ ! -f /data/browsers/.installed ]; then\n\
   echo "Installing Playwright Chromium to /data/browsers..."\n\
-  TMPDIR=/data/tmp npx playwright install chromium\n\
+  npx playwright install chromium\n\
   touch /data/browsers/.installed\n\
-  rm -rf /data/tmp/*\n\
   echo "Playwright Chromium installed."\n\
 else\n\
   echo "Playwright Chromium already installed."\n\
