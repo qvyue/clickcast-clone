@@ -50,7 +50,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             fontSize: 22, fontWeight: 700, color: '#fff',
             textAlign: 'center', marginBottom: 6,
           }}>
-            Welcome to ClickCast
+            Welcome to VidGen
           </h2>
           <p style={{
             fontSize: 14, color: '#a3a3a3',

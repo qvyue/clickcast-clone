@@ -479,7 +479,7 @@ const indexHtml = `<!DOCTYPE html>
       <div class="modal-accent"></div>
       <button class="modal-close" onclick="closeLoginModal()">&#10005;</button>
       <div class="modal-body">
-        <h2>Welcome to ClickCast</h2>
+        <h2>Welcome to VidGen</h2>
         <p class="modal-sub">Sign in to create videos and manage your dashboard</p>
         <button class="google-btn" onclick="signInWithGoogle()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
