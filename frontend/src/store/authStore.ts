@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   signInWithGoogle: async () => {
+    if (!supabase) return
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -30,11 +31,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    if (!supabase) return
     await supabase.auth.signOut()
     set({ user: null, session: null })
   },
 
   initialize: () => {
+    if (!supabase) {
+      set({ loading: false })
+      return () => {}
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       set({
@@ -55,7 +62,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     )
 
-    // Return unsubscribe function
     return () => subscription.unsubscribe()
   },
 }))

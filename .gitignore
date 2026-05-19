@@ -35,6 +35,9 @@ test_se_tts.mp3
 # IDE
 .trae/
 
+# Frontend build output (built in Dockerfile)
+frontend/dist/
+
 # Test results
 test-results/
 frontend/test-results/

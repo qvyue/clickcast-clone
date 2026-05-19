@@ -114,7 +114,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 export function AuthCallback() {
   // On mount, let Supabase process the hash fragment,
   // then redirect to home
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && supabase) {
     supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         window.location.href = '/'

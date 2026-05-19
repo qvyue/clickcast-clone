@@ -55,6 +55,9 @@ RUN npm ci && \
 # Copy application code
 COPY . .
 
+# Build frontend (Vite embeds VITE_* env vars at build time)
+RUN cd frontend && npm ci && npm run build && rm -rf node_modules
+
 # 验证 BGM 文件存在
 RUN echo "=== Checking BGM file ===" && \
     ls -la /app/public/ && \
