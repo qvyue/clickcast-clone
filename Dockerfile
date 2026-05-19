@@ -4,6 +4,10 @@ FROM node:20-slim
 # 设置内存限制环境变量 (8GB实例，Node.js使用4GB)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REMOTION_GL=swangle
+# Skip Playwright browser download during npm install
+# Browsers are installed at runtime on the first request (to persistent volume)
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_BROWSERS_PATH=/data/browsers
 # Use RAM disk for temp files (faster than disk IO for video rendering)
 ENV TMPDIR=/dev/shm
 
@@ -43,14 +47,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install Node dependencies + Playwright Chromium in one layer
-# .dockerignore ensures node_modules/websites/.git aren't copied, saving ~1.4GB
+# Install Node dependencies only (browser download skipped)
 RUN npm ci && \
     npm cache clean --force && \
-    rm -rf /root/.npm /tmp/* && \
-    npx playwright install chromium
+    rm -rf /root/.npm /tmp/*
 
-# Copy application code (BGM, source, etc.)
+# Copy application code
 COPY . .
 
 # 验证 BGM 文件存在
@@ -64,8 +66,21 @@ RUN mkdir -p out websites
 # Expose port
 EXPOSE 3000
 
-# Start server via entrypoint that enlarges /dev/shm for Chromium rendering
-RUN printf '#!/bin/sh\nmount -o remount,size=2G /dev/shm 2>/dev/null || true\nexec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
+# Start server via entrypoint that:
+# 1. Installs Playwright Chromium on first run (to /data volume to persist across deploys)
+# 2. Enlarges /dev/shm for video rendering
+# 3. Starts the server
+RUN printf '#!/bin/sh\n\
+# Install Playwright Chromium if not already present (persisted on /data volume)\n\
+if [ ! -f /data/browsers/.chromium-installed ]; then\n\
+  echo "Installing Playwright Chromium to /data/browsers..."\n\
+  npx playwright install chromium\n\
+  touch /data/browsers/.chromium-installed\n\
+  echo "Playwright Chromium installed."\n\
+fi\n\
+# Enlarge /dev/shm for Chromium rendering\n\
+mount -o remount,size=2G /dev/shm 2>/dev/null || true\n\
+exec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]

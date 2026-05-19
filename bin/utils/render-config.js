@@ -47,9 +47,14 @@ function discoverChromiumPath() {
     return process.env.CHROMIUM_EXECUTABLE_PATH;
   }
 
-  // 2. Playwright's browser cache (primary — installed via npx playwright install chromium)
-  const playwrightPath = path.join(os.homedir(), '.cache', 'ms-playwright');
-  if (fs.existsSync(playwrightPath)) {
+  // 2. Search Playwright's browser directories
+  const searchPaths = [
+    process.env.PLAYWRIGHT_BROWSERS_PATH,  // /data/browsers in Docker
+    path.join(os.homedir(), '.cache', 'ms-playwright'),  // default local
+  ].filter(Boolean);
+
+  for (const playwrightPath of searchPaths) {
+    if (!fs.existsSync(playwrightPath)) continue;
     try {
       const dirs = fs.readdirSync(playwrightPath)
         .filter(d => d.startsWith('chromium'));
