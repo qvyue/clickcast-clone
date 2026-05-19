@@ -71,8 +71,11 @@ EXPOSE 3000
 RUN printf '#!/bin/sh\n\
 set -e\n\
 \n\
+# Enlarge /dev/shm FIRST (default 64MB is too small for Chromium download)\n\
+mount -o remount,size=2G /dev/shm 2>/dev/null || true\n\
+\n\
 # Create /data subdirectories if they dont exist\n\
-mkdir -p /data/browsers /data/websites\n\
+mkdir -p /data/browsers /data/websites /data/tmp\n\
 \n\
 # Symlink /app/websites → /data/websites (persistent volume)\n\
 # Remove default dir if it exists and is not already a symlink\n\
@@ -85,15 +88,13 @@ fi\n\
 # Install Playwright Chromium if not already present\n\
 if [ ! -f /data/browsers/.installed ]; then\n\
   echo "Installing Playwright Chromium to /data/browsers..."\n\
-  npx playwright install chromium\n\
+  TMPDIR=/data/tmp npx playwright install chromium\n\
   touch /data/browsers/.installed\n\
+  rm -rf /data/tmp/*\n\
   echo "Playwright Chromium installed."\n\
 else\n\
   echo "Playwright Chromium already installed."\n\
 fi\n\
-\n\
-# Enlarge /dev/shm for Chromium rendering\n\
-mount -o remount,size=2G /dev/shm 2>/dev/null || true\n\
 \n\
 exec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
