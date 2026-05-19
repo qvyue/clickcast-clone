@@ -86,19 +86,17 @@ function runTest(concurrency, opts) {
         return;
       }
 
-      // Parse: "Rendered 150 frames in 4.5s (33.3 fps)"
-      const fpsMatch = stdout.match(/Rendered (\d+) frames in ([0-9.]+)s \(([0-9.]+) fps\)/);
-      if (fpsMatch) {
-        resolve({
-          concurrency,
-          duration: parseFloat(fpsMatch[2]),
-          fps: parseFloat(fpsMatch[3]),
-          frames: parseInt(fpsMatch[1]),
-          error: null,
-        });
-      } else {
-        resolve({ concurrency, duration: parseFloat(wallDuration), fps: null, frames: null, error: 'FPS parse failed' });
-      }
+      // Calculate FPS from wall clock time + totalFrames from timeline
+      // (Remotion's stdout format is unreliable for parsing)
+      const duration = parseFloat(wallDuration);
+      const fps = opts.totalFrames && duration > 0 ? parseFloat((opts.totalFrames / duration).toFixed(1)) : null;
+      resolve({
+        concurrency,
+        duration,
+        fps,
+        frames: opts.totalFrames,
+        error: fps ? null : 'Could not calculate FPS',
+      });
     });
   });
 }
@@ -127,6 +125,10 @@ async function runBenchmark(options = {}) {
 
   const { gl, chromiumPath } = getRenderConfig();
 
+  // Read totalFrames from timeline for FPS calculation
+  const timeline = JSON.parse(fs.readFileSync(timelinePath, 'utf-8'));
+  const totalFrames = timeline.totalFrames || 150;
+
   // Copy website resources to global public directory (same as render.js)
   // Remotion reads timeline.json, screenshots, and audio from global public/
   const websitePublicDir = path.join(__dirname, '../websites', domain, 'public');
@@ -147,7 +149,7 @@ async function runBenchmark(options = {}) {
 
   console.log('Resources copied to global public/');
 
-  const opts = { domain, ratio, compositionId, gl, chromiumPath };
+  const opts = { domain, ratio, compositionId, gl, chromiumPath, totalFrames };
 
   console.log('=== Remotion Concurrency Benchmark ===');
   console.log(`Domain:       ${domain}`);
