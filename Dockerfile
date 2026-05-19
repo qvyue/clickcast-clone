@@ -56,8 +56,7 @@ RUN npm ci && \
 COPY . .
 
 # Build frontend (Vite embeds VITE_* env vars at build time)
-# Ensure devDependencies are installed (npm ci skips them if NODE_ENV=production)
-RUN cd frontend && NODE_ENV=development npm ci && npm run build && rm -rf node_modules
+RUN cd frontend && npm ci && npm run build && rm -rf node_modules
 
 # 验证 BGM 文件存在
 RUN echo "=== Checking BGM file ===" && \
