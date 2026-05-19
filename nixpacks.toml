@@ -5,8 +5,8 @@
 cmd = "bash scripts/start.sh"
 
 [install]
-# 安装 Playwright 浏览器依赖
-cmds = ["npx playwright install chromium"]
+# Skip — browsers are installed at runtime via entrypoint.sh to persistent /data/browsers
+# Do NOT install here: this runs during build, /data doesn't exist yet, and it downloads every time
 
 [variables]
 # 确保 Node.js 使用正确内存

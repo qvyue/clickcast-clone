@@ -85,13 +85,13 @@ if [ ! -L /app/websites ]; then\n\
 fi\n\
 \n\
 # Install Playwright Chromium if not already present\n\
-if [ ! -f /data/browsers/.installed ]; then\n\
+# Check actual browser directory, not just a marker file\n\
+if ls /data/browsers/chromium-* >/dev/null 2>&1; then\n\
+  echo "Playwright Chromium already installed."\n\
+else\n\
   echo "Installing Playwright Chromium to /data/browsers..."\n\
   npx playwright install chromium\n\
-  touch /data/browsers/.installed\n\
   echo "Playwright Chromium installed."\n\
-else\n\
-  echo "Playwright Chromium already installed."\n\
 fi\n\
 \n\
 exec node bin/server.js\n' > /app/entrypoint.sh && \
