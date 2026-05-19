@@ -1,34 +1,53 @@
 /**
  * Auth Module - Supabase JWT verification middleware
  *
- * Provides optional and required auth middleware for Express routes.
- * Uses Supabase service role key to verify JWT tokens from the frontend.
+ * Verifies JWT tokens using Supabase's JWKS endpoint (via jose library).
+ * No Supabase client needed — avoids the Node 20 WebSocket crash.
  */
 
-const { createClient } = require('@supabase/supabase-js');
+const { jwtVerify, createRemoteJWKSet } = require('jose');
 
-let supabaseAdmin = null;
+let jwks = null;
 
 /**
- * Get Supabase admin client (service role).
+ * Get JWKS (JSON Web Key Set) from Supabase.
  * Lazily initialized to avoid crashing if env vars are missing.
  */
-function getSupabaseAdmin() {
-  if (supabaseAdmin) return supabaseAdmin;
+function getJWKS() {
+  if (jwks) return jwks;
 
   const url = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceRoleKey) {
-    console.warn('[auth] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set — auth disabled');
+  if (!url) {
+    console.warn('[auth] SUPABASE_URL not set — auth disabled');
     return null;
   }
 
-  supabaseAdmin = createClient(url, serviceRoleKey, {
-    realtime: { enabled: false },  // No WebSocket needed on server side
-  });
-  console.log('[auth] Supabase admin client initialized');
-  return supabaseAdmin;
+  // Supabase JWKS endpoint: https://<project>.supabase.co/auth/v1/.well-known/jwks.json
+  const jwksUrl = `${url}/auth/v1/.well-known/jwks.json`;
+  jwks = createRemoteJWKSet(new URL(jwksUrl));
+  console.log('[auth] Supabase JWKS initialized');
+  return jwks;
+}
+
+/**
+ * Verify a Supabase JWT token.
+ * @param {string} token - The JWT token
+ * @returns {Promise<object|null>} The decoded user payload, or null if invalid
+ */
+async function verifyToken(token) {
+  const keyset = getJWKS();
+  if (!keyset) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, keyset, {
+      issuer: `${process.env.SUPABASE_URL}/auth/v1`,
+      audience: 'authenticated',
+    });
+    return payload;
+  } catch (e) {
+    // Token expired, invalid signature, etc.
+    return null;
+  }
 }
 
 /**
@@ -37,22 +56,14 @@ function getSupabaseAdmin() {
  * Does NOT reject requests without a token.
  */
 async function optionalAuth(req, res, next) {
-  const admin = getSupabaseAdmin();
-  if (!admin) return next();
-
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    try {
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (user && !error) {
-        req.user = user;
-      }
-    } catch (e) {
-      // Token invalid — just skip
+    const payload = await verifyToken(token);
+    if (payload) {
+      req.user = payload;
     }
   }
-
   next();
 }
 
@@ -61,8 +72,7 @@ async function optionalAuth(req, res, next) {
  * Rejects requests without a valid JWT (401).
  */
 async function requireAuth(req, res, next) {
-  const admin = getSupabaseAdmin();
-  if (!admin) {
+  if (!process.env.SUPABASE_URL) {
     return res.status(503).json({ error: 'Auth not configured' });
   }
 
@@ -72,16 +82,13 @@ async function requireAuth(req, res, next) {
   }
 
   const token = authHeader.slice(7);
-  try {
-    const { data: { user }, error } = await admin.auth.getUser(token);
-    if (error || !user) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-    req.user = user;
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: 'Invalid token' });
+  const payload = await verifyToken(token);
+  if (!payload) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
+
+  req.user = payload;
+  next();
 }
 
 /**
@@ -91,4 +98,4 @@ function isAuthConfigured() {
   return !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
 }
 
-module.exports = { optionalAuth, requireAuth, isAuthConfigured, getSupabaseAdmin };
+module.exports = { optionalAuth, requireAuth, isAuthConfigured };
