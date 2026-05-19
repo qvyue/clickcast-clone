@@ -311,7 +311,9 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       const baseArgs = [
         'remotion', 'render', compositionId, outputFile,
         `--concurrency=${concurrency}`,
-        `--gl=${gl}`
+        `--gl=${gl}`,
+        '--x264-preset=veryfast',
+        '--enable-multiprocess-on-linux'
       ];
       if (chromiumPath) {
         baseArgs.push(`--chromium-executable-path=${chromiumPath}`);

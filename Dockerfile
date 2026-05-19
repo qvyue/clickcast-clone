@@ -4,6 +4,8 @@ FROM node:20-slim
 # 设置内存限制环境变量 (8GB实例，Node.js使用4GB)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REMOTION_GL=swangle
+# Use RAM disk for temp files (faster than disk IO for video rendering)
+ENV TMPDIR=/dev/shm
 
 # Install system dependencies for Playwright (最小化安装)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -61,5 +63,14 @@ RUN mkdir -p out websites
 # Expose port
 EXPOSE 3000
 
-# Start server with memory limit (4GB for Node.js, leaving 4GB for Chromium)
-CMD ["node", "--max-old-space-size=4096", "bin/server.js"]
+# Start server via entrypoint that enlarges /dev/shm for Chromium rendering
+# Default /dev/shm is 64MB which is too small; Chromium needs more for shared memory
+COPY <<'SCRIPT' /app/entrypoint.sh
+#!/bin/sh
+# Enlarge /dev/shm to 2GB for video rendering (avoids Chromium crashes)
+mount -o remount,size=2G /dev/shm 2>/dev/null || true
+exec node --max-old-space-size=4096 bin/server.js
+SCRIPT
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/app/entrypoint.sh"]
