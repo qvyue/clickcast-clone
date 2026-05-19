@@ -4,6 +4,8 @@ FROM node:20-slim
 # 设置内存限制环境变量 (8GB实例，Node.js使用4GB)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REMOTION_GL=swangle
+# Skip Playwright browser download — we use Remotion's browser instead
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # Use RAM disk for temp files (faster than disk IO for video rendering)
 ENV TMPDIR=/dev/shm
 
@@ -43,12 +45,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install Node dependencies + Playwright Chromium in one layer to save disk
-# Clean npm cache between steps to free space for the 167MB Chromium download
+# Install Node dependencies (Playwright browser download skipped via env var)
+# Then download Remotion's Chrome for Testing (shared by both rendering and capture)
 RUN npm ci && \
     npm cache clean --force && \
     rm -rf /root/.npm /tmp/* && \
-    npx playwright install chromium
+    npx remotion browser ensure
 
 # Copy application code (包含 BGM 文件)
 COPY . .

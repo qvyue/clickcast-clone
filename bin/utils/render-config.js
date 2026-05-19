@@ -37,25 +37,46 @@ function validateGlBackend(gl) {
 }
 
 /**
- * Discover Playwright's Chromium binary path (for Docker/Linux environments).
+ * Discover Chromium binary path.
+ * Tries Remotion's browser cache first, then Playwright's.
  * @returns {string|null} Absolute path to Chromium, or null if not found
  */
 function discoverChromiumPath() {
-  if (process.platform !== 'linux') return null;
-
-  const playwrightPath = '/root/.cache/ms-playwright';
-  if (!fs.existsSync(playwrightPath)) return null;
-
-  try {
-    const chromiumDirs = fs.readdirSync(playwrightPath)
-      .filter(d => d.startsWith('chromium'));
-    if (chromiumDirs.length === 0) return null;
-
-    const candidate = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
-    return fs.existsSync(candidate) ? candidate : null;
-  } catch {
-    return null;
+  // 1. Explicit env var
+  if (process.env.CHROMIUM_EXECUTABLE_PATH && fs.existsSync(process.env.CHROMIUM_EXECUTABLE_PATH)) {
+    return process.env.CHROMIUM_EXECUTABLE_PATH;
   }
+
+  // 2. Remotion's browser cache
+  const remotionCache = path.join(os.homedir(), '.cache', 'remotion', 'chromium');
+  if (fs.existsSync(remotionCache)) {
+    try {
+      const dirs = fs.readdirSync(remotionCache);
+      for (const d of dirs) {
+        const linuxPath = path.join(remotionCache, d, 'chrome-linux64', 'chrome');
+        const winPath = path.join(remotionCache, d, 'chrome-win64', 'chrome.exe');
+        if (fs.existsSync(linuxPath)) return linuxPath;
+        if (fs.existsSync(winPath)) return winPath;
+      }
+    } catch { /* ignore */ }
+  }
+
+  // 3. Playwright's browser cache (Linux Docker)
+  if (process.platform === 'linux') {
+    const playwrightPath = '/root/.cache/ms-playwright';
+    if (fs.existsSync(playwrightPath)) {
+      try {
+        const chromiumDirs = fs.readdirSync(playwrightPath)
+          .filter(d => d.startsWith('chromium'));
+        if (chromiumDirs.length > 0) {
+          const candidate = path.join(playwrightPath, chromiumDirs[0], 'chrome-linux', 'chrome');
+          if (fs.existsSync(candidate)) return candidate;
+        }
+      } catch { /* ignore */ }
+    }
+  }
+
+  return null;
 }
 
 /**
