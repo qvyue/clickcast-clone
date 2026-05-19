@@ -44,7 +44,11 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install Node dependencies (包含 Remotion CLI)
-RUN npm ci
+# Clean npm cache and remove unnecessary files to free disk for Playwright
+RUN npm ci && \
+    npm cache clean --force && \
+    rm -rf /root/.npm /tmp/* && \
+    find /app/node_modules -type d \( -name ".cache" -o -name "test" -o -name "tests" -o -name "docs" \) -exec rm -rf {} + 2>/dev/null || true
 
 # Install Playwright browsers (只安装 chromium)
 RUN npx playwright install chromium
@@ -64,13 +68,7 @@ RUN mkdir -p out websites
 EXPOSE 3000
 
 # Start server via entrypoint that enlarges /dev/shm for Chromium rendering
-# Default /dev/shm is 64MB which is too small; Chromium needs more for shared memory
-COPY <<'SCRIPT' /app/entrypoint.sh
-#!/bin/sh
-# Enlarge /dev/shm to 2GB for video rendering (avoids Chromium crashes)
-mount -o remount,size=2G /dev/shm 2>/dev/null || true
-exec node --max-old-space-size=4096 bin/server.js
-SCRIPT
-RUN chmod +x /app/entrypoint.sh
+RUN printf '#!/bin/sh\nmount -o remount,size=2G /dev/shm 2>/dev/null || true\nexec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]
