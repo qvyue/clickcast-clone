@@ -24,7 +24,9 @@ function getSupabaseAdmin() {
     return null;
   }
 
-  supabaseAdmin = createClient(url, serviceRoleKey);
+  supabaseAdmin = createClient(url, serviceRoleKey, {
+    realtime: { enabled: false },  // No WebSocket needed on server side
+  });
   console.log('[auth] Supabase admin client initialized');
   return supabaseAdmin;
 }
