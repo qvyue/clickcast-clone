@@ -10,6 +10,7 @@ const renderRoutes = require('./render');
 const statusRoutes = require('./status');
 const videosRoutes = require('./videos');
 const generateRoutes = require('./generate');
+const benchmarkRoutes = require('./benchmark');
 
 module.exports = (app) => {
   // Generate routes: POST /api/generate (自动化流程 - 放在最前面)
@@ -35,4 +36,7 @@ module.exports = (app) => {
 
   // Delete routes: DELETE /api/delete/:domain
   app.use('/api/delete', videosRoutes);
+
+  // Benchmark routes: GET /api/benchmark, GET /api/benchmark/results
+  app.use('/api/benchmark', benchmarkRoutes);
 };
