@@ -43,15 +43,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install Node dependencies (包含 Remotion CLI)
-# Clean npm cache and remove unnecessary files to free disk for Playwright
+# Install Node dependencies + Playwright Chromium in one layer to save disk
+# Clean npm cache between steps to free space for the 167MB Chromium download
 RUN npm ci && \
     npm cache clean --force && \
     rm -rf /root/.npm /tmp/* && \
-    find /app/node_modules -type d \( -name ".cache" -o -name "test" -o -name "tests" -o -name "docs" \) -exec rm -rf {} + 2>/dev/null || true
-
-# Install Playwright browsers (只安装 chromium)
-RUN npx playwright install chromium
+    npx playwright install chromium
 
 # Copy application code (包含 BGM 文件)
 COPY . .
