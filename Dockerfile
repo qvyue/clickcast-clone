@@ -5,13 +5,13 @@ FROM node:20-slim
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REMOTION_GL=swangle
 # Skip Playwright browser download during npm install
-# Browsers are installed at runtime on the first request (to persistent volume)
+# Browsers are installed at runtime to persistent volume
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/data/browsers
 # Use RAM disk for temp files (faster than disk IO for video rendering)
 ENV TMPDIR=/dev/shm
 
-# Install system dependencies for Playwright (最小化安装)
+# Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
@@ -60,26 +60,41 @@ RUN echo "=== Checking BGM file ===" && \
     ls -la /app/public/ && \
     test -f /app/public/bensound-slowlife.mp3 && echo "✅ BGM file OK ($(stat -c%s /app/public/bensound-slowlife.mp3) bytes)" || echo "❌ BGM file MISSING"
 
-# Create output directory
-RUN mkdir -p out websites
-
 # Expose port
 EXPOSE 3000
 
-# Start server via entrypoint that:
-# 1. Installs Playwright Chromium on first run (to /data volume to persist across deploys)
-# 2. Enlarges /dev/shm for video rendering
-# 3. Starts the server
+# Entrypoint: set up persistent volume directories, install browsers on first run
+# /data is mounted as a persistent volume (5GB) on Railway
+# - /data/browsers  → Playwright/Remotion Chromium
+# - /data/websites  → Website screenshots, audio, rendered videos
+# /app/websites is symlinked → /data/websites so all existing code works unchanged
 RUN printf '#!/bin/sh\n\
-# Install Playwright Chromium if not already present (persisted on /data volume)\n\
-if [ ! -f /data/browsers/.chromium-installed ]; then\n\
+set -e\n\
+\n\
+# Create /data subdirectories if they dont exist\n\
+mkdir -p /data/browsers /data/websites\n\
+\n\
+# Symlink /app/websites → /data/websites (persistent volume)\n\
+# Remove default dir if it exists and is not already a symlink\n\
+if [ ! -L /app/websites ]; then\n\
+  rm -rf /app/websites\n\
+  ln -s /data/websites /app/websites\n\
+  echo "Linked /app/websites → /data/websites"\n\
+fi\n\
+\n\
+# Install Playwright Chromium if not already present\n\
+if [ ! -f /data/browsers/.installed ]; then\n\
   echo "Installing Playwright Chromium to /data/browsers..."\n\
   npx playwright install chromium\n\
-  touch /data/browsers/.chromium-installed\n\
+  touch /data/browsers/.installed\n\
   echo "Playwright Chromium installed."\n\
+else\n\
+  echo "Playwright Chromium already installed."\n\
 fi\n\
+\n\
 # Enlarge /dev/shm for Chromium rendering\n\
 mount -o remount,size=2G /dev/shm 2>/dev/null || true\n\
+\n\
 exec node --max-old-space-size=4096 bin/server.js\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 

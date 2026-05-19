@@ -3,13 +3,15 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "node bin/server.js"
+startCommand = "/app/entrypoint.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
-# 持久化存储 - 视频文件不会丢失
+# 持久化存储 - 挂载到 /data
+# /data/browsers  → Playwright/Remotion Chromium (跨部署保留)
+# /data/websites  → 网站截图、配音、渲染视频 (跨部署保留)
 [[volumes]]
-name = "websites"
-mountPath = "/app/websites"
+name = "vidgen-data"
+mountPath = "/data"
