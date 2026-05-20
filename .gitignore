@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 .env
+!frontend/.env
 .playwright-tmp/
 tmp/
 *.mp4

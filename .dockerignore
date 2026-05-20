@@ -46,3 +46,4 @@ docker-compose*.yml
 .env
 .env.*
 !.env.example
+!frontend/.env
