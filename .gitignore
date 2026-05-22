@@ -45,3 +45,8 @@ frontend/test-results/
 
 # Claude worktrees
 .claude/worktrees/
+
+# runtime logs
+server.out.log
+server.err.log
+test_*.log

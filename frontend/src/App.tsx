@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Home } from './pages/Home'
 import VideoEditor from './components/Editor/VideoEditor'
 import { TermsPage } from './components/Terms'
 import { PrivacyPage } from './components/Privacy'
@@ -7,6 +8,8 @@ import { AuthCallback } from './components/LoginModal'
 function App() {
   return (
     <Routes>
+      {/* 首页 */}
+      <Route path="/" element={<Home />} />
       {/* 编辑器页面 */}
       <Route path="/editor/:domain" element={<VideoEditor />} />
       {/* OAuth callback */}

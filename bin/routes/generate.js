@@ -124,29 +124,64 @@ async function captureWebsite(url, outputDir, jobId) {
 
     const proc = spawn('node', [captureScript, url, absoluteOutputDir], {
       cwd: path.resolve(__dirname, '../..'),
-      stdio: 'inherit',
+      stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
       env: { ...process.env }  // 继承当前进程的环境变量（包括代理设置）
     });
 
+    let stdoutBuf = '';
+    let stderrBuf = '';
+    const MAX_BUF = 1024 * 50; // 保留尾部 50KB 用于错误识别
+
+    proc.stdout.on('data', (chunk) => {
+      const str = chunk.toString();
+      process.stdout.write(str); // 实时透传到父进程日志
+      stdoutBuf = (stdoutBuf + str).slice(-MAX_BUF);
+    });
+    proc.stderr.on('data', (chunk) => {
+      const str = chunk.toString();
+      process.stderr.write(str);
+      stderrBuf = (stderrBuf + str).slice(-MAX_BUF);
+    });
+
     proc.on('error', (err) => {
       console.error(`   [capture] Process error: ${err.message}`);
-      resolve(null);
+      resolve({ ok: false, reason: `Process error: ${err.message}` });
     });
 
     proc.on('close', (code) => {
       console.log(`   [capture] Process exited with code: ${code}`);
-      // 检查是否有截图文件生成（shot1.png, shot2.png 等）
       const files = fs.existsSync(absoluteOutputDir) ? fs.readdirSync(absoluteOutputDir) : [];
       const hasScreenshots = files.some(f => f.match(/^shot\d+\.png$/));
       console.log(`   [capture] Files in output dir: ${files.slice(0, 10).join(', ')}`);
       console.log(`   [capture] Has screenshots: ${hasScreenshots}`);
 
       if (code === 0 && hasScreenshots) {
-        resolve(path.join(absoluteOutputDir, 'shot1.png'));
-      } else {
-        resolve(null);
+        return resolve({ ok: true, file: path.join(absoluteOutputDir, 'shot1.png') });
       }
+
+      // 失败：识别常见网络错误，输出友好的提示
+      const allLog = (stdoutBuf + '\n' + stderrBuf);
+      let reason = `Screenshot capture failed (exit code: ${code})`;
+      const netPatterns = [
+        { pattern: /ERR_CONNECTION_RESET/i, hint: '目标网站连接被重置（可能是网络受限/被防火墙拦截）' },
+        { pattern: /ERR_CONNECTION_REFUSED/i, hint: '目标网站拒绝连接（服务可能未启动）' },
+        { pattern: /ERR_CONNECTION_TIMED_OUT|Timeout 60000ms exceeded/i, hint: '访问目标网站超时（网络不可达或网站响应过慢）' },
+        { pattern: /ERR_NAME_NOT_RESOLVED|net::ERR_NAME_NOT_RESOLVED/i, hint: '无法解析域名（请检查 URL 拼写或 DNS）' },
+        { pattern: /ERR_HTTP2_PROTOCOL_ERROR/i, hint: '目标网站 HTTP/2 协议错误（服务器端兼容性问题，请稍后重试）' },
+        { pattern: /ERR_CERT_|ERR_SSL_/i, hint: '目标网站 SSL 证书有问题' },
+        { pattern: /net::ERR_/i, hint: '网络层错误，无法访问目标网站' },
+      ];
+
+      for (const { pattern, hint } of netPatterns) {
+        if (pattern.test(allLog)) {
+          reason = `无法访问目标网站：${hint}。请检查 URL 是否正确或网络是否可访问该域名。`;
+          console.error(`   [capture] 🌐 网络错误识别: ${hint}`);
+          break;
+        }
+      }
+
+      resolve({ ok: false, reason });
     });
   });
 }
@@ -436,8 +471,10 @@ async function generateAsync(jobId, url, aspectRatio) {
 
     // 步骤1: 截图
     const screenshotResult = await captureWebsite(normalizedUrl, outputDir, jobId);
-    if (!screenshotResult) {
-      throw new Error('Screenshot capture failed');
+    if (!screenshotResult || !screenshotResult.ok) {
+      const reason = (screenshotResult && screenshotResult.reason) || 'Screenshot capture failed';
+      console.error(`[${jobId}] ❌ 截图失败: ${reason}`);
+      throw new Error(reason);
     }
 
     // 步骤2: AI 分析
