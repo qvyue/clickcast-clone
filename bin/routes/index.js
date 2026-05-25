@@ -11,6 +11,7 @@ const statusRoutes = require('./status');
 const videosRoutes = require('./videos');
 const generateRoutes = require('./generate');
 const benchmarkRoutes = require('./benchmark');
+const downloadRoutes = require('./download');
 const { optionalAuth } = require('../utils/auth');
 
 module.exports = (app) => {
@@ -43,4 +44,7 @@ module.exports = (app) => {
 
   // Benchmark routes: GET /api/benchmark, GET /api/benchmark/results
   app.use('/api/benchmark', benchmarkRoutes);
+
+  // Download proxy: GET /api/download?url=...&name=...
+  app.use('/api/download', downloadRoutes);
 };

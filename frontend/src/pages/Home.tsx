@@ -217,7 +217,7 @@ export const Home: React.FC = () => {
                   <div className="video-card-actions">
                     <button onClick={() => navigate(`/editor/${v.domain}`)} className="btn-secondary">Edit</button>
                     <a href={v.url} target="_blank" rel="noreferrer" className="btn-secondary">Play</a>
-                    <a href={v.url} download className="btn-primary-sm">Download</a>
+                    <a href={v.url.startsWith('/') ? v.url : `/api/download?url=${encodeURIComponent(v.url)}&name=${v.domain}.mp4`} download className="btn-primary-sm">Download</a>
                   </div>
                 </div>
               ))}
