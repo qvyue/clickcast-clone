@@ -10,7 +10,7 @@ export const PrivacyPage: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#050505', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+    <div className="home-container">
       {/* Navigation */}
       <nav className="navbar">
         <div className="navbar-inner">
@@ -34,29 +34,23 @@ export const PrivacyPage: React.FC = () => {
       </nav>
 
       {/* Content */}
-      <main style={{ flexGrow: 1, paddingTop: '128px', paddingBottom: '80px', paddingLeft: '16px', paddingRight: '16px' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '32px', color: '#fff' }}>
-            Privacy Policy
-          </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', color: '#a3a3a3', lineHeight: 1.625 }}>
+      <main className="legal-page">
+        <div className="legal-container">
+          <h1 className="legal-title">Privacy Policy</h1>
+          <div className="legal-body">
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                1. Introduction
-              </h2>
+              <h2>1. Introduction</h2>
               <p>
                 Welcome to VidGen (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our service.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                2. Information We Collect
-              </h2>
+              <h2>2. Information We Collect</h2>
               <p>
                 We collect information that you provide directly to us when you create an account, purchase credits, or use our video generation services. This includes:
               </p>
-              <ul style={{ listStyleType: 'disc', paddingLeft: '24px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul>
                 <li>
                   Account information (name, email address, profile picture via Google Auth).
                 </li>
@@ -70,13 +64,11 @@ export const PrivacyPage: React.FC = () => {
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                3. How We Use Your Information
-              </h2>
+              <h2>3. How We Use Your Information</h2>
               <p>
                 We use your information to:
               </p>
-              <ul style={{ listStyleType: 'disc', paddingLeft: '24px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul>
                 <li>
                   Provide and maintain our video generation service.
                 </li>
@@ -93,29 +85,23 @@ export const PrivacyPage: React.FC = () => {
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                4. Data Storage and Security
-              </h2>
+              <h2>4. Data Storage and Security</h2>
               <p>
                 We use industry-standard security measures to protect your data. Your account information is managed through secure authentication providers. Payment information is handled securely by our payment providers. We do not store your credit card details on our servers.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                5. Third-Party Services
-              </h2>
+              <h2>5. Third-Party Services</h2>
               <p>
                 We use third-party services for authentication and database management. These services have their own privacy policies which we encourage you to review.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                6. Contact Us
-              </h2>
+              <h2>6. Contact Us</h2>
               <p>
-                If you have any questions about this Privacy Policy, please contact us at <strong style={{ color: '#fff' }}>luoxiaoyu198961@gmail.com</strong>.
+                If you have any questions about this Privacy Policy, please contact us at <strong>luoxiaoyu198961@gmail.com</strong>.
               </p>
             </section>
           </div>

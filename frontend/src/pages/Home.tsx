@@ -160,7 +160,7 @@ export const Home: React.FC = () => {
       <header className="hero-section">
         <div className="hero-glow"></div>
         <div className="hero-content">
-          <div className="hero-badge">✨ V2.0 AI Video Engine Live</div>
+          <div className="hero-badge">V2.0 · AI Video Engine</div>
           <h1 className="hero-title">
             Paste your URL,<br />
             Get <span className="text-gradient">website video</span><br />
@@ -259,7 +259,7 @@ export const Home: React.FC = () => {
       {/* Why VidGen Section */}
       <section className="why-section">
         <div className="section-container why-container">
-          <div className="why-left">
+          <div className="why-header">
             <h2 className="section-title">Why <span className="text-gradient">VidGen</span>?</h2>
             <p className="why-desc">
               Creating marketing or launch videos is time-consuming and expensive. You either spend tens of thousands on agencies or waste hours learning complex video editors.
@@ -267,26 +267,24 @@ export const Home: React.FC = () => {
               VidGen solves this by offering an instant, highly customizable video engine. We enforce strict narrative alignment between subtitles and voiceovers, delivering a polished video automatically.
             </p>
           </div>
-          <div className="why-right">
-            <div className="comparison-card">
-              <div className="comp-col old-way">
-                <h4>Traditional Way</h4>
-                <ul>
-                  <li><span className="cross">✕</span> Manual recording</li>
-                  <li><span className="cross">✕</span> Days of video editing</li>
-                  <li><span className="cross">✕</span> Expensive voice actors</li>
-                  <li><span className="cross">✕</span> Slow iterations</li>
-                </ul>
-              </div>
-              <div className="comp-col new-way">
-                <h4>With VidGen</h4>
-                <ul>
-                  <li><span className="check">✓</span> 1-click URL generation</li>
-                  <li><span className="check">✓</span> Instant AI scripting</li>
-                  <li><span className="check">✓</span> Realistic AI Voices</li>
-                  <li><span className="check">✓</span> Edit in browser</li>
-                </ul>
-              </div>
+          <div className="comparison-card">
+            <div className="comp-col old-way">
+              <h4>Traditional Way</h4>
+              <ul>
+                <li><span className="cross">✕</span> Manual recording</li>
+                <li><span className="cross">✕</span> Days of video editing</li>
+                <li><span className="cross">✕</span> Expensive voice actors</li>
+                <li><span className="cross">✕</span> Slow iterations</li>
+              </ul>
+            </div>
+            <div className="comp-col new-way">
+              <h4>With VidGen</h4>
+              <ul>
+                <li><span className="check">✓</span> 1-click URL generation</li>
+                <li><span className="check">✓</span> Instant AI scripting</li>
+                <li><span className="check">✓</span> Realistic AI Voices</li>
+                <li><span className="check">✓</span> Edit in browser</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -404,14 +402,41 @@ export const Home: React.FC = () => {
             <h2 className="section-title">Common <span className="text-muted">Questions</span></h2>
           </div>
           <div className="faq-list">
-            <div className="faq-item">
-              <h4 className="faq-q">What is the best AI video generator for SaaS product videos?</h4>
-              <p className="faq-a">VidGen is specifically designed to automate the generation of SaaS explainer videos. We connect directly to your URL to capture real UI screenshots and synthesize a professional narrative.</p>
-            </div>
-            <div className="faq-q">Can I convert website into video?</div>
-            <p className="faq-a">Yes! Simply paste your URL and our engine will analyze the page, write a script, generate voiceovers, and render a complete video within minutes.</p>
-            <div className="faq-q">How does VidGen compare to Synthesia or HeyGen?</div>
-            <p className="faq-a">While those platforms focus on avatar generation, VidGen focuses on your product's UI and storytelling. We automatically script and capture your actual website.</p>
+            {[
+              {
+                q: 'What is the best AI video generator for SaaS product videos?',
+                a: 'VidGen is specifically designed to automate the generation of SaaS explainer videos. We connect directly to your URL to capture real UI screenshots and synthesize a professional narrative.',
+              },
+              {
+                q: 'Can I convert website into video?',
+                a: 'Yes! Simply paste your URL and our engine will analyze the page, write a script, generate voiceovers, and render a complete video within minutes.',
+              },
+              {
+                q: 'How does VidGen compare to Synthesia or HeyGen?',
+                a: 'While those platforms focus on avatar generation, VidGen focuses on your product\'s UI and storytelling. We automatically script and capture your actual website.',
+              },
+              {
+                q: 'How long does video generation take?',
+                a: 'Most videos are generated in less than 10 minutes, acting as a high-speed startup promo video maker.',
+              },
+            ].map((item, i) => (
+              <div key={i} className={`faq-item${i === 0 ? ' open' : ''}`}>
+                <button className="faq-q" onClick={() => {
+                  document.querySelectorAll('.faq-item').forEach((el, j) => {
+                    if (j === i) el.classList.toggle('open');
+                    else el.classList.remove('open');
+                  });
+                }}>
+                  <span>{item.q}</span>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="faq-icon">
+                    <path stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" d="M10 4v12M4 10h12" />
+                  </svg>
+                </button>
+                <div className="faq-a-wrapper">
+                  <p className="faq-a">{item.a}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

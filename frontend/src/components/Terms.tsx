@@ -10,7 +10,7 @@ export const TermsPage: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#050505', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+    <div className="home-container">
       {/* Navigation */}
       <nav className="navbar">
         <div className="navbar-inner">
@@ -34,101 +34,83 @@ export const TermsPage: React.FC = () => {
       </nav>
 
       {/* Content */}
-      <main style={{ flexGrow: 1, paddingTop: '128px', paddingBottom: '80px', paddingLeft: '16px', paddingRight: '16px' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '32px', color: '#fff' }}>
-            Terms of Service
-          </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', color: '#a3a3a3', lineHeight: 1.625 }}>
+      <main className="legal-page">
+        <div className="legal-container">
+          <h1 className="legal-title">Terms of Service</h1>
+          <div className="legal-body">
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                1. Acceptance of Terms
-              </h2>
+              <h2>1. Acceptance of Terms</h2>
               <p>
                 By accessing or using VidGen, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                2. Description of Service
-              </h2>
+              <h2>2. Description of Service</h2>
               <p>
                 VidGen is an AI-powered video generation tool that transforms website URLs into marketing videos. We provide a subscription-based service.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                3. User Accounts
-              </h2>
+              <h2>3. User Accounts</h2>
               <p>
                 You must create an account to use VidGen. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                4. Subscriptions and Payments
-              </h2>
+              <h2>4. Subscriptions and Payments</h2>
               <p>
                 VidGen operates on a subscription basis. By subscribing, you agree to the following:
               </p>
-              <ul style={{ listStyleType: 'disc', paddingLeft: '24px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul>
                 <li>
-                  <strong style={{ color: '#fff' }}>Subscriptions:</strong> By subscribing, you agree to a paid monthly subscription. Your account will automatically renew each month unless cancelled.
+                  <strong>Subscriptions:</strong> By subscribing, you agree to a paid monthly subscription. Your account will automatically renew each month unless cancelled.
                 </li>
                 <li>
-                  <strong style={{ color: '#fff' }}>Free Trial:</strong> New users may be eligible for a free trial period. Trial credits are limited and do not roll over. After the trial, a paid subscription is required to continue generating videos.
+                  <strong>Free Trial:</strong> New users may be eligible for a free trial period. Trial credits are limited and do not roll over. After the trial, a paid subscription is required to continue generating videos.
                 </li>
                 <li>
-                  <strong style={{ color: '#fff' }}>Video Credits:</strong> Each plan includes a specific number of video generations per month. Unused credits do not roll over to the next billing cycle.
+                  <strong>Video Credits:</strong> Each plan includes a specific number of video generations per month. Unused credits do not roll over to the next billing cycle.
                 </li>
                 <li>
-                  <strong style={{ color: '#fff' }}>Payment Processing:</strong> All payments are processed securely. We do not store your credit card information.
+                  <strong>Payment Processing:</strong> All payments are processed securely. We do not store your credit card information.
                 </li>
                 <li>
-                  <strong style={{ color: '#fff' }}>Cancellations:</strong> You can cancel your subscription at any time. Upon cancellation, your access (including remaining video credits) will continue until the end of your current billing period. You will not be charged again.
+                  <strong>Cancellations:</strong> You can cancel your subscription at any time. Upon cancellation, your access (including remaining video credits) will continue until the end of your current billing period. You will not be charged again.
                 </li>
                 <li>
-                  <strong style={{ color: '#fff' }}>Refunds:</strong> Payments are generally non-refundable. Even in the case the output video didn&apos;t meet your expectations we are not responsible for refunding any amount whether it&apos;s subscription money or one time payment. Please be sure to cancel your trial before it&apos;s charged for the next month if you don&apos;t want to continue with the service. Please contact support if you believe there has been a billing error.
+                  <strong>Refunds:</strong> Payments are generally non-refundable. Even in the case the output video didn&apos;t meet your expectations we are not responsible for refunding any amount whether it&apos;s subscription money or one time payment. Please be sure to cancel your trial before it&apos;s charged for the next month if you don&apos;t want to continue with the service. Please contact support if you believe there has been a billing error.
                 </li>
               </ul>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                5. Acceptable Use
-              </h2>
+              <h2>5. Acceptable Use</h2>
               <p>
                 You agree not to use VidGen to generate content that is illegal, harmful, defamatory, or infringes on third-party intellectual property rights. We reserve the right to suspend or terminate accounts that violate these terms.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                6. Limitation of Liability
-              </h2>
+              <h2>6. Limitation of Liability</h2>
               <p>
                 VidGen is provided &quot;as is&quot; without any warranties. We shall not be liable for any indirect, incidental, or consequential damages resulting from the use or inability to use our service.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                7. Video Retention Policy
-              </h2>
+              <h2>7. Video Retention Policy</h2>
               <p>
                 Generated videos are temporary and intended for immediate download. Videos will be automatically deleted from our servers 48 hours after they are successfully generated. It is your responsibility to download your videos before they expire.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>
-                8. Contact Us
-              </h2>
+              <h2>8. Contact Us</h2>
               <p>
-                For any further help, questions, or concerns regarding these Terms, please contact us at <strong style={{ color: '#fff' }}>luoxiaoyu198961@gmail.com</strong>.
+                For any further help, questions, or concerns regarding these Terms, please contact us at <strong>luoxiaoyu198961@gmail.com</strong>.
               </p>
             </section>
           </div>
