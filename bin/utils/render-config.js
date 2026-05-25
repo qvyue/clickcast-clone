@@ -73,7 +73,7 @@ function discoverChromiumPath() {
 
 /**
  * Get optimal render configuration for the current platform.
- * @returns {{ concurrency: number, gl: string, chromiumPath: string|null }}
+ * @returns {{ concurrency: number, gl: string, chromiumPath: string|null, enableMultiprocess: boolean }}
  */
 function getRenderConfig() {
   const isLinux = process.platform === 'linux';
@@ -115,7 +115,11 @@ function getRenderConfig() {
   // --- Chromium path ---
   const chromiumPath = discoverChromiumPath();
 
-  return { concurrency, gl, chromiumPath };
+  // --- Multiprocess on Linux ---
+  // Removes Chromium --single-process flag, allowing multi-process architecture
+  const enableMultiprocess = isLinux;
+
+  return { concurrency, gl, chromiumPath, enableMultiprocess };
 }
 
 module.exports = { getRenderConfig };

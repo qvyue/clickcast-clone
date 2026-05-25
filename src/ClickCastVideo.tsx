@@ -69,22 +69,46 @@ function isHighContrastGradient(primary: string, secondary: string): boolean {
 }
 
 // --- 1. 背景组件 (使用动态配色) ---
-const Background: React.FC = () => {
+// 检测是否有预渲染的背景图，有则直接用图片（省掉每帧 blur+3D 计算）
+const PrerenderedBg: React.FC<{ isPortrait: boolean }> = React.memo(({ isPortrait }) => {
+  const bgFile = isPortrait ? 'bg-prerendered-portrait.png' : 'bg-prerendered-landscape.png';
+  return (
+    <AbsoluteFill>
+      <Img src={staticFile(bgFile)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </AbsoluteFill>
+  );
+});
+
+const LiveBackground: React.FC<{ isPortrait: boolean; colors: any }> = React.memo(({ isPortrait, colors }) => {
+  return (
+    <AbsoluteFill style={{ backgroundColor: colors.background, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: isPortrait ? '10%' : '20%', left: isPortrait ? '10%' : '30%', width: isPortrait ? '80%' : '40%', height: '50%', background: `radial-gradient(circle, ${hexToRgba(colors.primary, 0.4)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(20px)' }} />
+      <div style={{ position: 'absolute', bottom: '-10%', right: isPortrait ? '-20%' : '10%', width: isPortrait ? '120%' : '50%', height: '60%', background: `radial-gradient(circle, ${hexToRgba(colors.secondary, 0.5)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(20px)' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: '-50%', width: '200%', height: isPortrait ? '30%' : '40%', backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.6 }} />
+    </AbsoluteFill>
+  );
+});
+
+const Background: React.FC = React.memo(() => {
   const { width, height } = useVideoConfig();
   const isPortrait = height > width;
   const colors = videoStyle.colors;
+  const bgFile = isPortrait ? 'bg-prerendered-portrait.png' : 'bg-prerendered-landscape.png';
 
-  return (
-    <AbsoluteFill style={{ backgroundColor: colors.background, overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: isPortrait ? '10%' : '20%', left: isPortrait ? '10%' : '30%', width: isPortrait ? '80%' : '40%', height: '50%', background: `radial-gradient(circle, ${hexToRgba(colors.primary, 0.4)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(80px)' }} />
-      <div style={{ position: 'absolute', bottom: '-10%', right: isPortrait ? '-20%' : '10%', width: isPortrait ? '120%' : '50%', height: '60%', background: `radial-gradient(circle, ${hexToRgba(colors.secondary, 0.5)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(100px)' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: '-50%', width: '200%', height: isPortrait ? '30%' : '40%', backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '40px 40px', transform: 'perspective(500px) rotateX(75deg) translateY(100px)', maskImage: 'linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))', WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))' }} />
-    </AbsoluteFill>
-  );
-};
+  // 如果 public 目录存在预渲染背景图，用图片；否则 fallback 到实时渲染
+  try {
+    // staticFile 会在构建时检查文件是否存在，我们用运行时检测
+    const hasPrerendered = (timeline as any)._prerenderedBg;
+    if (hasPrerendered) {
+      return <PrerenderedBg isPortrait={isPortrait} />;
+    }
+  } catch {}
+
+  return <LiveBackground isPortrait={isPortrait} colors={colors} />;
+});
 
 // --- 2. 统一的动态场景组件 ---
-const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
+const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const isPortrait = height > width;
@@ -251,7 +275,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
                   color: '#ffffff',
                   margin: '0 0 12px 0',
                   fontWeight: 700,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.4)',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
                 }}>{mainTitle}</h2>
               </div>
             </div>
@@ -301,7 +325,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
                   color: '#ffffff',
                   margin: '0 0 12px 0',
                   fontWeight: 700,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.4)',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
                 }}>{subTitle}</h2>
               </div>
             </div>
@@ -360,7 +384,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
                 color: '#ffffff',
                 margin: '0 0 12px 0',
                 fontWeight: 700,
-                textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.4)',
+                textShadow: '0 2px 8px rgba(0,0,0,0.8)',
               }}>{mainTitle}</h2>
               {subTitle && (
                 <p style={{
@@ -368,7 +392,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
                   lineHeight: 1.5,
                   color: 'rgba(255,255,255,0.95)',
                   margin: 0,
-                  textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 2px 6px rgba(0,0,0,0.5)',
+                  textShadow: '0 1px 4px rgba(0,0,0,0.8)',
                 }}>{subTitle}</p>
               )}
             </div>
@@ -379,7 +403,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = ({ sceneData }) => {
   };
 
   return hasTwoPhase ? renderTwoPhaseScene() : renderSinglePhaseScene();
-};
+});
 
 // --- 主视频时间轴 ---
 export const VidGenVideo: React.FC = () => {

@@ -143,8 +143,8 @@ sceneData.imageFit = 'contain' | 'cover'
 ## 渲染命令
 
 ```bash
-# 启动本地预览（Remotion Studio）
-npm start
+# 启动 Web 服务（首页）
+npm run web
 
 # 渲染视频
 npm run render-landscape   # 1920x1080 横版
@@ -154,6 +154,8 @@ npm run render-portrait    # 1080x1920 竖版
 websites/_preview/out/landscape.mp4
 websites/_preview/out/portrait.mp4
 ```
+
+> **注意**: 不要使用 `npm start`（Remotion Studio），它会占用 3000 端口导致 Web 服务无法启动。
 
 ---
 
@@ -186,11 +188,12 @@ clickcast-clone/
 
 ## 调试技巧
 
-1. **实时预览**: `npm start` 启动 Remotion Studio，在浏览器中实时查看效果
-2. **修改时间轴**: 编辑 `timeline.json` 后需重启 Remotion Studio
-3. **资源引用**: `public/` 目录文件用 `staticFile()` 引用
-4. **截图资源**: 放在对应网站的 `public/` 目录，如 `websites/clickcast.tech/public/`
-5. **音频资源**: 放在 `public/` 目录，引用时使用文件名即可
+1. **启动服务**: `npm run web` 启动 Web 服务（http://localhost:3000）
+2. **修改时间轴**: 编辑 `timeline.json` 后需重启 Web 服务
+3. **前端开发**: 修改 `frontend/src/` 后需 `cd frontend && npm run build` 重新构建
+4. **资源引用**: `public/` 目录文件用 `staticFile()` 引用
+5. **截图资源**: 放在对应网站的 `public/` 目录，如 `websites/clickcast.tech/public/`
+6. **音频资源**: 放在 `public/` 目录，引用时使用文件名即可
 
 ---
 

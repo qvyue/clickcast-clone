@@ -32,7 +32,7 @@ export const VideoEditor: React.FC = () => {
   const pollingTimeoutRef = useRef<NodeJS.Timeout>();
   const pollStartTimeoutRef = useRef<NodeJS.Timeout>();
   const pollAttemptsRef = useRef(0);
-  const MAX_POLL_ATTEMPTS = 90; // 最大轮询次数：90次 × 2秒 = 180秒超时
+  const MAX_POLL_ATTEMPTS = 300; // 最大轮询次数：300次 × 2秒 = 600秒（10分钟）超时
 
   // 视频比例：横版 16:9 或竖版 9:16
   const [aspectRatio, setAspectRatio] = useState<'landscape' | 'portrait'>('landscape');
