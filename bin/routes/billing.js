@@ -217,7 +217,7 @@ async function handleCheckoutComplete(session) {
 
     if (!existing) {
       // Create a minimal subscription record to track the customer
-      await supabase
+      const { error: insertErr } = await supabase
         .from('subscriptions')
         .insert({
           user_id: userId,
@@ -225,6 +225,9 @@ async function handleCheckoutComplete(session) {
           status: 'inactive',
           plan: 'free',
         });
+      if (insertErr) {
+        console.error('[billing-webhook] Insert subscription record error:', insertErr.message, insertErr.code);
+      }
     }
 
     // Grant 3 credits
