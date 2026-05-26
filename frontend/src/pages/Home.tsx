@@ -12,7 +12,6 @@ export const Home: React.FC = () => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ active: false, text: 'Preparing...', percent: 0 });
-  const [videos, setVideos] = useState<any[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -20,8 +19,6 @@ export const Home: React.FC = () => {
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    loadVideoList();
-
     // 已登录时加载积分数据
     if (user) {
       billing.refresh();
@@ -41,18 +38,6 @@ export const Home: React.FC = () => {
       setTimeout(() => setCheckoutMessage(null), 5000);
     }
   }, [user]);
-
-  const loadVideoList = async () => {
-    try {
-      const res = await fetchWithTimeout('/api/videos');
-      const data = await res.json();
-      if (data.videos) {
-        setVideos(data.videos);
-      }
-    } catch (e) {
-      console.error('Failed to load video list:', e);
-    }
-  };
 
   const handleGenerate = async () => {
     if (!url.trim()) {
@@ -107,7 +92,6 @@ export const Home: React.FC = () => {
             navigate(`/editor/${data.domain}`);
           } else {
             setLoading(false);
-            loadVideoList();
           }
         }
 
@@ -179,30 +163,6 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Videos Section (If any exist) */}
-      {videos.length > 0 && (
-        <section className="videos-section">
-          <div className="section-container">
-            <h2 className="section-title">Your Generated Videos</h2>
-            <div className="videos-grid">
-              {videos.map(v => (
-                <div key={v.domain} className="video-card">
-                  <div className="video-card-header">
-                    <span className="video-domain">{v.domain}</span>
-                    <span className="video-size">{v.size} MB</span>
-                  </div>
-                  <div className="video-card-actions">
-                    <button onClick={() => navigate(`/editor/${v.domain}`)} className="btn-secondary">Edit</button>
-                    <a href={v.url} target="_blank" rel="noreferrer" className="btn-secondary">Play</a>
-                    <a href={v.url.startsWith('/') ? v.url : `/api/download?url=${encodeURIComponent(v.url)}&name=${v.domain}.mp4`} download className="btn-primary-sm">Download</a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Workflow Section */}
       <section id="workflow" className="workflow-section">
