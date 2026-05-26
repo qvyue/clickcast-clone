@@ -27,7 +27,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ========== Middleware Configuration ==========
-app.use(express.json());
+// Skip JSON body parsing for Stripe webhook — it needs raw body for signature verification
+app.use((req, res, next) => {
+  if (req.path === '/api/billing/webhook') return next();
+  express.json()(req, res, next);
+});
 app.use(express.urlencoded({ extended: true }));
 
 // ========== Static File Service ==========
