@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
+import { fetchWithTimeout } from '../api/client';
 
 // Assuming generateVideo logic from the server.js will be invoked via fetch
 export const Home: React.FC = () => {
@@ -37,7 +38,7 @@ export const Home: React.FC = () => {
 
   const loadVideoList = async () => {
     try {
-      const res = await fetch('/api/videos');
+      const res = await fetchWithTimeout('/api/videos');
       const data = await res.json();
       if (data.videos) {
         setVideos(data.videos);
@@ -57,7 +58,7 @@ export const Home: React.FC = () => {
     setProgress({ active: true, text: 'Submitting...', percent: 0 });
 
     try {
-      const res = await fetch('/api/generate', {
+      const res = await fetchWithTimeout('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim(), aspectRatio: 'landscape' })
@@ -89,7 +90,7 @@ export const Home: React.FC = () => {
       }
 
       try {
-        const res = await fetch(`/api/status/${jobId}`);
+        const res = await fetchWithTimeout(`/api/status/${jobId}`);
         const data = await res.json();
 
         setProgress({ active: true, text: data.message, percent: data.progress });

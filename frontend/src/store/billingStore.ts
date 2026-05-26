@@ -6,6 +6,7 @@ import {
   createPortal,
   type SubscriptionInfo,
 } from '../api/client'
+import { waitForToken } from './authStore'
 
 interface BillingState {
   subscription: SubscriptionInfo | null
@@ -25,6 +26,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   loading: false,
 
   fetchSubscription: async () => {
+    await waitForToken()
     try {
       const data = await getSubscription()
       set({ subscription: data.subscription })
@@ -35,6 +37,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   },
 
   fetchCredits: async () => {
+    await waitForToken()
     try {
       const data = await getCredits()
       set({ credits: data.credits })
@@ -44,6 +47,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   },
 
   startCheckout: async (mode) => {
+    await waitForToken()
     try {
       const data = await createCheckout(mode)
       if (data.url) {
@@ -56,6 +60,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   },
 
   openPortal: async () => {
+    await waitForToken()
     try {
       const data = await createPortal()
       if (data.url) {
@@ -69,6 +74,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
 
   refresh: async () => {
     set({ loading: true })
+    await waitForToken()
     await Promise.all([get().fetchSubscription(), get().fetchCredits()])
     set({ loading: false })
   },

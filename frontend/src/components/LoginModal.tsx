@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
-import { supabase } from '../lib/supabase'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -109,18 +110,19 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
 /**
  * AuthCallback component — handles OAuth redirect.
- * Reads session from URL hash and redirects to home.
+ * Uses authStore to detect sign-in, then navigates via React Router.
  */
 export function AuthCallback() {
-  // On mount, let Supabase process the hash fragment,
-  // then redirect to home
-  if (typeof window !== 'undefined' && supabase) {
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        window.location.href = '/'
-      }
-    })
-  }
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const loading = useAuthStore((s) => s.loading)
+
+  useEffect(() => {
+    // Once auth is initialized and user is signed in, navigate to home
+    if (!loading && user) {
+      navigate('/', { replace: true })
+    }
+  }, [loading, user, navigate])
 
   return (
     <div style={{

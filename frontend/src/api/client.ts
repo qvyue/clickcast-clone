@@ -12,7 +12,7 @@ const DEFAULT_TIMEOUT = 30000;
  * @param options - fetch 选项
  * @param timeout - 超时时间（毫秒）
  */
-async function fetchWithTimeout(
+export async function fetchWithTimeout(
   url: string,
   options?: RequestInit,
   timeout: number = DEFAULT_TIMEOUT
