@@ -1,11 +1,20 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Home } from './pages/Home'
 import VideoEditor from './components/Editor/VideoEditor'
 import { TermsPage } from './components/Terms'
 import { PrivacyPage } from './components/Privacy'
 import { AuthCallback } from './components/LoginModal'
+import { useAuthStore } from './store/authStore'
 
 function App() {
+  const initialize = useAuthStore((s) => s.initialize)
+
+  useEffect(() => {
+    const unsubscribe = initialize()
+    return () => unsubscribe()
+  }, [initialize])
+
   return (
     <Routes>
       {/* 首页 */}

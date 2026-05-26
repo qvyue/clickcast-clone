@@ -391,6 +391,7 @@ export const Home: React.FC = () => {
               <div className="pricing-price-wrap">
                 <span className="pricing-price">$3</span>
                 <span className="pricing-period">one-time</span>
+                <span className="pricing-strike">$5</span>
               </div>
               <p className="pricing-subnote">Credits never expire</p>
               <div className="pricing-divider"></div>
