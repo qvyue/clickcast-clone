@@ -44,7 +44,7 @@ async function deductCredit(userId) {
     // Fallback: manual update if RPC not created yet
     const { data: current } = await supabase
       .from('credits')
-      .select('balance')
+      .select('balance, total_used')
       .eq('user_id', userId)
       .single();
 
