@@ -61,7 +61,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCredit } = require('../utils/credits');
+const { getUserCredits, deductCredit, grantCredits } = require('../utils/credits');
 
 const router = express.Router();
 
@@ -541,10 +541,17 @@ async function generateAsync(jobId, url, aspectRatio) {
 
   } catch (error) {
     console.error(`[${jobId}] Generation failed:`, error.message);
+    const job = jobs.get(jobId);
+    // Refund credit on failure
+    if (job?.userId && !job.refunded) {
+      await grantCredits(job.userId, 1);
+      console.log(`[${jobId}] Credit refunded to ${job.userId}`);
+    }
     jobs.set(jobId, {
-      ...jobs.get(jobId),
+      ...job,
       status: 'failed',
-      message: error.message || 'Generation failed'
+      message: error.message || 'Generation failed',
+      refunded: true
     });
   }
 }
@@ -578,6 +585,7 @@ router.post('/', requireAuth, async (req, res) => {
     progress: 0,
     message: 'Preparing...',
     aspectRatio,
+    userId,
     createdAt: Date.now()
   });
 

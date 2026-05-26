@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCredit } = require('../utils/credits');
+const { getUserCredits, deductCredit, grantCredits } = require('../utils/credits');
 
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
@@ -76,6 +76,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
     message: 'Preparing...',
     domain,
     aspectRatio,
+    userId,
     createdAt: Date.now()
   });
 
@@ -515,10 +516,17 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
   } catch (error) {
     // Render failed, update status
     console.error(`Render failed: ${jobId}`, error);
+    const job = jobs.get(jobId);
+    // Refund credit on failure
+    if (job?.userId && !job.refunded) {
+      await grantCredits(job.userId, 1);
+      console.log(`[${jobId}] Credit refunded to ${job.userId}`);
+    }
     jobs.set(jobId, {
-      ...jobs.get(jobId),
+      ...job,
       status: 'failed',
-      message: error.message || 'Render failed'
+      message: error.message || 'Render failed',
+      refunded: true
     });
   }
 }
