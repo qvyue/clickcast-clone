@@ -22,6 +22,11 @@ export const Home: React.FC = () => {
   useEffect(() => {
     loadVideoList();
 
+    // 已登录时加载积分数据
+    if (user) {
+      billing.refresh();
+    }
+
     // Check checkout callback params
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout_success')) {
@@ -35,7 +40,7 @@ export const Home: React.FC = () => {
     if (params.get('checkout_success') || params.get('checkout_cancel')) {
       setTimeout(() => setCheckoutMessage(null), 5000);
     }
-  }, []);
+  }, [user]);
 
   const loadVideoList = async () => {
     try {
