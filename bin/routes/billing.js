@@ -6,7 +6,7 @@
 const express = require('express');
 const { requireAuth } = require('../utils/auth');
 const { getStripe, createCheckoutSession, createPortalSession, verifyWebhookSignature } = require('../utils/stripe');
-const { getUserCredits, grantCredits, ensureCreditRecord } = require('../utils/credits');
+const { getUserCredits, grantCreditsWithLog, ensureCreditRecord } = require('../utils/credits');
 const { getAdminClient } = require('../utils/supabase-admin');
 
 const router = express.Router();
@@ -65,6 +65,36 @@ router.get('/credits', requireAuth, async (req, res) => {
   const userId = req.user.sub;
   const balance = await getUserCredits(userId);
   res.json({ credits: balance });
+});
+
+/**
+ * Get credit transaction history.
+ * @route GET /api/billing/transactions
+ */
+router.get('/transactions', requireAuth, async (req, res) => {
+  const userId = req.user.sub;
+  const supabase = getAdminClient();
+
+  if (!supabase) {
+    return res.json({ transactions: [] });
+  }
+
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  const offset = parseInt(req.query.offset) || 0;
+
+  const { data, error } = await supabase
+    .from('credit_transactions')
+    .select('id, amount, balance_after, type, reference_id, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('[billing] Query transactions error:', error.message);
+    return res.json({ transactions: [] });
+  }
+
+  res.json({ transactions: data || [] });
 });
 
 /**
@@ -202,7 +232,7 @@ async function handleCheckoutComplete(session) {
     }
 
     // Grant 30 credits
-    const newBalance = await grantCredits(userId, 30);
+    const newBalance = await grantCreditsWithLog(userId, 30, 'pro_subscription', subscriptionId);
     console.log(`[billing-webhook] Pro subscription created for ${userId}, credits: ${newBalance}`);
   }
 
@@ -233,7 +263,7 @@ async function handleCheckoutComplete(session) {
     }
 
     // Grant 3 credits
-    const newBalance = await grantCredits(userId, 3);
+    const newBalance = await grantCreditsWithLog(userId, 3, 'credit_pack', session.id);
     console.log(`[billing-webhook] Credit pack purchased for ${userId}, credits: ${newBalance}`);
   }
 }
@@ -282,7 +312,7 @@ async function handleSubscriptionUpdated(subscription) {
 
   // New billing period — grant 30 credits
   if (periodChanged) {
-    const newBalance = await grantCredits(existing.user_id, 30);
+    const newBalance = await grantCreditsWithLog(existing.user_id, 30, 'monthly_grant', subscriptionId);
     console.log(`[billing-webhook] New billing period for ${existing.user_id}, credits: ${newBalance}`);
   }
 }

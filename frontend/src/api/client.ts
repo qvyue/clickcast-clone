@@ -384,3 +384,20 @@ export async function createPortal(): Promise<{ url: string }> {
   });
   return handleResponse<{ url: string }>(response, url);
 }
+
+// --- Credit Transactions API ---
+
+export interface CreditTransaction {
+  id: string;
+  amount: number;
+  balance_after: number;
+  type: string;
+  reference_id: string | null;
+  created_at: string;
+}
+
+export async function getCreditTransactions(limit = 20, offset = 0): Promise<{ transactions: CreditTransaction[] }> {
+  const url = `${API_BASE}/billing/transactions?limit=${limit}&offset=${offset}`;
+  const response = await fetchWithTimeout(url);
+  return handleResponse<{ transactions: CreditTransaction[] }>(response, url);
+}

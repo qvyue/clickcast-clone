@@ -4,17 +4,21 @@ import {
   getSubscription,
   getCredits,
   createPortal,
+  getCreditTransactions,
   type SubscriptionInfo,
+  type CreditTransaction,
 } from '../api/client'
 import { waitForToken } from './authStore'
 
 interface BillingState {
   subscription: SubscriptionInfo | null
   credits: number
+  transactions: CreditTransaction[]
   loading: boolean
 
   fetchSubscription: () => Promise<void>
   fetchCredits: () => Promise<void>
+  fetchTransactions: () => Promise<void>
   startCheckout: (mode: 'pro' | 'credit_pack') => Promise<void>
   openPortal: () => Promise<void>
   refresh: () => Promise<void>
@@ -23,6 +27,7 @@ interface BillingState {
 export const useBillingStore = create<BillingState>((set, get) => ({
   subscription: null,
   credits: 0,
+  transactions: [],
   loading: false,
 
   fetchSubscription: async () => {
@@ -43,6 +48,16 @@ export const useBillingStore = create<BillingState>((set, get) => ({
       set({ credits: data.credits })
     } catch {
       set({ credits: 0 })
+    }
+  },
+
+  fetchTransactions: async () => {
+    await waitForToken()
+    try {
+      const data = await getCreditTransactions(50)
+      set({ transactions: data.transactions })
+    } catch {
+      set({ transactions: [] })
     }
   },
 
@@ -75,7 +90,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   refresh: async () => {
     set({ loading: true })
     await waitForToken()
-    await Promise.all([get().fetchSubscription(), get().fetchCredits()])
+    await Promise.all([get().fetchSubscription(), get().fetchCredits(), get().fetchTransactions()])
     set({ loading: false })
   },
 }))

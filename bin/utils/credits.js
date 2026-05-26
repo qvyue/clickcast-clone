@@ -6,6 +6,30 @@
 const { getAdminClient } = require('./supabase-admin');
 
 /**
+ * Log a credit transaction.
+ * @param {string} userId
+ * @param {number} amount - Positive for grants, negative for deductions
+ * @param {number} balanceAfter - Balance after the transaction
+ * @param {string} type - 'generation'|'render'|'refund'|'pro_subscription'|'credit_pack'|'monthly_grant'
+ * @param {string|null} referenceId - Job ID or Stripe session ID
+ */
+async function logTransaction(userId, amount, balanceAfter, type, referenceId = null) {
+  const supabase = getAdminClient();
+  if (!supabase) return;
+  try {
+    await supabase.from('credit_transactions').insert({
+      user_id: userId,
+      amount,
+      balance_after: balanceAfter,
+      type,
+      reference_id: referenceId,
+    });
+  } catch (e) {
+    console.error('[credits] Failed to log transaction:', e.message);
+  }
+}
+
+/**
  * Get user's current credit balance.
  * @param {string} userId - Supabase auth user ID
  * @returns {Promise<number>} Current balance (0 if no record)
@@ -66,6 +90,21 @@ async function deductCredit(userId) {
 }
 
 /**
+ * Deduct 1 credit with transaction logging.
+ * @param {string} userId
+ * @param {string} type - 'generation' or 'render'
+ * @param {string|null} referenceId - Job ID
+ * @returns {Promise<{ success: boolean, balance: number }>}
+ */
+async function deductCreditWithLog(userId, type, referenceId = null) {
+  const result = await deductCredit(userId);
+  if (result.success) {
+    await logTransaction(userId, -1, result.balance, type, referenceId);
+  }
+  return result;
+}
+
+/**
  * Grant credits to a user.
  * @param {string} userId
  * @param {number} amount - Credits to add
@@ -100,6 +139,22 @@ async function grantCredits(userId, amount) {
 }
 
 /**
+ * Grant credits with transaction logging.
+ * @param {string} userId
+ * @param {number} amount
+ * @param {string} type - 'pro_subscription'|'credit_pack'|'monthly_grant'|'refund'
+ * @param {string|null} referenceId
+ * @returns {Promise<number>} New balance
+ */
+async function grantCreditsWithLog(userId, amount, type, referenceId = null) {
+  const newBalance = await grantCredits(userId, amount);
+  if (newBalance > 0 || amount > 0) {
+    await logTransaction(userId, amount, newBalance, type, referenceId);
+  }
+  return newBalance;
+}
+
+/**
  * Ensure a credits row exists for the user (balance defaults to 0).
  * @param {string} userId
  */
@@ -120,4 +175,4 @@ async function ensureCreditRecord(userId) {
   }
 }
 
-module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord };
+module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord, deductCreditWithLog, grantCreditsWithLog };

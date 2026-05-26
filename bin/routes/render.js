@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCredit, grantCredits } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
 
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
@@ -82,7 +82,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
 
   // Execute rendering asynchronously (non-blocking)
   // Deduct credit immediately — resources are consumed once the job starts
-  await deductCredit(userId);
+  await deductCreditWithLog(userId, 'render', jobId);
 
   renderVideoAsync(jobId, domain, aspectRatio, {
     websiteDir,
@@ -519,7 +519,7 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
     const job = jobs.get(jobId);
     // Refund credit on failure
     if (job?.userId && !job.refunded) {
-      await grantCredits(job.userId, 1);
+      await grantCreditsWithLog(job.userId, 1, 'refund', jobId);
       console.log(`[${jobId}] Credit refunded to ${job.userId}`);
     }
     jobs.set(jobId, {

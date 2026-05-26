@@ -61,7 +61,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCredit, grantCredits } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
 
 const router = express.Router();
 
@@ -544,7 +544,7 @@ async function generateAsync(jobId, url, aspectRatio) {
     const job = jobs.get(jobId);
     // Refund credit on failure
     if (job?.userId && !job.refunded) {
-      await grantCredits(job.userId, 1);
+      await grantCreditsWithLog(job.userId, 1, 'refund', jobId);
       console.log(`[${jobId}] Credit refunded to ${job.userId}`);
     }
     jobs.set(jobId, {
@@ -591,7 +591,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   // 异步执行生成流程
   // Deduct credit immediately — resources are consumed once the job starts
-  await deductCredit(userId);
+  await deductCreditWithLog(userId, 'generation', jobId);
 
   generateAsync(jobId, url, aspectRatio);
 
