@@ -25,6 +25,7 @@ function getAdminClient() {
 
   adminClient = createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    realtime: { enabled: false },
   });
 
   console.log('[supabase-admin] Service role client initialized');
