@@ -1,16 +1,17 @@
 /**
  * Supabase Admin Client
- * Uses service role key to bypass RLS for webhook and credit operations.
+ * Uses PostgREST directly (no WebSocket dependency) with service role key to bypass RLS.
  */
 
-const { createClient } = require('@supabase/supabase-js');
+const { PostgrestClient } = require('@supabase/postgrest-js');
 
 let adminClient = null;
 
 /**
  * Get Supabase admin client (service role, bypasses RLS).
+ * Uses PostgREST directly — no realtime/WebSocket dependency.
  * Lazily initialized to avoid crash if env vars missing.
- * @returns {import('@supabase/supabase-js').SupabaseClient|null}
+ * @returns {PostgrestClient|null}
  */
 function getAdminClient() {
   if (adminClient) return adminClient;
@@ -23,12 +24,15 @@ function getAdminClient() {
     return null;
   }
 
-  adminClient = createClient(url, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-    realtime: { enabled: false },
+  adminClient = new PostgrestClient(`${url}/rest/v1`, {
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+    },
+    schema: 'public',
   });
 
-  console.log('[supabase-admin] Service role client initialized');
+  console.log('[supabase-admin] PostgREST client initialized (no realtime)');
   return adminClient;
 }
 
