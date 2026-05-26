@@ -370,7 +370,7 @@ export const Home: React.FC = () => {
 
           <div className="pricing-footnote">
             {checkoutMessage && (
-              <p style={{ color: '#4ade80', marginBottom: '12px', fontSize: '14px' }}>{checkoutMessage}</p>
+              <p style={{ color: 'var(--accent-green)', marginBottom: '12px', fontSize: '14px' }}>{checkoutMessage}</p>
             )}
             <a href="/terms" target="_blank" rel="noopener noreferrer">Read our Terms of Service</a>
           </div>
