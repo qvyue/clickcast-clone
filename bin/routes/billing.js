@@ -215,7 +215,7 @@ async function handleCheckoutComplete(session) {
       .eq('user_id', userId)
       .single();
 
-    if (!existing) {
+    if (!existing && customerId) {
       // Create a minimal subscription record to track the customer
       const { error: insertErr } = await supabase
         .from('subscriptions')
@@ -228,6 +228,8 @@ async function handleCheckoutComplete(session) {
       if (insertErr) {
         console.error('[billing-webhook] Insert subscription record error:', insertErr.message, insertErr.code);
       }
+    } else if (!existing && !customerId) {
+      console.error('[billing-webhook] Credit Pack: no customer_id in session, skipping subscription record');
     }
 
     // Grant 3 credits

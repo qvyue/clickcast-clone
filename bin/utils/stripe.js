@@ -77,6 +77,7 @@ async function createCheckoutSession(userId, mode) {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: userId,
+      customer_creation: 'always',
       success_url: `${appUrl}/?checkout_success=true`,
       cancel_url: `${appUrl}/?checkout_cancel=true`,
     });
