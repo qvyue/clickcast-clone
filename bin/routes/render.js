@@ -81,9 +81,6 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   });
 
   // Execute rendering asynchronously (non-blocking)
-  // Deduct credit immediately — resources are consumed once the job starts
-  await deductCreditWithLog(userId, 'render', jobId);
-
   renderVideoAsync(jobId, domain, aspectRatio, {
     websiteDir,
     publicDir,
