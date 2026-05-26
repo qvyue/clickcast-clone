@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
+import { setCachedAuthToken } from '../api/client'
 
 interface AuthState {
   user: User | null
@@ -33,6 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     if (!supabase) return
     await supabase.auth.signOut()
+    setCachedAuthToken(null)
     set({ user: null, session: null })
   },
 
@@ -44,6 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setCachedAuthToken(session?.access_token ?? null)
       set({
         session,
         user: session?.user ?? null,
@@ -54,6 +57,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        setCachedAuthToken(session?.access_token ?? null)
         set({
           session,
           user: session?.user ?? null,

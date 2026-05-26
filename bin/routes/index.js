@@ -12,6 +12,7 @@ const videosRoutes = require('./videos');
 const generateRoutes = require('./generate');
 const benchmarkRoutes = require('./benchmark');
 const downloadRoutes = require('./download');
+const billingRoutes = require('./billing');
 const { optionalAuth } = require('../utils/auth');
 
 module.exports = (app) => {
@@ -47,4 +48,7 @@ module.exports = (app) => {
 
   // Download proxy: GET /api/download?url=...&name=...
   app.use('/api/download', downloadRoutes);
+
+  // Billing routes: checkout, subscription, credits, portal, webhook
+  app.use('/api/billing', billingRoutes);
 };

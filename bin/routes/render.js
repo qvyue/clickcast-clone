@@ -9,6 +9,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
+const { requireAuth } = require('../utils/auth');
+const { getUserCredits, deductCredit } = require('../utils/credits');
 
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
@@ -32,9 +34,16 @@ const router = express.Router();
  *   2. Copy resource files to global public directory
  *   3. Call Remotion to execute video render
  */
-router.post('/:domain/render', async (req, res) => {
+router.post('/:domain/render', requireAuth, async (req, res) => {
   const { domain } = req.params;
   const { aspectRatio = 'landscape' } = req.body;
+
+  // Credit check
+  const userId = req.user.sub;
+  const credits = await getUserCredits(userId);
+  if (credits <= 0) {
+    return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+  }
 
   // Validate domain format
   if (!validateDomain(domain)) {
@@ -71,6 +80,9 @@ router.post('/:domain/render', async (req, res) => {
   });
 
   // Execute rendering asynchronously (non-blocking)
+  // Deduct credit immediately — resources are consumed once the job starts
+  await deductCredit(userId);
+
   renderVideoAsync(jobId, domain, aspectRatio, {
     websiteDir,
     publicDir,

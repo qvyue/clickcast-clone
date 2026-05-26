@@ -7,7 +7,7 @@ const API_BASE = '/api';
 const DEFAULT_TIMEOUT = 30000;
 
 /**
- * 带超时的 fetch 请求
+ * 带超时的 fetch 请求，自动注入 Authorization header
  * @param url - 请求 URL
  * @param options - fetch 选项
  * @param timeout - 超时时间（毫秒）
@@ -21,14 +21,35 @@ async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    // Auto-inject auth token if available
+    const headers = new Headers(options?.headers);
+    const token = getAuthToken();
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
     const response = await fetch(url, {
       ...options,
+      headers,
       signal: controller.signal,
     });
     return response;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+// Synchronous token cache — updated by authStore on session change
+let _cachedToken: string | null = null;
+
+/** Update the cached auth token (called by authStore on session change) */
+export function setCachedAuthToken(token: string | null) {
+  _cachedToken = token;
+}
+
+/** Get the cached auth token */
+function getAuthToken(): string | null {
+  return _cachedToken;
 }
 
 /**
@@ -306,4 +327,60 @@ export async function uploadImage(domain: string, file: File): Promise<{ success
     body: formData
   });
   return handleResponse<{ success: boolean; filename: string; url: string; width: number; height: number; isLongImage: boolean }>(response, url);
+}
+
+// --- Billing API ---
+
+export interface SubscriptionInfo {
+  status: string;
+  plan: string;
+  trial_start: string | null;
+  trial_end: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  stripe_customer_id: string;
+}
+
+/**
+ * Create a Stripe Checkout session
+ */
+export async function createCheckout(mode: 'pro' | 'credit_pack'): Promise<{ url: string }> {
+  const url = `${API_BASE}/billing/checkout`;
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode })
+  });
+  return handleResponse<{ url: string }>(response, url);
+}
+
+/**
+ * Get current subscription status
+ */
+export async function getSubscription(): Promise<{ subscription: SubscriptionInfo | null }> {
+  const url = `${API_BASE}/billing/subscription`;
+  const response = await fetchWithTimeout(url);
+  return handleResponse<{ subscription: SubscriptionInfo | null }>(response, url);
+}
+
+/**
+ * Get current credit balance
+ */
+export async function getCredits(): Promise<{ credits: number }> {
+  const url = `${API_BASE}/billing/credits`;
+  const response = await fetchWithTimeout(url);
+  return handleResponse<{ credits: number }>(response, url);
+}
+
+/**
+ * Create a Stripe Customer Portal session
+ */
+export async function createPortal(): Promise<{ url: string }> {
+  const url = `${API_BASE}/billing/portal`;
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return handleResponse<{ url: string }>(response, url);
 }

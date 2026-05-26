@@ -60,6 +60,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
+const { requireAuth } = require('../utils/auth');
+const { getUserCredits, deductCredit } = require('../utils/credits');
 
 const router = express.Router();
 
@@ -551,9 +553,16 @@ async function generateAsync(jobId, url, aspectRatio) {
  * POST /api/generate
  * 启动自动生成流程
  */
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   console.log('[generate.js] POST /api/generate received');
   const { url, aspectRatio = 'landscape' } = req.body;
+
+  // Credit check
+  const userId = req.user.sub;
+  const credits = await getUserCredits(userId);
+  if (credits <= 0) {
+    return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+  }
 
   // 验证 URL
   if (!url) {
@@ -573,6 +582,9 @@ router.post('/', async (req, res) => {
   });
 
   // 异步执行生成流程
+  // Deduct credit immediately — resources are consumed once the job starts
+  await deductCredit(userId);
+
   generateAsync(jobId, url, aspectRatio);
 
   // 立即返回 job ID

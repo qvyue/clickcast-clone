@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { supabase } from '../lib/supabase';
+import { useBillingStore } from '../store/billingStore';
 
 // Assuming generateVideo logic from the server.js will be invoked via fetch
 export const Home: React.FC = () => {
@@ -11,7 +12,9 @@ export const Home: React.FC = () => {
   const [videos, setVideos] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const billing = useBillingStore();
 
   useEffect(() => {
     // Check auth session
@@ -25,6 +28,20 @@ export const Home: React.FC = () => {
       });
     }
     loadVideoList();
+
+    // Check checkout callback params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout_success')) {
+      setCheckoutMessage('Payment successful! Your subscription is now active.');
+      billing.refresh();
+      window.history.replaceState({}, '', '/');
+    } else if (params.get('checkout_cancel')) {
+      setCheckoutMessage('Checkout was cancelled.');
+      window.history.replaceState({}, '', '/');
+    }
+    if (params.get('checkout_success') || params.get('checkout_cancel')) {
+      setTimeout(() => setCheckoutMessage(null), 5000);
+    }
   }, []);
 
   const loadVideoList = async () => {
@@ -362,7 +379,7 @@ export const Home: React.FC = () => {
                 <li><span className="check">✓</span> Editor with timeline & scene tweaks</li>
                 <li><span className="check">✓</span> Priority email support</li>
               </ul>
-              <button onClick={() => setShowLoginModal(true)} className="pricing-cta-primary">Start Free Trial</button>
+              <button onClick={() => user ? billing.startCheckout('pro') : setShowLoginModal(true)} className="pricing-cta-primary">Start Free Trial</button>
             </div>
 
             {/* Credit Pack - One Time */}
@@ -385,11 +402,14 @@ export const Home: React.FC = () => {
                 <li><span className="check">✓</span> No subscription required</li>
                 <li><span className="check">✓</span> Pay only when you need</li>
               </ul>
-              <button onClick={() => setShowLoginModal(true)} className="pricing-cta-secondary">Buy Credits</button>
+              <button onClick={() => user ? billing.startCheckout('credit_pack') : setShowLoginModal(true)} className="pricing-cta-secondary">Buy Credits</button>
             </div>
           </div>
 
           <div className="pricing-footnote">
+            {checkoutMessage && (
+              <p style={{ color: '#4ade80', marginBottom: '12px', fontSize: '14px' }}>{checkoutMessage}</p>
+            )}
             <a href="/terms" target="_blank" rel="noopener noreferrer">Read our Terms of Service</a>
           </div>
         </div>
