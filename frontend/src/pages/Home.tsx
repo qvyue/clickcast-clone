@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
-import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
 
 // Assuming generateVideo logic from the server.js will be invoked via fetch
@@ -10,23 +10,14 @@ export const Home: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ active: false, text: 'Preparing...', percent: 0 });
   const [videos, setVideos] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const billing = useBillingStore();
+  const user = useAuthStore((s) => s.user);
+  const authSignOut = useAuthStore((s) => s.signOut);
 
   useEffect(() => {
-    // Check auth session
-    if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) setUser(session.user);
-      });
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) setUser(session.user);
-        if (event === 'SIGNED_OUT') setUser(null);
-      });
-    }
     loadVideoList();
 
     // Check checkout callback params
@@ -124,17 +115,10 @@ export const Home: React.FC = () => {
     }, 2000);
   };
 
-  const signInWithGoogle = async () => {
-    if (!supabase) { alert('Auth not configured'); return; }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' }
-    });
-    if (error) alert(error.message);
-  };
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
 
   const signOut = async () => {
-    if (supabase) await supabase.auth.signOut();
+    await authSignOut();
   };
 
   const scrollTo = (id: string) => {
