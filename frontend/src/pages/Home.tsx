@@ -4,6 +4,8 @@ import './Home.css';
 import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
 import { fetchWithTimeout } from '../api/client';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
 
 // Assuming generateVideo logic from the server.js will be invoked via fetch
 export const Home: React.FC = () => {
@@ -12,12 +14,10 @@ export const Home: React.FC = () => {
   const [progress, setProgress] = useState({ active: false, text: 'Preparing...', percent: 0 });
   const [videos, setVideos] = useState<any[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const billing = useBillingStore();
   const user = useAuthStore((s) => s.user);
-  const authSignOut = useAuthStore((s) => s.signOut);
 
   useEffect(() => {
     loadVideoList();
@@ -124,10 +124,6 @@ export const Home: React.FC = () => {
 
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
 
-  const signOut = async () => {
-    await authSignOut();
-  };
-
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -136,53 +132,7 @@ export const Home: React.FC = () => {
   return (
     <div className="home-container">
       {/* Navigation */}
-      <nav className="navbar">
-        <div className="navbar-inner">
-          <div className="nav-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="23 7 16 12 23 17 23 7"></polygon>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
-            VidGen
-          </div>
-          <div className="nav-links">
-            <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollTo('workflow'); }}>Our Product</a>
-            <a href="#use-cases" onClick={(e) => { e.preventDefault(); scrollTo('use-cases'); }}>Use Cases</a>
-            <a href="#pricing" onClick={(e) => { e.preventDefault(); scrollTo('pricing'); }}>Pricing</a>
-            <a href="#faq" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
-          </div>
-          <div className="nav-actions">
-            {user ? (
-              <div className="user-menu-wrapper">
-                <button className="user-menu-trigger" onClick={() => setShowUserMenu(!showUserMenu)}>
-                  <img src={user.user_metadata?.avatar_url || 'https://via.placeholder.com/32'} alt="Avatar" className="avatar" />
-                  <span className="user-name">{user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-                {showUserMenu && (
-                  <div className="user-menu-dropdown">
-                    <div className="user-menu-credits">
-                      <span className="credits-amount">{billing.credits}</span>
-                      <span className="credits-label">Credits</span>
-                    </div>
-                    <div className="user-menu-divider"></div>
-                    <a href="/dashboard" className="user-menu-item">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                      Dashboard
-                    </a>
-                    <button onClick={() => { signOut(); setShowUserMenu(false); }} className="user-menu-item">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button onClick={() => setShowLoginModal(true)} className="btn-signin">Sign In</button>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar variant="home" />
 
       {/* Hero Section */}
       <header className="hero-section">
@@ -474,37 +424,9 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-              </svg>
-              VidGen
-            </div>
-            <p className="footer-desc">Transform your website, text and ideas into stunning videos in minutes with our automated video creation SaaS.</p>
-          </div>
-          <div className="footer-links">
-            <div className="footer-col">
-              <h4>Product</h4>
-              <a href="#pricing" onClick={e => { e.preventDefault(); scrollTo('pricing'); }}>Pricing</a>
-              <a href="#use-cases" onClick={e => { e.preventDefault(); scrollTo('use-cases'); }}>Use Cases</a>
-            </div>
-            <div className="footer-col">
-              <h4>Legal</h4>
-              <a href="/terms">Terms of Service</a>
-              <a href="/privacy">Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} VidGen. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
 
-      {/* Login Modal */}
+      {/* Login Modal trigger — kept for pricing CTA buttons */}
       {showLoginModal && (
         <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>

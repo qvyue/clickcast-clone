@@ -5,6 +5,8 @@ import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
 import { fetchWithTimeout } from '../api/client';
 import type { CreditTransaction } from '../api/client';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
 
 const TYPE_LABELS: Record<string, string> = {
   generation: 'Video Generation',
@@ -55,6 +57,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-page">
+      <Navbar variant="dashboard" />
       <div className="dashboard-container">
         {/* Header */}
         <div className="dashboard-header">
@@ -178,6 +181,7 @@ export const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -1,0 +1,79 @@
+/* Footer.css — Shared footer styles */
+
+.footer {
+  border-top: 1px solid var(--border-muted);
+  padding: 4rem 1rem 2rem;
+  background: var(--bg-inset);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1600px;
+  margin: 0 auto 3rem;
+}
+
+.footer-brand {
+  max-width: 300px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.footer-logo svg {
+  color: var(--text-primary);
+  opacity: 0.9;
+}
+
+.footer-desc {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.footer-links {
+  display: flex;
+  gap: 4rem;
+}
+
+.footer-col h4 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.footer-col a {
+  display: block;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 0.6rem;
+  font-size: 0.875rem;
+  transition: color 0.15s;
+}
+
+.footer-col a:hover {
+  color: var(--accent-blue);
+}
+
+.footer-bottom {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border-muted);
+  padding-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+}
