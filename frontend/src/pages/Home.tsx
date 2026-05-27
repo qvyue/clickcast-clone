@@ -113,12 +113,7 @@ export const Home: React.FC = () => {
 
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  return (
+return (
     <div className="home-container">
       {/* Navigation */}
       <Navbar variant="home" />
