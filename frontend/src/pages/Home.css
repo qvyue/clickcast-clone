@@ -26,7 +26,7 @@
 /* Hero */
 .hero-section {
   position: relative;
-  padding: 10rem 1rem 6rem;
+  padding: 6rem 1rem 5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -873,7 +873,7 @@
   .url-input-wrapper { flex-direction: column; }
   .btn-generate { justify-content: center; }
   .workflow-grid, .builders-grid { grid-template-columns: 1fr; }
-  .hero-section { padding-top: 7rem; }
+  .hero-section { padding-top: 5rem; }
   .pricing-grid { grid-template-columns: 1fr; }
   .pricing-grid-duo { grid-template-columns: minmax(0, 420px); }
 }
