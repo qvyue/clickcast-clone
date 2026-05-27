@@ -336,7 +336,7 @@ export const VideoEditor: React.FC = () => {
           {/* 左侧：返回 + 标题 + 域名 */}
           <button
             className="btn btn-ghost"
-            onClick={() => window.location.href = '/'}
+            onClick={() => window.location.href = '/dashboard'}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="19" y1="12" x2="5" y2="12"/>
@@ -423,9 +423,9 @@ export const VideoEditor: React.FC = () => {
               <span>Video rendered successfully!</span>
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => window.location.href = '/'}
+                onClick={() => window.location.href = '/dashboard'}
               >
-                View on Homepage
+                View on Dashboard
               </button>
               <button
                 className="btn btn-ghost btn-sm"
