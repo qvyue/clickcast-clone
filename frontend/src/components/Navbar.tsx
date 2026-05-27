@@ -77,6 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'home' }) => {
                 </button>
                 {showUserMenu && (
                   <div className="user-menu-dropdown">
+                    <div className="user-menu-user-info">
+                      <span className="user-menu-email">{user.email}</span>
+                    </div>
+                    <div className="user-menu-divider"></div>
                     <div className="user-menu-credits">
                       <span className="credits-amount">{billing.credits}</span>
                       <span className="credits-label">Credits</span>

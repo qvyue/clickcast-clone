@@ -145,6 +145,16 @@
   z-index: 100;
 }
 
+.user-menu-user-info {
+  padding: 0.6rem 1rem 0.4rem;
+}
+
+.user-menu-email {
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  word-break: break-all;
+}
+
 .user-menu-credits {
   display: flex;
   align-items: center;
