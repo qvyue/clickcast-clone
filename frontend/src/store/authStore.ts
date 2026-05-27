@@ -71,22 +71,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       _tokenReadyResolve = resolve
     })
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setCachedAuthToken(session?.access_token ?? null)
-      set({
-        session,
-        user: session?.user ?? null,
-        loading: false,
-      })
-      // Resolve token ready
-      if (session?.access_token && _tokenReadyResolve) {
-        _tokenReadyResolve()
-        _tokenReadyResolve = null
-      }
-    })
-
-    // Listen for auth state changes
+    // 只使用 onAuthStateChange，它会立即触发 INITIAL_SESSION 事件
+    // 不再调用 getSession()，避免两者各设置一次状态导致 user 引用变更触发重复 useEffect
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setCachedAuthToken(session?.access_token ?? null)

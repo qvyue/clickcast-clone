@@ -29,24 +29,26 @@ export const Dashboard: React.FC = () => {
       navigate('/', { replace: true });
       return;
     }
-    if (user) {
-      billing.refresh();
-      billing.fetchTransactions();
-      loadVideoList();
-    }
-  }, [user, loading]);
+    if (!user) return;
 
-  const loadVideoList = async () => {
-    try {
-      const res = await fetchWithTimeout('/api/videos');
-      const data = await res.json();
-      if (data.videos) {
-        setVideos(data.videos);
-      }
-    } catch (e) {
-      console.error('Failed to load video list:', e);
-    }
-  };
+    let stale = false;
+
+    billing.refresh();
+    billing.fetchTransactions();
+
+    fetchWithTimeout('/api/videos')
+      .then(res => res.json())
+      .then(data => {
+        if (!stale && data.videos) {
+          setVideos(data.videos);
+        }
+      })
+      .catch(e => {
+        if (!stale) console.error('Failed to load video list:', e);
+      });
+
+    return () => { stale = true; };
+  }, [user, loading]);
 
   if (loading || !user) {
     return <div className="dashboard-loading">Loading...</div>;
