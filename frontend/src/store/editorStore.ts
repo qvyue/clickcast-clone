@@ -128,23 +128,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         scene.title = scene.mainTitle;
         scene.subVoiceover = scene.subTitle;
 
-        // 所有场景：填充空的 subTitle
-        if (!scene.subTitle || !scene.subTitle.trim()) {
-          const mainWords = (scene.mainTitle || '').split(/\s+/).filter(w => w);
-          if (mainWords.length >= 8) {
-            const midPoint = Math.ceil(mainWords.length / 2);
-            const mainPart = mainWords.slice(0, midPoint).join(' ');
-            const subPart = mainWords.slice(midPoint).join(' ');
-            scene.mainTitle = mainPart + (/[.!?]$/.test(mainPart) ? '' : '.');
-            scene.subTitle = subPart + (/[.!?]$/.test(subPart) ? '' : '.');
-            scene.title = scene.mainTitle;
-            scene.subVoiceover = scene.subTitle;
-          } else {
-            scene.subTitle = `Discover more about ${product}.`;
-            scene.title = scene.mainTitle;
-            scene.subVoiceover = scene.subTitle;
-          }
-        }
+        // subTitle 为空是合法的，不填充默认值
       }
     }
 

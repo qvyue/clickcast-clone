@@ -39,12 +39,7 @@ function enforceTimelineRules(timeline) {
     delete scene.text;
     delete scene.subText;
 
-    // 所有场景：填充空的 subTitle（不再拆分 mainTitle）
-    if (!scene.subTitle || !scene.subTitle.trim()) {
-      scene.subTitle = `Discover more about ${product}.`;
-      scene.title = scene.mainTitle;
-      scene.subVoiceover = scene.subTitle;
-    }
+    // subTitle 为空是合法的，不填充默认值
   }
 }
 
@@ -323,8 +318,6 @@ async function generateTimeline(script, audioDurations, outputDir, style, jobId,
     const scene = script.scenes[i];
     const audioInfo = audioDurations[i] || { mainDuration: 3, subDuration: 0 };
     const transitionDuration = 0.5;
-    const totalAudioDuration = audioInfo.mainDuration + transitionDuration + audioInfo.subDuration;
-    const sceneDurationFrames = Math.ceil((totalAudioDuration + 0.5) * FPS);
 
     const isIntro = i === 0;
 
@@ -336,6 +329,10 @@ async function generateTimeline(script, audioDurations, outputDir, style, jobId,
     // 主文案=主配音，副文案=副配音，始终一致
     const subVoiceoverText = subTitleText;
 
+    const hasSubVoiceover = subVoiceoverText && subVoiceoverText.trim();
+    const totalAudioDuration = audioInfo.mainDuration + (hasSubVoiceover ? transitionDuration + audioInfo.subDuration : 0);
+    const sceneDurationFrames = Math.ceil((totalAudioDuration + 0.5) * FPS);
+
     const shotFile = `shot${i + 1}.png`;
     const shotInfo = screenshotSizes[shotFile] || {};
     const isLongImage = shotInfo.height && shotInfo.width && (shotInfo.height / shotInfo.width > 1.2);
@@ -343,7 +340,6 @@ async function generateTimeline(script, audioDurations, outputDir, style, jobId,
       console.log(`   📜 检测到长图: ${shotFile} (${shotInfo.width}x${shotInfo.height})`);
     }
 
-    const hasSubVoiceover = subVoiceoverText && subVoiceoverText.trim();
     const sceneId = isIntro ? 'intro' : `scene${i - 1}`;
 
     timeline.scenes.push({
@@ -498,10 +494,7 @@ async function generateAsync(jobId, url, aspectRatio) {
       const subText = scene.subTitle || '';
 
       let introMainTitle = mainText;
-      if (i === 0) {
-        const withProduct = `${script.product}. ${mainText}`;
-        introMainTitle = withProduct.split(/\s+/).length <= 15 ? withProduct : mainText;
-      }
+      // 不再在 intro 前拼接产品名，AI 提示已会生成包含产品名的 intro
 
       voiceoverScenes.push({
         id: i === 0 ? 'intro' : `scene${i - 1}`,

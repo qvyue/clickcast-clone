@@ -47,12 +47,7 @@ function enforceTimelineRules(timeline) {
     delete scene.text;
     delete scene.subText;
 
-    // 所有场景：填充空的 subTitle（不再拆分 mainTitle）
-    if (!scene.subTitle || !scene.subTitle.trim()) {
-      scene.subTitle = `Discover more about ${product}.`;
-      scene.title = scene.mainTitle;
-      scene.subVoiceover = scene.subTitle;
-    }
+    // subTitle 为空是合法的，不填充默认值
   }
 }
 
