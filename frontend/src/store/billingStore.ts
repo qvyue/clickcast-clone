@@ -24,6 +24,8 @@ interface BillingState {
   refresh: () => Promise<void>
 }
 
+let _refreshTimer: ReturnType<typeof setTimeout> | null = null
+
 export const useBillingStore = create<BillingState>((set, get) => ({
   subscription: null,
   credits: 0,
@@ -88,6 +90,13 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   },
 
   refresh: async () => {
+    // Debounce: if called again within 100ms, skip the previous invocation
+    if (_refreshTimer) clearTimeout(_refreshTimer)
+    await new Promise<void>(resolve => {
+      _refreshTimer = setTimeout(resolve, 100)
+    })
+    _refreshTimer = null
+
     set({ loading: true })
     await waitForToken()
     await Promise.all([get().fetchSubscription(), get().fetchCredits(), get().fetchTransactions()])
