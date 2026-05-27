@@ -62,6 +62,7 @@ const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
 const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
+const { upsertVideo } = require('../utils/videos');
 
 const router = express.Router();
 
@@ -536,6 +537,12 @@ async function generateAsync(jobId, url, aspectRatio) {
       domain,
       aspectRatio
     });
+
+    // Persist user-video association
+    const job = jobs.get(jobId);
+    if (job?.userId) {
+      await upsertVideo(job.userId, domain, aspectRatio, 'local');
+    }
 
     console.log(`[${jobId}] Generation completed: ${domain}`);
 

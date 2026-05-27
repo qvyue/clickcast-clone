@@ -11,6 +11,7 @@ const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
 const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
+const { upsertVideo } = require('../utils/videos');
 
 // ElevenLabs TTS
 const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
@@ -507,6 +508,12 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       videoUrl: r2Url || `/websites/${domain}/out/${aspectRatio}.mp4`,
       aspectRatio
     });
+
+    // Persist user-video association
+    const completedJob = jobs.get(jobId);
+    if (completedJob?.userId) {
+      await upsertVideo(completedJob.userId, domain, aspectRatio, r2Url ? 'r2' : 'local');
+    }
 
     console.log(`Render completed: ${jobId}`);
 

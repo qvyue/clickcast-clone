@@ -35,6 +35,7 @@ test_se_tts.mp3
 
 # IDE
 .trae/
+.mcp.json
 
 # Frontend build output (built in Dockerfile)
 frontend/dist/
