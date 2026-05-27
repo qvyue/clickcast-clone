@@ -122,7 +122,6 @@ export const Home: React.FC = () => {
       <header className="hero-section">
         <div className="hero-glow"></div>
         <div className="hero-content">
-          <div className="hero-badge">V2.0 · AI Video Engine</div>
           <h1 className="hero-title">
             Paste your URL,<br />
             Get <span className="text-gradient">website video</span><br />
