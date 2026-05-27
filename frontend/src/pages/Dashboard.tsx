@@ -31,6 +31,7 @@ export const Dashboard: React.FC = () => {
     }
     if (user) {
       billing.refresh();
+      billing.fetchTransactions();
       loadVideoList();
     }
   }, [user, loading]);

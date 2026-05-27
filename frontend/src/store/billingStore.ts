@@ -99,7 +99,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
 
     set({ loading: true })
     await waitForToken()
-    await Promise.all([get().fetchSubscription(), get().fetchCredits(), get().fetchTransactions()])
+    await Promise.all([get().fetchSubscription(), get().fetchCredits()])
     set({ loading: false })
   },
 }))
