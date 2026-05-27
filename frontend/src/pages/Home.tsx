@@ -128,7 +128,7 @@ export const Home: React.FC = () => {
             in minutes
           </h1>
           <p className="hero-subtitle">
-            Transform any website into a professional marketing video instantly. No recording, no editing just paste your URL. Skip the hassle of hiring freelancers or spending days creating videos yourself.
+            Transform any website into a professional marketing video instantly. No recording, no editing. Skip the hassle of hiring freelancers or spending days creating videos yourself.
           </p>
           
           <div className="hero-action-box">
