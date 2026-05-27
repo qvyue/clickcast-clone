@@ -119,6 +119,19 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
   const { websiteDir, publicDir, outDir, globalPublicDir, timelinePath } = paths;
 
   try {
+    // ========== R2: Ensure resources are available locally ==========
+    // On ephemeral filesystems (e.g. Railway), resources may be lost after redeployment.
+    // Download from R2 before rendering if configured.
+    if (isR2Configured()) {
+      try {
+        const { ensureLocalResources } = require('../../lib/r2-storage.js');
+        jobs.set(jobId, { ...jobs.get(jobId), message: 'Syncing resources from cloud...', progress: 1 });
+        await ensureLocalResources(domain, publicDir);
+      } catch (e) {
+        console.warn(`[${jobId}] R2 resource sync warning: ${e.message}`);
+      }
+    }
+
     // Update status: start reading configuration
     jobs.set(jobId, { ...jobs.get(jobId), status: 'rendering', message: 'Reading timeline...', progress: 2 });
 
@@ -497,6 +510,20 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       } else {
         console.log(`[${jobId}] R2 upload failed: ${uploadResult.error}`);
       }
+    }
+
+    // ========== Step 6.5: Upload domain resources to R2 (non-blocking) ==========
+    try {
+      const { uploadDomainResources } = require('../../lib/r2-storage.js');
+      if (isR2Configured()) {
+        uploadDomainResources(domain, publicDir).then(result => {
+          console.log(`[${jobId}] R2 resource upload: ${result.uploaded} uploaded, ${result.failed} failed`);
+        }).catch(err => {
+          console.error(`[${jobId}] R2 resource upload error:`, err.message);
+        });
+      }
+    } catch (e) {
+      console.error(`[${jobId}] R2 upload import error:`, e.message);
     }
 
     // ========== Step 7: Render success ==========

@@ -45,7 +45,7 @@ const upload = multer({
  * @throws {400} Invalid domain format
  * @throws {404} Website directory not found
  */
-router.get('/:domain', (req, res) => {
+router.get('/:domain', async (req, res) => {
   const { domain } = req.params;
 
   // Validate domain format
@@ -57,9 +57,34 @@ router.get('/:domain', (req, res) => {
   const publicDir = path.join(websiteDir, 'public');
   const outDir = path.join(websiteDir, 'out');
 
-  // Check if website directory exists
+  // Check if website directory exists locally
+  // If not, try to sync resources from R2 before returning 404
   if (!fs.existsSync(websiteDir)) {
-    return res.status(404).json({ error: 'Website not found' });
+    try {
+      const { isR2Configured, ensureLocalResources } = require('../../lib/r2-storage.js');
+      if (isR2Configured()) {
+        const result = await ensureLocalResources(domain, publicDir);
+        if (result.synced > 0) {
+          console.log(`[websites] Restored ${result.synced} resources from R2 for ${domain}`);
+        } else {
+          return res.status(404).json({ error: 'Website not found' });
+        }
+      } else {
+        return res.status(404).json({ error: 'Website not found' });
+      }
+    } catch (e) {
+      return res.status(404).json({ error: 'Website not found' });
+    }
+  }
+
+  // Also check if publicDir exists (may have been created by ensureLocalResources above)
+  if (!fs.existsSync(publicDir)) {
+    try {
+      const { isR2Configured, ensureLocalResources } = require('../../lib/r2-storage.js');
+      if (isR2Configured()) {
+        await ensureLocalResources(domain, publicDir);
+      }
+    } catch (e) {}
   }
 
   // ========== Read screenshot files ==========
@@ -275,6 +300,17 @@ router.post('/:domain/images', upload.single('image'), async (req, res) => {
   try {
     // Move temp file to destination directory
     fs.renameSync(req.file.path, destPath);
+
+    // 上传图片到 R2（非阻塞）
+    try {
+      const { isR2Configured, uploadResource } = require('../../lib/r2-storage.js');
+      if (isR2Configured()) {
+        const r2Key = `resources/${domain}/public/${filename}`;
+        uploadResource(destPath, r2Key).catch(err => {
+          console.error(`R2 image upload error:`, err.message);
+        });
+      }
+    } catch (e) {}
 
     // Use sharp library to get image metadata
     const sharp = require('sharp');

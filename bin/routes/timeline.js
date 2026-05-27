@@ -90,6 +90,20 @@ router.post('/:domain', (req, res) => {
     // Write JSON file with 2-space indentation
     fs.writeFileSync(timelinePath, JSON.stringify(req.body, null, 2));
     console.log(`Timeline saved: ${domain}`);
+
+    // 上传 timeline.json 到 R2（非阻塞）
+    try {
+      const { isR2Configured, uploadResource } = require('../../lib/r2-storage.js');
+      if (isR2Configured()) {
+        const r2Key = `resources/${domain}/public/timeline.json`;
+        uploadResource(timelinePath, r2Key).catch(err => {
+          console.error(`R2 timeline upload error for ${domain}:`, err.message);
+        });
+      }
+    } catch (e) {
+      // R2 模块加载失败不影响本地保存
+    }
+
     res.json({ success: true });
   } catch (e) {
     console.error('Save timeline error:', e.message);

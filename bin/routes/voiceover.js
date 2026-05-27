@@ -62,6 +62,18 @@ router.post('/:domain/voiceover/preview', async (req, res) => {
     if (success) {
       const duration = getAudioDuration(outputPath);
       console.log(`Voiceover generated: ${domain}/${outputFilename} (${duration.toFixed(2)}s)`);
+
+      // 上传音频到 R2（非阻塞）
+      try {
+        const { isR2Configured, uploadResource } = require('../../lib/r2-storage.js');
+        if (isR2Configured()) {
+          const r2Key = `resources/${domain}/public/${outputFilename}`;
+          uploadResource(outputPath, r2Key).catch(err => {
+            console.error(`R2 voiceover upload error:`, err.message);
+          });
+        }
+      } catch (e) {}
+
       res.json({
         audioFile: outputFilename,
         duration,
@@ -109,6 +121,18 @@ router.post('/:domain/voiceover/generate', async (req, res) => {
     if (success) {
       const stats = fs.statSync(outputPath);
       const duration = getAudioDuration(outputPath);
+
+      // 上传音频到 R2（非阻塞）
+      try {
+        const { isR2Configured, uploadResource } = require('../../lib/r2-storage.js');
+        if (isR2Configured()) {
+          const r2Key = `resources/${domain}/public/${audioFile}`;
+          uploadResource(outputPath, r2Key).catch(err => {
+            console.error(`R2 voiceover upload error:`, err.message);
+          });
+        }
+      } catch (e) {}
+
       res.json({
         success: true,
         audioFile,

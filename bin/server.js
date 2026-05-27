@@ -18,7 +18,10 @@ const path = require('path');
 require('dotenv').config();
 
 // Import shared state and utilities
-const { jobs, rateLimiter, generateExamplesHtml } = require('./utils/state');
+const { jobs, rateLimiter, generateExamplesHtml, validateDomain } = require('./utils/state');
+
+// Import R2 storage utilities
+const { isR2Configured, ensureLocalResource } = require('../lib/r2-storage');
 
 // Import route aggregator
 const setupRoutes = require('./routes');
@@ -39,6 +42,36 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 // Website-specific resources directory (screenshots, audio per site)
 app.use('/websites', express.static(path.join(__dirname, '../websites')));
+
+// R2 fallback middleware: when local file is missing, try downloading from R2
+app.use('/websites/:domain/public/:filename', async (req, res, next) => {
+  // Only attempt R2 fallback if configured
+  if (!isR2Configured()) return next();
+
+  const { domain, filename } = req.params;
+
+  // Validate domain and filename to prevent path traversal
+  if (!validateDomain(domain) || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    return next();
+  }
+
+  const publicDir = path.join(__dirname, '../websites', domain, 'public');
+  const localPath = path.join(publicDir, filename);
+
+  try {
+    const available = await ensureLocalResource(domain, filename, publicDir);
+    if (available) {
+      res.sendFile(localPath, (err) => {
+        if (err) next();
+      });
+    } else {
+      next(); // Not in R2 either, let 404 propagate
+    }
+  } catch (err) {
+    console.error(`R2 fallback error for ${domain}/${filename}:`, err.message);
+    next();
+  }
+});
 
 // ========== API Routes ==========
 setupRoutes(app);
