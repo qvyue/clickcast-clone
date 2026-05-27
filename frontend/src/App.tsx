@@ -1,7 +1,6 @@
-import { useEffect, lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Home } from './pages/Home'
-import { useAuthStore } from './store/authStore'
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const VideoEditor = lazy(() => import('./components/Editor/VideoEditor'))
@@ -10,13 +9,6 @@ const PrivacyPage = lazy(() => import('./components/Privacy').then(m => ({ defau
 const AuthCallback = lazy(() => import('./components/LoginModal').then(m => ({ default: m.AuthCallback })))
 
 function App() {
-  const initialize = useAuthStore((s) => s.initialize)
-
-  useEffect(() => {
-    const unsubscribe = initialize()
-    return () => unsubscribe()
-  }, [initialize])
-
   return (
     <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#8b949e', fontFamily: 'system-ui' }}>Loading...</div>}>
       <Routes>

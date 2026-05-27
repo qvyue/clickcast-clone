@@ -10,7 +10,6 @@ interface AuthState {
 
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
-  initialize: () => () => void
 }
 
 // Token ready mechanism: resolves when the first valid token is cached
@@ -59,36 +58,25 @@ export const useAuthStore = create<AuthState>((set) => ({
     setCachedAuthToken(null)
     set({ user: null, session: null })
   },
-
-  initialize: () => {
-    if (!supabase) {
-      set({ loading: false })
-      return () => {}
-    }
-
-    // Create the token-ready promise
-    _tokenReady = new Promise<void>((resolve) => {
-      _tokenReadyResolve = resolve
-    })
-
-    // 只使用 onAuthStateChange，它会立即触发 INITIAL_SESSION 事件
-    // 不再调用 getSession()，避免两者各设置一次状态导致 user 引用变更触发重复 useEffect
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setCachedAuthToken(session?.access_token ?? null)
-        set({
-          session,
-          user: session?.user ?? null,
-          loading: false,
-        })
-        // Resolve token ready
-        if (session?.access_token && _tokenReadyResolve) {
-          _tokenReadyResolve()
-          _tokenReadyResolve = null
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  },
 }))
+
+// Auto-initialize auth subscription at module load time.
+// This runs once when the JS module is evaluated, outside React's lifecycle,
+// so StrictMode double-mounting cannot create duplicate subscriptions.
+let _initialized = false
+if (supabase && !_initialized) {
+  _initialized = true
+  _tokenReady = new Promise<void>((resolve) => {
+    _tokenReadyResolve = resolve
+  })
+  supabase.auth.onAuthStateChange((_event, session) => {
+    setCachedAuthToken(session?.access_token ?? null)
+    useAuthStore.setState({ session, user: session?.user ?? null, loading: false })
+    if (session?.access_token && _tokenReadyResolve) {
+      _tokenReadyResolve()
+      _tokenReadyResolve = null
+    }
+  })
+} else if (!supabase) {
+  useAuthStore.setState({ loading: false })
+}

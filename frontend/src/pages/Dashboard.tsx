@@ -22,14 +22,15 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const billing = useBillingStore();
   const user = useAuthStore((s) => s.user);
+  const userId = useAuthStore((s) => s.user?.id);
   const loading = useAuthStore((s) => s.loading);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !userId) {
       navigate('/', { replace: true });
       return;
     }
-    if (!user) return;
+    if (!userId) return;
 
     let stale = false;
 
@@ -48,7 +49,7 @@ export const Dashboard: React.FC = () => {
       });
 
     return () => { stale = true; };
-  }, [user, loading]);
+  }, [userId, loading]);
 
   if (loading || !user) {
     return <div className="dashboard-loading">Loading...</div>;
