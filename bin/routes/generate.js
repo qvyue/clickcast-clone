@@ -539,7 +539,6 @@ async function generateAsync(jobId, url, aspectRatio) {
     });
 
     // Persist user-video association
-    const job = jobs.get(jobId);
     if (job?.userId) {
       await upsertVideo(job.userId, domain, aspectRatio, 'local');
     }
@@ -548,7 +547,6 @@ async function generateAsync(jobId, url, aspectRatio) {
 
   } catch (error) {
     console.error(`[${jobId}] Generation failed:`, error.message);
-    const job = jobs.get(jobId);
     // Refund credit on failure
     if (job?.userId && !job.refunded) {
       await grantCreditsWithLog(job.userId, 1, 'refund', jobId);
