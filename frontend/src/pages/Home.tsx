@@ -44,6 +44,11 @@ export const Home: React.FC = () => {
       alert('Please enter a valid URL');
       return;
     }
+
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
     
     setLoading(true);
     setProgress({ active: true, text: 'Submitting...', percent: 0 });
@@ -146,7 +151,7 @@ export const Home: React.FC = () => {
                 disabled={loading || !url}
                 className="btn-generate"
               >
-                {loading ? 'Generating...' : 'Generate Free'}
+                {loading ? 'Generating...' : user ? 'Generate' : 'Sign in to Generate'}
                 {!loading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
               </button>
             </div>
@@ -393,7 +398,7 @@ export const Home: React.FC = () => {
             <button className="modal-close" onClick={() => setShowLoginModal(false)}>✕</button>
             <div className="modal-body">
               <h2>Welcome to VidGen</h2>
-              <p className="modal-sub">Sign in to create videos and manage your dashboard</p>
+              <p className="modal-sub">Sign in to generate your video</p>
               <button className="google-btn" onClick={signInWithGoogle}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
