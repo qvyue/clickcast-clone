@@ -41,7 +41,11 @@ app.use(express.urlencoded({ extended: true }));
 // Global public directory (BGM, common resources)
 app.use(express.static(path.join(__dirname, '../public')));
 // Website-specific resources directory (screenshots, audio per site)
-app.use('/websites', express.static(path.join(__dirname, '../websites')));
+app.use('/websites', express.static(path.join(__dirname, '../websites'), {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+  }
+}));
 
 // R2 fallback middleware: when local file is missing, try downloading from R2
 app.use('/websites/:domain/public/:filename', async (req, res, next) => {

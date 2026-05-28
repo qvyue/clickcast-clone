@@ -264,14 +264,14 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
       {/* 主音频：如果有两阶段，则限制播放时长为 mainAudioDuration */}
       {sceneData.audioFile && sceneData.audioFile.trim() !== '' && (
         <Sequence from={sceneData.audioStartFrame ?? 0} durationInFrames={hasTwoPhaseAudio ? mainAudioDuration : undefined}>
-          <Audio src={`${audioBaseUrl}/${sceneData.audioFile}`} />
+          <Audio src={`${audioBaseUrl}/${sceneData.audioFile}?v=${sceneData.mainDuration || 0}`} />
         </Sequence>
       )}
 
       {/* 次音频：在主音频结束后 + 过渡帧数后开始播放 */}
       {hasTwoPhaseAudio && sceneData.audioFileSub && sceneData.audioFileSub.trim() !== '' && (
         <Sequence from={(sceneData.audioStartFrame ?? 0) + mainAudioDuration + transitionFrames} durationInFrames={subAudioDuration}>
-          <Audio src={`${audioBaseUrl}/${sceneData.audioFileSub}`} />
+          <Audio src={`${audioBaseUrl}/${sceneData.audioFileSub}?v=${sceneData.subDuration || 0}`} />
         </Sequence>
       )}
 

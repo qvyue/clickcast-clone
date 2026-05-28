@@ -59,6 +59,17 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   const outDir = path.join(websiteDir, 'out');
   const globalPublicDir = path.join(__dirname, '../../public');
 
+  // R2: ensure resources are available locally before checking timeline
+  // On ephemeral filesystems (e.g. Railway), files are lost after restart.
+  if (isR2Configured()) {
+    try {
+      const { ensureLocalResources } = require('../../lib/r2-storage.js');
+      await ensureLocalResources(domain, publicDir);
+    } catch (e) {
+      console.warn(`[render] R2 resource sync warning for ${domain}: ${e.message}`);
+    }
+  }
+
   // Check if timeline.json exists (required for rendering)
   const timelinePath = path.join(publicDir, 'timeline.json');
   if (!fs.existsSync(timelinePath)) {
@@ -122,19 +133,6 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
   const { websiteDir, publicDir, outDir, globalPublicDir, timelinePath } = paths;
 
   try {
-    // ========== R2: Ensure resources are available locally ==========
-    // On ephemeral filesystems (e.g. Railway), resources may be lost after redeployment.
-    // Download from R2 before rendering if configured.
-    if (isR2Configured()) {
-      try {
-        const { ensureLocalResources } = require('../../lib/r2-storage.js');
-        jobs.set(jobId, { ...jobs.get(jobId), message: 'Syncing resources from cloud...', progress: 1 });
-        await ensureLocalResources(domain, publicDir);
-      } catch (e) {
-        console.warn(`[${jobId}] R2 resource sync warning: ${e.message}`);
-      }
-    }
-
     // Update status: start reading configuration
     jobs.set(jobId, { ...jobs.get(jobId), status: 'rendering', message: 'Reading timeline...', progress: 2 });
 

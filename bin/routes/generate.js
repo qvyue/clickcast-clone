@@ -521,18 +521,15 @@ async function generateAsync(jobId, url, aspectRatio) {
     // 步骤4: 生成 timeline
     await generateTimeline(script, audioDurations, outputDir, style, jobId, voiceoverScenes);
 
-    // 步骤5: 上传所有资源到 R2（非阻塞，不延迟完成状态）
+    // 步骤5: 上传所有资源到 R2（阻塞，确保重启后资源可恢复）
     try {
       const { isR2Configured, uploadDomainResources } = require('../../lib/r2-storage.js');
       if (isR2Configured()) {
-        uploadDomainResources(domain, outputDir).then(result => {
-          console.log(`[${jobId}] R2 resource upload: ${result.uploaded} uploaded, ${result.failed} failed`);
-        }).catch(err => {
-          console.error(`[${jobId}] R2 resource upload error:`, err.message);
-        });
+        const result = await uploadDomainResources(domain, outputDir);
+        console.log(`[${jobId}] R2 resource upload: ${result.uploaded} uploaded, ${result.failed} failed`);
       }
     } catch (e) {
-      console.error(`[${jobId}] R2 upload import error:`, e.message);
+      console.error(`[${jobId}] R2 upload error:`, e.message);
     }
 
     // 完成

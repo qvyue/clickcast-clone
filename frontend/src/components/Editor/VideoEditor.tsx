@@ -26,6 +26,8 @@ export const VideoEditor: React.FC = () => {
   const [renderStatus, setRenderStatus] = useState<string | null>(null);
   // 渲染成功标志（用于显示成功提示）
   const [renderSuccess, setRenderSuccess] = useState(false);
+  // Timeline 加载失败标志
+  const [timelineError, setTimelineError] = useState(false);
 
   // 渲染相关 timeout 引用
   const renderStatusTimeoutRef = useRef<NodeJS.Timeout>();
@@ -63,17 +65,32 @@ export const VideoEditor: React.FC = () => {
   /**
    * 初始化：加载时间轴数据
    * 根据域名获取对应的 timeline.json 配置
+   * 失败后自动重试一次（给 R2 fallback 下载时间）
    */
   useEffect(() => {
     if (domain) {
       setDomain(domain);
+      setTimelineError(false);
       fetchTimeline(domain).then((tl) => {
         setTimeline(tl);
         // 默认选中第一个场景
         if (tl.scenes.length > 0) {
           selectScene(0);
         }
-      }).catch(console.error);
+      }).catch(() => {
+        // R2 fallback 可能需要时间下载，3 秒后重试
+        setTimeout(() => {
+          fetchTimeline(domain).then((tl) => {
+            setTimeline(tl);
+            setTimelineError(false);
+            if (tl.scenes.length > 0) {
+              selectScene(0);
+            }
+          }).catch(() => {
+            setTimelineError(true);
+          });
+        }, 3000);
+      });
     }
   }, [domain]);
 
@@ -310,15 +327,25 @@ export const VideoEditor: React.FC = () => {
     };
   }, [findSceneByFrame, selectedSceneIndex, selectScene, timeline]);
 
+  // 加载失败状态
+  if (timelineError) {
+    return (
+      <div className="editor-loading">
+        <p style={{ color: '#f85149', marginBottom: '1rem' }}>Failed to load video project.</p>
+        <button onClick={() => window.location.reload()} style={{
+          background: '#238636', color: '#fff', border: 'none', padding: '0.5rem 1.5rem',
+          borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem'
+        }}>Retry</button>
+      </div>
+    );
+  }
+
   // 加载中状态
   if (!timeline || !domain) {
     return (
       <div className="editor-loading">
         <div className="spinner"></div>
         <p>Loading video project...</p>
-        <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-          Taking longer than expected? Check your network connection.
-        </p>
       </div>
     );
   }
