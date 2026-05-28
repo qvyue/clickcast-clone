@@ -73,7 +73,7 @@ export const Dashboard: React.FC = () => {
             {/* Credit card */}
             <div className="credit-card">
               <div className="credit-card-label">
-                {hasSubscription ? (sub.status === 'trialing' ? 'Trial' : 'Pro') : 'No Subscription'}
+                {hasSubscription ? (sub.status === 'trialing' ? 'Pro (Trial)' : 'Pro') : billing.credits > 0 ? 'Pay-as-you-go' : 'Free'}
               </div>
               <div className="credit-card-balance">
                 <span className="credit-card-amount">{billing.credits}</span>
