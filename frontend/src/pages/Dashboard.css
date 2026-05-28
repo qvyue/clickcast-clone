@@ -311,6 +311,22 @@
   background: #2ea043;
 }
 
+.btn-danger-sm {
+  background: #da3633;
+  color: #fff;
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-danger-sm:hover {
+  background: #f85149;
+}
+
 /* Empty state */
 .empty-state {
   display: flex;

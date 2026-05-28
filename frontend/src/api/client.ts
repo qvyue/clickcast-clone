@@ -401,3 +401,8 @@ export async function getCreditTransactions(limit = 20, offset = 0): Promise<{ t
   const response = await fetchWithTimeout(url);
   return handleResponse<{ transactions: CreditTransaction[] }>(response, url);
 }
+
+export async function deleteVideo(domain: string): Promise<void> {
+  const res = await fetchWithTimeout(`/api/delete/${domain}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete video');
+}

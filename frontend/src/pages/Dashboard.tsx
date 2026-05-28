@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
-import { fetchWithTimeout } from '../api/client';
+import { fetchWithTimeout, deleteVideo } from '../api/client';
 import type { CreditTransaction } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -136,6 +136,7 @@ export const Dashboard: React.FC = () => {
                     <button onClick={() => navigate(`/editor/${v.domain}`)} className="btn-secondary">Edit</button>
                     <a href={v.url} target="_blank" rel="noreferrer" className="btn-secondary">Play</a>
                     <a href={v.url.startsWith('/') ? v.url : `/api/download?url=${encodeURIComponent(v.url)}&name=${v.domain}.mp4`} download className="btn-primary-sm">Download</a>
+                    <button onClick={() => { deleteVideo(v.domain).then(() => setVideos(prev => prev.filter(vv => vv.domain !== v.domain))).catch(() => {}) }} className="btn-danger-sm">Delete</button>
                   </div>
                 </div>
               ))}
