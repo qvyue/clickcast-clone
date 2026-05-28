@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 // ElevenLabs TTS
@@ -39,11 +39,14 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   const { domain } = req.params;
   const { aspectRatio = 'landscape' } = req.body;
 
-  // Credit check
+  // Credit check (skip for trial users)
   const userId = req.user.sub;
-  const credits = await getUserCredits(userId);
-  if (credits <= 0) {
-    return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+  const trial = await isTrialUser(userId);
+  if (!trial) {
+    const credits = await getUserCredits(userId);
+    if (credits <= 0) {
+      return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+    }
   }
 
   // Validate domain format

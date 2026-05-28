@@ -175,4 +175,24 @@ async function ensureCreditRecord(userId) {
   }
 }
 
-module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord, deductCreditWithLog, grantCreditsWithLog };
+/**
+ * Check if a user is in an active trial period.
+ * @param {string} userId
+ * @returns {Promise<boolean>}
+ */
+async function isTrialUser(userId) {
+  const supabase = getAdminClient();
+  if (!supabase) return false;
+
+  const { data } = await supabase
+    .from('subscriptions')
+    .select('status, trial_end')
+    .eq('user_id', userId)
+    .single();
+
+  if (!data || data.status !== 'trialing') return false;
+  if (!data.trial_end) return false;
+  return new Date(data.trial_end) > new Date();
+}
+
+module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord, deductCreditWithLog, grantCreditsWithLog, isTrialUser };

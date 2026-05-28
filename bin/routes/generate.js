@@ -56,7 +56,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 const router = express.Router();
@@ -576,11 +576,14 @@ router.post('/', requireAuth, async (req, res) => {
   console.log('[generate.js] POST /api/generate received');
   const { url, aspectRatio = 'landscape' } = req.body;
 
-  // Credit check
+  // Credit check (skip for trial users)
   const userId = req.user.sub;
-  const credits = await getUserCredits(userId);
-  if (credits <= 0) {
-    return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+  const trial = await isTrialUser(userId);
+  if (!trial) {
+    const credits = await getUserCredits(userId);
+    if (credits <= 0) {
+      return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
+    }
   }
 
   // 验证 URL
@@ -602,8 +605,10 @@ router.post('/', requireAuth, async (req, res) => {
   });
 
   // 异步执行生成流程
-  // Deduct credit immediately — resources are consumed once the job starts
-  await deductCreditWithLog(userId, 'generation', jobId);
+  // Deduct credit immediately — resources are consumed once the job starts (skip for trial)
+  if (!trial) {
+    await deductCreditWithLog(userId, 'generation', jobId);
+  }
 
   generateAsync(jobId, url, aspectRatio);
 
