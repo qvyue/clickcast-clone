@@ -114,10 +114,10 @@ export const Dashboard: React.FC = () => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <div>
                 <p className="alert-title">Free trial — {Math.max(0, Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / 86400000))} days left</p>
-                <p className="alert-desc">Subscribe to Pro to continue after your trial ends.</p>
+                <p className="alert-desc">Your Pro subscription will begin billing after the trial ends.</p>
               </div>
             </div>
-            <button onClick={() => billing.openPortal()} className="btn-start-trial">Subscribe</button>
+            <button onClick={() => billing.openPortal()} className="btn-start-trial">Manage</button>
           </div>
         )}
 
