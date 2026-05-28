@@ -152,7 +152,9 @@
 .user-menu-email {
   font-size: 0.75rem;
   color: var(--text-muted, #888);
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-menu-credits {
