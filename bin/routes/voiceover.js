@@ -9,7 +9,7 @@ const path = require('path');
 const { validateDomain } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 
-const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
+const { generateSpeech, isElevenLabsConfigured, CONFIG: ttsConfig } = require('../../lib/elevenlabs-tts.js');
 
 const router = express.Router();
 
@@ -54,10 +54,8 @@ router.post('/:domain/voiceover/preview', async (req, res) => {
   const { sceneId } = req.body;
   const outputFilename = getAudioFilename(sceneId, sceneIndex, type);
   const outputPath = path.join(publicDir, outputFilename);
-  const voiceName = process.env.ELEVENLABS_VOICE || 'Dallin';
-
   try {
-    const success = await generateSpeech(text, outputPath, voiceName);
+    const success = await generateSpeech(text, outputPath, ttsConfig.VOICE_ID);
 
     if (success) {
       const duration = getAudioDuration(outputPath);
@@ -113,10 +111,8 @@ router.post('/:domain/voiceover/generate', async (req, res) => {
   const { sceneId } = req.body;
   const audioFile = getAudioFilename(sceneId, sceneIndex, type);
   const outputPath = path.join(publicDir, audioFile);
-  const voiceName = process.env.ELEVENLABS_VOICE || 'Dallin';
-
   try {
-    const success = await generateSpeech(text, outputPath, voiceName);
+    const success = await generateSpeech(text, outputPath, ttsConfig.VOICE_ID);
 
     if (success) {
       const stats = fs.statSync(outputPath);

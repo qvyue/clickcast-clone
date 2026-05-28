@@ -195,4 +195,33 @@ async function isTrialUser(userId) {
   return new Date(data.trial_end) > new Date();
 }
 
-module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord, deductCreditWithLog, grantCreditsWithLog, isTrialUser };
+/**
+ * Check if a user is a Pro user (active subscription or active trial).
+ * Free users have no subscription or an expired/canceled one.
+ * @param {string} userId
+ * @returns {Promise<boolean>}
+ */
+async function isProUser(userId) {
+  const supabase = getAdminClient();
+  if (!supabase) return false;
+
+  const { data } = await supabase
+    .from('subscriptions')
+    .select('status, trial_end')
+    .eq('user_id', userId)
+    .single();
+
+  if (!data) return false;
+
+  // Active paid subscription
+  if (data.status === 'active') return true;
+
+  // Active trial
+  if (data.status === 'trialing' && data.trial_end && new Date(data.trial_end) > new Date()) {
+    return true;
+  }
+
+  return false;
+}
+
+module.exports = { getUserCredits, deductCredit, grantCredits, ensureCreditRecord, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser };

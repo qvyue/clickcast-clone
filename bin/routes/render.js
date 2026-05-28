@@ -10,11 +10,11 @@ const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 // ElevenLabs TTS
-const { generateSpeech, isElevenLabsConfigured } = require('../../lib/elevenlabs-tts.js');
+const { generateSpeech, isElevenLabsConfigured, CONFIG: ttsConfig } = require('../../lib/elevenlabs-tts.js');
 
 // R2 Storage
 const { isR2Configured, uploadVideo } = require('../../lib/r2-storage.js');
@@ -42,6 +42,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   // Credit check (skip for trial users)
   const userId = req.user.sub;
   const trial = await isTrialUser(userId);
+  const pro = await isProUser(userId);
   if (!trial) {
     const credits = await getUserCredits(userId);
     if (credits <= 0) {
@@ -92,6 +93,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
     domain,
     aspectRatio,
     userId,
+    showPromoOutro: !pro,
     createdAt: Date.now()
   });
 
@@ -204,7 +206,7 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
             const mainText = scene.mainTitle || '';
             if (mainText) {
               console.log(`   [${jobId}] Audio missing, generating: ${scene.audioFile}...`);
-              const success = await generateSpeech(mainText, audioPath);
+              const success = await generateSpeech(mainText, audioPath, ttsConfig.VOICE_ID);
               if (success) {
                 scene.voiceoverSource = 'elevenlabs';
                 timelineUpdated = true;
@@ -236,7 +238,7 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
             const subText = scene.subVoiceover || '';
             if (subText) {
               console.log(`   [${jobId}] Sub audio missing, generating: ${scene.audioFileSub}...`);
-              const success = await generateSpeech(subText, audioSubPath);
+              const success = await generateSpeech(subText, audioSubPath, ttsConfig.VOICE_ID);
               if (success) {
                 scene.subVoiceoverSource = 'elevenlabs';
                 timelineUpdated = true;
@@ -497,6 +499,31 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
         reject(err);
       });
     });
+
+    // ========== Step 5.5: Append promo outro for free users ==========
+    const job = jobs.get(jobId);
+    if (job?.showPromoOutro) {
+      try {
+        const { ensureSharedAsset } = require('../../lib/r2-storage.js');
+        const { concatVideos } = require('../utils/ffmpeg.js');
+        const promoFile = `promo-outro-${aspectRatio}.mp4`;
+        const promoPath = await ensureSharedAsset(promoFile, globalPublicDir);
+
+        if (promoPath && fs.existsSync(promoPath)) {
+          console.log(`[${jobId}] Appending promo outro for free user...`);
+          jobs.set(jobId, { ...jobs.get(jobId), message: 'Adding promo outro...', progress: 93 });
+          const tmpOutput = outputFile.replace('.mp4', '-with-outro.mp4');
+          await concatVideos(outputFile, promoPath, tmpOutput);
+          fs.renameSync(tmpOutput, outputFile);
+          console.log(`[${jobId}] Promo outro appended successfully`);
+        } else {
+          console.warn(`[${jobId}] Promo outro file not available (${promoFile}), skipping`);
+        }
+      } catch (e) {
+        console.error(`[${jobId}] Promo outro concat error:`, e.message);
+        // Non-fatal: continue without promo outro
+      }
+    }
 
     // ========== Step 6: Upload to R2 (if configured) ==========
     let r2Url = null;

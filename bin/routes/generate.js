@@ -56,7 +56,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 const router = express.Router();
@@ -244,7 +244,7 @@ async function generateVoiceovers(scenes, outputDir, jobId) {
   }
 
   const audioDurations = [];
-  const voiceName = process.env.ELEVENLABS_VOICE || 'Dallin';
+  const voiceId = elevenlabsTts.CONFIG.VOICE_ID;
 
   for (let i = 0; i < scenes.length; i++) {
     const scene = scenes[i];
@@ -262,14 +262,14 @@ async function generateVoiceovers(scenes, outputDir, jobId) {
     if (mainText && mainText.trim()) {
       const mainFile = `${scene.id}-main.mp3`;
       const mainPath = path.join(outputDir, mainFile);
-      const success = await elevenlabsTts.generateSpeech(mainText, mainPath, voiceName);
+      const success = await elevenlabsTts.generateSpeech(mainText, mainPath, voiceId);
       mainDuration = success ? getAudioDuration(mainPath) : 3;
     }
 
     if (subText && subText.trim()) {
       const subFile = `${scene.id}-sub.mp3`;
       const subPath = path.join(outputDir, subFile);
-      const success = await elevenlabsTts.generateSpeech(subText, subPath, voiceName);
+      const success = await elevenlabsTts.generateSpeech(subText, subPath, voiceId);
       subDuration = success ? getAudioDuration(subPath) : 3;
     }
 
@@ -576,6 +576,7 @@ router.post('/', requireAuth, async (req, res) => {
   // Credit check (skip for trial users)
   const userId = req.user.sub;
   const trial = await isTrialUser(userId);
+  const pro = await isProUser(userId);
   if (!trial) {
     const credits = await getUserCredits(userId);
     if (credits <= 0) {
@@ -598,6 +599,7 @@ router.post('/', requireAuth, async (req, res) => {
     message: 'Preparing...',
     aspectRatio,
     userId,
+    showPromoOutro: !pro,
     createdAt: Date.now()
   });
 

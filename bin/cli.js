@@ -44,7 +44,6 @@ const CONFIG = {
   AI_MODEL: process.env.AI_MODEL || 'deepseek-chat',
   BGM_VOLUME: parseFloat(process.env.BGM_VOLUME) || 0.15,
   MAX_SCENES: 6,
-  ELEVENLABS_VOICE: process.env.ELEVENLABS_VOICE || 'Dallin',
 };
 
 // ==========================================
@@ -329,11 +328,11 @@ async function generateTimeline(script, audioDurations, outputDir = './public', 
 async function generateVoiceovers(scenes, outputDir = './public') {
   console.log('\n[3/5] 🎤 生成 AI 配音 (并发模式)...');
 
-  const { isElevenLabsConfigured, generateSpeech } = require('../lib/elevenlabs-tts.js');
+  const { isElevenLabsConfigured, generateSpeech, CONFIG: ttsConfig } = require('../lib/elevenlabs-tts.js');
   if (!isElevenLabsConfigured()) {
     throw new Error('ElevenLabs API Key not configured. Please set ELEVENLABS_API_KEY in .env');
   }
-  console.log(`   🎯 使用 ElevenLabs (${CONFIG.ELEVENLABS_VOICE})`);
+  console.log(`   🎯 使用 ElevenLabs (voice_id: ${ttsConfig.VOICE_ID})`);
 
   // 收集所有需要生成的配音任务
   const tasks = [];
@@ -387,7 +386,7 @@ async function generateVoiceovers(scenes, outputDir = './public') {
         try {
           let success = false;
 
-          success = await generateSpeech(task.text, outputPath, CONFIG.ELEVENLABS_VOICE);
+          success = await generateSpeech(task.text, outputPath, ttsConfig.VOICE_ID);
 
           const duration = getAudioDuration(outputPath);
           console.log(`   ✅ ${task.id}-${task.type} 完成 (${duration.toFixed(2)}秒)`);
