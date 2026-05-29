@@ -111,13 +111,10 @@ VOICE=en-US-ChristopherNeural
 
 #### ElevenLabs (可选，高质量)
 
-配置 `ELEVENLABS_API_KEY` 后自动启用，支持声音：
+配置 `ELEVENLABS_API_KEY` 和 `ELEVENLABS_VOICE_ID` 后启用。
 
-| 男声 | 女声 |
-|------|------|
-| `Adam` - 专业可信 | `Rachel` - 友好温暖 |
-| `Antoni` - 充满活力 | `Bella` - 柔和优雅 |
-| `Josh` - 深沉权威 | `Dallin` - 默认声音 |
+默认声音：`alFofuDn3cOwyoz1i44T` (Dallin)
+获取更多声音 ID：访问 [ElevenLabs Voice Library](https://elevenlabs.io/voice-library)
 
 ### 🎵 智能配乐
 
@@ -329,13 +326,10 @@ VOICE=en-US-ChristopherNeural
 
 #### ElevenLabs (Optional, Premium)
 
-Set `ELEVENLABS_API_KEY` to enable. Available voices:
+Set `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` to enable.
 
-| Male | Female |
-|------|--------|
-| `Adam` - Professional | `Rachel` - Friendly |
-| `Antoni` - Energetic | `Bella` - Elegant |
-| `Josh` - Authoritative | `Dallin` - Default |
+Default voice: `alFofuDn3cOwyoz1i44T` (Dallin)
+Find more voice IDs: [ElevenLabs Voice Library](https://elevenlabs.io/voice-library)
 
 ### 🎵 Smart BGM
 
