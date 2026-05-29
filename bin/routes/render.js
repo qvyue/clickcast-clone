@@ -506,9 +506,13 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
 
         if (promoPath && fs.existsSync(promoPath)) {
           console.log(`[${jobId}] Appending promo outro for free user...`);
+          console.log(`[${jobId}] Main video: ${outputFile} (${Math.round(fs.statSync(outputFile).size/1024)}KB)`);
+          console.log(`[${jobId}] Promo video: ${promoPath} (${Math.round(fs.statSync(promoPath).size/1024)}KB)`);
           jobs.set(jobId, { ...jobs.get(jobId), message: 'Adding promo outro...', progress: 93 });
           const tmpOutput = outputFile.replace('.mp4', '-with-outro.mp4');
           await concatVideos(outputFile, promoPath, tmpOutput);
+          const finalSize = fs.statSync(tmpOutput).size;
+          console.log(`[${jobId}] Concat output: ${tmpOutput} (${Math.round(finalSize/1024)}KB)`);
           fs.renameSync(tmpOutput, outputFile);
           console.log(`[${jobId}] Promo outro appended successfully`);
         } else {
