@@ -56,7 +56,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isProUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 const router = express.Router();
@@ -573,15 +573,16 @@ router.post('/', requireAuth, async (req, res) => {
   console.log('[generate.js] POST /api/generate received');
   const { url, aspectRatio = 'landscape' } = req.body;
 
-  // Credit check (skip for trial users)
+  // Credit check: only block non-Pro users who have credits but exhausted them
+  // Free users (0 credits, no subscription) can generate (with promo outro)
   const userId = req.user.sub;
-  const trial = await isTrialUser(userId);
   const pro = await isProUser(userId);
-  if (!trial) {
+  if (!pro) {
     const credits = await getUserCredits(userId);
-    if (credits <= 0) {
-      return res.status(402).json({ error: 'Insufficient credits', credits: 0 });
-    }
+    // If user has a credit record but 0 balance, they've exhausted their credits
+    // If they never had credits (free user), credits = 0 but we allow generation
+    // We can't distinguish these from credits alone, so we allow all non-Pro to generate
+    // and only deduct if they have credits > 0
   }
 
   // 验证 URL
@@ -603,10 +604,13 @@ router.post('/', requireAuth, async (req, res) => {
     createdAt: Date.now()
   });
 
-  // 异步执行生成流程
-  // Deduct credit immediately — resources are consumed once the job starts (skip for trial)
-  if (!trial) {
-    await deductCreditWithLog(userId, 'generation', jobId);
+  // Deduct credit — only for non-Pro users who have credits
+  // Free users (0 credits) skip deduction, their "payment" is the promo outro
+  if (!pro) {
+    const credits = await getUserCredits(userId);
+    if (credits > 0) {
+      await deductCreditWithLog(userId, 'generation', jobId);
+    }
   }
 
   generateAsync(jobId, url, aspectRatio);
