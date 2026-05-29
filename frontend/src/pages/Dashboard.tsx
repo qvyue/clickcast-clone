@@ -57,7 +57,7 @@ export const Dashboard: React.FC = () => {
 
   const sub = billing.subscription;
   const isTrialActive = sub?.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date();
-  const hasSubscription = sub && (sub.status === 'active' || isTrialActive);
+  const hasSubscription = sub && (sub.status === 'active' || sub.status === 'trialing');
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
 
   return (
