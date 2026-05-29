@@ -56,7 +56,8 @@ export const Dashboard: React.FC = () => {
   }
 
   const sub = billing.subscription;
-  const hasSubscription = sub && (sub.status === 'active' || sub.status === 'trialing');
+  const isTrialActive = sub?.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date();
+  const hasSubscription = sub && (sub.status === 'active' || isTrialActive);
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
 
   return (
@@ -73,7 +74,7 @@ export const Dashboard: React.FC = () => {
             {/* Credit card */}
             <div className="credit-card">
               <div className="credit-card-label">
-                {hasSubscription ? (sub.status === 'trialing' ? 'Pro (Trial)' : 'Pro') : billing.credits > 0 ? 'Pay-as-you-go' : 'Free'}
+                {hasSubscription ? (isTrialActive ? 'Pro (Trial)' : 'Pro') : billing.credits > 0 ? 'Pay-as-you-go' : 'Free'}
               </div>
               <div className="credit-card-balance">
                 <span className="credit-card-amount">{billing.credits}</span>
