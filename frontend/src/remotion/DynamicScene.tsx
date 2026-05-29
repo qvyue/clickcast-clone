@@ -67,7 +67,7 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    * - damping: 14: 阻尼系数，值越大振荡越少，动画越平稳
    * - 返回值: 0~1 的渐变值，用于控制透明度、位移、缩放等
    */
-  const enter = spring({ frame: frame - 5, fps, config: { damping: 14 } });
+  const enter = spring({ frame: frame - 5, fps, config: { damping: 12, mass: 1.2, stiffness: 80 } });
 
   // ========== 退场动画 ==========
   /**
@@ -77,6 +77,9 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    */
   const duration = sceneData.durationInFrames ?? 300;
   const fadeOut = interpolate(frame, [duration - 15, duration], [1, 0], { extrapolateRight: 'clamp' });
+
+  // 渐黑遮罩：场景最后15帧从透明渐变到背景色，避免退场露出底层渐变
+  const fadeOverlay = interpolate(frame, [duration - 15, duration], [0, 1], { extrapolateRight: 'clamp' });
 
   // ========== 布局计算 ==========
   const layout = sceneData.layout;
@@ -144,8 +147,8 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    * 与后端 src/ClickCastVideo.tsx (VidGenVideo) 的逻辑保持一致
    */
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
-    const scale = interpolate(enter, [0, 1], [3, 1]);
-    const rotateX = interpolate(enter, [0, 1], [40, 0]);
+    const scale = interpolate(enter, [0, 1], [2, 1]);
+    const rotateX = interpolate(enter, [0, 1], [25, 0]);
     const isIntro = sceneData.id === 'intro';
     const subTextLen = (sceneData.subTitle || '').length;
     const subTextSize = subTextLen > 100 ? '24px' : (subTextLen > 60 ? '28px' : '30px');
@@ -258,7 +261,7 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
   const transitionFrames = Math.round((sceneData.transitionDuration ?? 0.5) * fps);
 
   return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
+    <AbsoluteFill>
       {/* ========== 音频层 ========== */}
 
       {/* 主音频：如果有两阶段，则限制播放时长为 mainAudioDuration */}
@@ -349,6 +352,9 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
           </div>
         </div>
       </AbsoluteFill>
+
+      {/* 渐黑遮罩：退场时覆盖内容，避免露出底层渐变 */}
+      <AbsoluteFill style={{ backgroundColor: bgColor, opacity: fadeOverlay }} />
     </AbsoluteFill>
   );
 };
