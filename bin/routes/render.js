@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const { validateDomain, jobs } = require('../utils/state');
 const { getAudioDuration } = require('../utils/audio');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isProUser } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 // ElevenLabs TTS
@@ -39,8 +39,9 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   const { domain } = req.params;
   const { aspectRatio = 'landscape' } = req.body;
 
-  // Credit check: free users and Pro users can always render
+  // Credit check: trial users and free users can always render
   const userId = req.user.sub;
+  const trial = await isTrialUser(userId);
   const pro = await isProUser(userId);
 
   // Validate domain format

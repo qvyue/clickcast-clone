@@ -56,7 +56,7 @@ const { spawn } = require('child_process');
 const { jobs } = require('../utils/state');
 const { extractDomainFromUrl } = require('../../utils/domain');
 const { requireAuth } = require('../utils/auth');
-const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isProUser } = require('../utils/credits');
+const { getUserCredits, deductCreditWithLog, grantCreditsWithLog, isTrialUser, isProUser } = require('../utils/credits');
 const { upsertVideo } = require('../utils/videos');
 
 const router = express.Router();
@@ -573,17 +573,13 @@ router.post('/', requireAuth, async (req, res) => {
   console.log('[generate.js] POST /api/generate received');
   const { url, aspectRatio = 'landscape' } = req.body;
 
-  // Credit check: only block non-Pro users who have credits but exhausted them
-  // Free users (0 credits, no subscription) can generate (with promo outro)
+  // Credit check
+  // - Trial users: skip credit check, no deduction
+  // - Pro users (active subscription): deduct credits normally
+  // - Free users (no subscription, 0 credits): allow generation, no deduction, add promo outro
   const userId = req.user.sub;
+  const trial = await isTrialUser(userId);
   const pro = await isProUser(userId);
-  if (!pro) {
-    const credits = await getUserCredits(userId);
-    // If user has a credit record but 0 balance, they've exhausted their credits
-    // If they never had credits (free user), credits = 0 but we allow generation
-    // We can't distinguish these from credits alone, so we allow all non-Pro to generate
-    // and only deduct if they have credits > 0
-  }
 
   // 验证 URL
   if (!url) {
@@ -604,9 +600,9 @@ router.post('/', requireAuth, async (req, res) => {
     createdAt: Date.now()
   });
 
-  // Deduct credit — only for non-Pro users who have credits
-  // Free users (0 credits) skip deduction, their "payment" is the promo outro
-  if (!pro) {
+  // Deduct credit — trial users and free users (0 credits) skip deduction
+  // Free users' "payment" is the promo outro appended to their video
+  if (!trial) {
     const credits = await getUserCredits(userId);
     if (credits > 0) {
       await deductCreditWithLog(userId, 'generation', jobId);
