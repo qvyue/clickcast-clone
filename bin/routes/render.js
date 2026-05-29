@@ -43,6 +43,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
   const userId = req.user.sub;
   const trial = await isTrialUser(userId);
   const pro = await isProUser(userId);
+  const credits = await getUserCredits(userId);
 
   // Validate domain format
   if (!validateDomain(domain)) {
@@ -87,7 +88,7 @@ router.post('/:domain/render', requireAuth, async (req, res) => {
     domain,
     aspectRatio,
     userId,
-    showPromoOutro: !pro,
+    showPromoOutro: !pro && credits <= 0,
     createdAt: Date.now()
   });
 

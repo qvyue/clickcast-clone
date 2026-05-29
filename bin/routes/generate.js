@@ -574,12 +574,14 @@ router.post('/', requireAuth, async (req, res) => {
   const { url, aspectRatio = 'landscape' } = req.body;
 
   // Credit check
-  // - Trial users: skip credit check, no deduction
-  // - Pro users (active subscription): deduct credits normally
-  // - Free users (no subscription, 0 credits): allow generation, no deduction, add promo outro
+  // - Trial users: no deduction, no promo outro
+  // - Pro users (active subscription): deduct credits, no promo outro
+  // - Credit Pack users (no subscription, has credits): deduct credits, no promo outro
+  // - Free users (no subscription, 0 credits): no deduction, add promo outro
   const userId = req.user.sub;
   const trial = await isTrialUser(userId);
   const pro = await isProUser(userId);
+  const credits = await getUserCredits(userId);
 
   // 验证 URL
   if (!url) {
@@ -590,23 +592,20 @@ router.post('/', requireAuth, async (req, res) => {
   const jobId = `generate-${Date.now()}`;
 
   // 初始化 job 状态
+  // Promo outro only for truly free users: no subscription AND no credits
   jobs.set(jobId, {
     status: 'pending',
     progress: 0,
     message: 'Preparing...',
     aspectRatio,
     userId,
-    showPromoOutro: !pro,
+    showPromoOutro: !pro && credits <= 0,
     createdAt: Date.now()
   });
 
   // Deduct credit — trial users and free users (0 credits) skip deduction
-  // Free users' "payment" is the promo outro appended to their video
-  if (!trial) {
-    const credits = await getUserCredits(userId);
-    if (credits > 0) {
-      await deductCreditWithLog(userId, 'generation', jobId);
-    }
+  if (!trial && credits > 0) {
+    await deductCreditWithLog(userId, 'generation', jobId);
   }
 
   generateAsync(jobId, url, aspectRatio);
