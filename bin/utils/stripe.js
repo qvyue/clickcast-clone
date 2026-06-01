@@ -47,8 +47,11 @@ async function createCheckoutSession(userId, mode) {
       return null;
     }
 
-    // 2-day free trial
-    const trialEnd = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60;
+    // Free trial until 00:00 three days from now
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 3);
+    dayAfter.setHours(0, 0, 0, 0);
+    const trialEnd = Math.floor(dayAfter.getTime() / 1000);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
