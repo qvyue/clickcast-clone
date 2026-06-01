@@ -12,7 +12,7 @@ const { requireAuth } = require('../utils/auth');
 const { getUserVideos, isVideoOwner, deleteVideoRecord } = require('../utils/videos');
 
 // R2 Storage
-const { isR2Configured, listVideos, deleteVideo: deleteFromR2 } = require('../../lib/r2-storage.js');
+const { isR2Configured, listVideos, deleteVideo: deleteFromR2, deleteDomainResources } = require('../../lib/r2-storage.js');
 
 const router = express.Router();
 
@@ -152,6 +152,12 @@ router.delete('/:domain', async (req, res) => {
       console.log(`R2 deleted: ${domain}`);
     } catch (e) {
       console.error('R2 delete error:', e.message);
+    }
+    // 清理 R2 resources（截图、音频、timeline.json 等）
+    try {
+      await deleteDomainResources(domain);
+    } catch (e) {
+      console.error('R2 resources delete error:', e.message);
     }
   }
 
