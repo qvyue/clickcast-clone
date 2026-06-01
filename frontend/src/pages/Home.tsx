@@ -345,6 +345,10 @@ return (
           <div className="faq-list">
             {[
               {
+                q: 'Is VidGen really free to use?',
+                a: "Absolutely! VidGen is completely free to start. You can sign up and generate AI videos right away without paying anything. The free version includes all core features, though exported videos will include a short VidGen outro clip. It's the best way to experience our quality firsthand before upgrading to Pro.",
+              },
+              {
                 q: 'What is the best AI video generator for SaaS product videos?',
                 a: 'VidGen is specifically designed to automate the generation of SaaS explainer videos. We connect directly to your URL to capture real UI screenshots and synthesize a professional narrative.',
               },
