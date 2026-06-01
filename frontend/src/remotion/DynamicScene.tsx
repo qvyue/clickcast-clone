@@ -67,7 +67,7 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    * - damping: 14: 阻尼系数，值越大振荡越少，动画越平稳
    * - 返回值: 0~1 的渐变值，用于控制透明度、位移、缩放等
    */
-  const enter = spring({ frame: frame - 5, fps, config: { damping: 12, mass: 1.2, stiffness: 80 } });
+  const enter = spring({ frame: frame - 5, fps, config: { damping: 14, mass: 1.5, stiffness: 60 } });
 
   // ========== 退场动画 ==========
   /**
@@ -147,8 +147,8 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
    * 与后端 src/ClickCastVideo.tsx (VidGenVideo) 的逻辑保持一致
    */
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
-    const scale = interpolate(enter, [0, 1], [2, 1]);
-    const rotateX = interpolate(enter, [0, 1], [25, 0]);
+    const scale = interpolate(enter, [0, 1], [1.5, 1]);
+    const rotateX = interpolate(enter, [0, 1], [15, 0]);
     const isIntro = sceneData.id === 'intro';
     const subTextLen = (sceneData.subTitle || '').length;
     const subTextSize = subTextLen > 100 ? '24px' : (subTextLen > 60 ? '28px' : '30px');
@@ -171,7 +171,7 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
     const currentOpacity = isPhase2 ? fadeOutPhase2 : fadeOut;
 
     return (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px', opacity: currentOpacity }}>
+      <AbsoluteFill>
         {/* Phase 1: 主配音 */}
         {isPhase1 && sceneData.audioFile && sceneData.audioFile.trim() !== '' && (
           <Sequence from={sceneData.audioStartFrame ?? 0}>
@@ -184,62 +184,72 @@ export const DynamicScene: React.FC<DynamicSceneProps> = ({ sceneData, colors, i
             <Audio src={`${audioBaseUrl}/${sceneData.audioFileSub}`} />
           </Sequence>
         )}
-        {/* 主内容容器：应用 3D 变换 */}
-        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%' }}>
-          {/* Phase 1: 显示 mainTitle */}
-          {(isPhase1 || isTransition || !hasSubAudio) && (
-            <>
-              {isIntro && (
-                <div style={{
-                  background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
-                  padding: '8px 24px', borderRadius: '50px', display: 'inline-block',
-                  fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px',
-                  marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`,
-                  color: buttonTextColor, ...buttonTextStyle
-                }}>INTRODUCING</div>
-              )}
-              <h1 style={{
-                fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'),
-                lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0',
-                color: textColor, fontWeight: 800
-              }}>{sceneData.mainTitle}</h1>
-              {/* 无两阶段时，同时显示副标题 */}
-              {!hasSubAudio && isIntro && sceneData.subTitle && (
-                <p style={{
-                  fontSize: isPortrait ? '40px' : '30px', color: subTextColor,
-                  marginTop: '30px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto',
-                  lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap'
-                }}>{sceneData.subTitle}</p>
-              )}
-              {!hasSubAudio && !isIntro && (
-                <>
+        {/* 渐变背景 — 只在 intro/outro 的 Sequence 内渲染 */}
+        <AbsoluteFill style={{ backgroundColor: colors.background, overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: isPortrait ? '10%' : '20%', left: isPortrait ? '10%' : '30%', width: isPortrait ? '80%' : '40%', height: '50%', background: `radial-gradient(circle, ${hexToRgba(colors.primary, 0.4)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(20px)' }} />
+          <div style={{ position: 'absolute', bottom: '-10%', right: isPortrait ? '-20%' : '10%', width: isPortrait ? '120%' : '50%', height: '60%', background: `radial-gradient(circle, ${hexToRgba(colors.secondary, 0.5)} 0%, rgba(0,0,0,0) 70%)`, filter: 'blur(20px)' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: '-50%', width: '200%', height: isPortrait ? '30%' : '40%', backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.6 }} />
+        </AbsoluteFill>
+        {/* 文字内容 — opacity 只作用于文字，不影响渐变 */}
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px' }}>
+          <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%', opacity: currentOpacity }}>
+            {/* Phase 1: 显示 mainTitle */}
+            {(isPhase1 || isTransition || !hasSubAudio) && (
+              <>
+                {isIntro && (
                   <div style={{
                     background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
-                    padding: '20px 50px', borderRadius: '12px', display: 'inline-block',
-                    fontSize: '30px', fontWeight: 'bold', color: buttonTextColor,
-                    letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`,
-                    marginTop: '20px', ...buttonTextStyle
-                  }}>GET STARTED</div>
-                  {sceneData.subTitle && (
-                    <p style={{
-                      color: subTextColor, fontSize: subTextSize, marginTop: '40px',
-                      maxWidth: '1100px', marginLeft: 'auto', marginRight: 'auto',
-                      lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap'
-                    }}>{sceneData.subTitle}</p>
-                  )}
-                </>
-              )}
-            </>
-          )}
-          {/* Phase 2: 显示 subTitle */}
-          {isPhase2 && (
-            <h1 style={{
-              fontSize: isPortrait ? '50px' : '40px',
-              lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0',
-              color: textColor, fontWeight: 800
-            }}>{sceneData.subTitle}</h1>
-          )}
-        </div>
+                    padding: '8px 24px', borderRadius: '50px', display: 'inline-block',
+                    fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px',
+                    marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`,
+                    color: buttonTextColor, ...buttonTextStyle
+                  }}>INTRODUCING</div>
+                )}
+                <h1 style={{
+                  fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'),
+                  lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0',
+                  color: textColor, fontWeight: 800
+                }}>{sceneData.mainTitle}</h1>
+                {/* 无两阶段时，同时显示副标题 */}
+                {!hasSubAudio && isIntro && sceneData.subTitle && (
+                  <p style={{
+                    fontSize: isPortrait ? '40px' : '30px', color: subTextColor,
+                    marginTop: '30px', maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto',
+                    lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap'
+                  }}>{sceneData.subTitle}</p>
+                )}
+                {!hasSubAudio && !isIntro && (
+                  <>
+                    <div style={{
+                      background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
+                      padding: '20px 50px', borderRadius: '12px', display: 'inline-block',
+                      fontSize: '30px', fontWeight: 'bold', color: buttonTextColor,
+                      letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`,
+                      marginTop: '20px', ...buttonTextStyle
+                    }}>GET STARTED</div>
+                    {sceneData.subTitle && (
+                      <p style={{
+                        color: subTextColor, fontSize: subTextSize, marginTop: '40px',
+                        maxWidth: '1100px', marginLeft: 'auto', marginRight: 'auto',
+                        lineHeight: 1.4, wordWrap: 'break-word', whiteSpace: 'pre-wrap'
+                      }}>{sceneData.subTitle}</p>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {/* Phase 2: 显示 subTitle */}
+            {isPhase2 && (
+              <h1 style={{
+                fontSize: isPortrait ? '50px' : '40px',
+                lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0',
+                color: textColor, fontWeight: 800
+              }}>{sceneData.subTitle}</h1>
+            )}
+          </div>
+        </AbsoluteFill>
+        {/* 退场遮罩：场景末 15 帧渐变覆盖渐变+文字 */}
+        <AbsoluteFill style={{ backgroundColor: bgColor, opacity: fadeOverlay }} />
       </AbsoluteFill>
     );
   }

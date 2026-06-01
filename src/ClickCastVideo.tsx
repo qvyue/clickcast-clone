@@ -139,7 +139,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
     : {};
 
   // 进场动画
-  const enter = spring({ frame: frame - 5, fps, config: { damping: 12, mass: 1.2, stiffness: 80 } });
+  const enter = spring({ frame: frame - 5, fps, config: { damping: 14, mass: 1.5, stiffness: 60 } });
 
   // 动态退场动画
   const duration = sceneData.durationInFrames;
@@ -152,8 +152,8 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
 
   // Intro 和 Outro 样式 - 支持两阶段
   if (sceneData.id === 'intro' || sceneData.id === 'outro') {
-    const scale = interpolate(enter, [0, 1], [2, 1]);
-    const rotateX = interpolate(enter, [0, 1], [25, 0]);
+    const scale = interpolate(enter, [0, 1], [1.5, 1]);
+    const rotateX = interpolate(enter, [0, 1], [15, 0]);
     const isIntro = sceneData.id === 'intro';
 
     // 检查是否有次配音
@@ -179,7 +179,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
     const mainTitleFontSize = mainTitleLength > 100 ? '24px' : (mainTitleLength > 60 ? '28px' : '30px');
 
     return (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px', opacity: currentOpacity }}>
+      <AbsoluteFill>
         {/* 阶段1: 主配音 */}
         <Sequence from={sceneData.audioStartFrame} durationInFrames={hasSubAudio ? mainDur : undefined}>
           <Audio src={staticFile(sceneData.audioFile)} />
@@ -190,25 +190,32 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
             <Audio src={staticFile(sceneData.audioFileSub)} />
           </Sequence>
         )}
-        <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%' }}>
-          {isIntro && isPhase1 && (
-            <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
-          )}
-          {/* Phase 1: 显示 mainTitle */}
-          {(isPhase1 || isTransition) && (
-            <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{mainTitle}</h1>
-          )}
-          {/* Phase 2: 显示 subTitle */}
-          {isPhase2 && (
-            <h1 style={{ fontSize: isPortrait ? '50px' : '40px', lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{subTitle}</h1>
-          )}
-          {/* Outro CTA button */}
-          {!isIntro && !hasSubAudio && (
-            <>
-              <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '20px 50px', borderRadius: '12px', display: 'inline-block', fontSize: '30px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '20px', ...buttonTextStyle }}>GET STARTED</div>
-            </>
-          )}
-        </div>
+        {/* 渐变背景 — 只在 intro/outro 的 Sequence 内渲染 */}
+        <Background />
+        {/* 文字内容 — opacity 只作用于文字，不影响渐变 */}
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', perspective: '1000px', padding: isPortrait ? '0 40px' : '0 80px' }}>
+          <div style={{ transform: `scale(${scale}) rotateX(${rotateX}deg)`, textAlign: 'center', maxWidth: isPortrait ? '95%' : '1300px', width: '100%', opacity: currentOpacity }}>
+            {isIntro && isPhase1 && (
+              <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '8px 24px', borderRadius: '50px', display: 'inline-block', fontSize: isPortrait ? '24px' : '20px', fontWeight: 800, letterSpacing: '2px', marginBottom: '30px', boxShadow: `0 0 20px ${hexToRgba(colors.primary, 0.5)}`, color: buttonTextColor, ...buttonTextStyle }}>INTRODUCING</div>
+            )}
+            {/* Phase 1: 显示 mainTitle */}
+            {(isPhase1 || isTransition) && (
+              <h1 style={{ fontSize: isPortrait ? '90px' : (isIntro ? '90px' : '80px'), lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{mainTitle}</h1>
+            )}
+            {/* Phase 2: 显示 subTitle */}
+            {isPhase2 && (
+              <h1 style={{ fontSize: isPortrait ? '50px' : '40px', lineHeight: isPortrait ? '1.1' : 'normal', margin: '0 0 20px 0', color: textColor, fontWeight: 800 }}>{subTitle}</h1>
+            )}
+            {/* Outro CTA button */}
+            {!isIntro && !hasSubAudio && (
+              <>
+                <div style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, padding: '20px 50px', borderRadius: '12px', display: 'inline-block', fontSize: '30px', fontWeight: 'bold', color: buttonTextColor, letterSpacing: '1px', boxShadow: `0 10px 30px ${hexToRgba(colors.primary, 0.4)}`, marginTop: '20px', ...buttonTextStyle }}>GET STARTED</div>
+              </>
+            )}
+          </div>
+        </AbsoluteFill>
+        {/* 退场遮罩：场景末 15 帧渐变覆盖渐变+文字 */}
+        <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: fadeOverlay }} />
       </AbsoluteFill>
     );
   }
@@ -249,10 +256,10 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
     const renderPhase1 = () => {
       const phase1Frame = frame;
       const enterPhase1 = spring({ frame: phase1Frame - 5, fps, config: { damping: 14 } });
-      const fadeOutPhase1 = interpolate(phase1Frame, [mainDuration - 15, mainDuration], [1, 0], { extrapolateRight: 'clamp' });
+      const fadeOutPhase1 = interpolate(phase1Frame, [mainDuration - 15, mainDuration], [0, 1], { extrapolateRight: 'clamp' });
 
       return (
-        <AbsoluteFill style={{ opacity: fadeOutPhase1 }}>
+        <AbsoluteFill>
           <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
             <Img
               src={staticFile(sceneData.img)}
@@ -284,13 +291,15 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
               </div>
             </div>
           </AbsoluteFill>
+          {/* 渐黑遮罩：Phase 1 退场时覆盖内容，避免露出底层渐变 */}
+          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: fadeOutPhase1 }} />
         </AbsoluteFill>
       );
     };
 
-    // 过渡阶段
+    // 过渡阶段：填充背景色，避免露出底层渐变
     const renderTransition = () => (
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }} />
+      <AbsoluteFill style={{ backgroundColor: overlayBg }} />
     );
 
     // Phase 2: 全屏图 + 底部次文案
@@ -302,7 +311,7 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
       const enterPhase2 = spring({ frame: phase2Frame - 5, fps, config: { damping: 14 } });
 
       return (
-        <AbsoluteFill style={{ opacity: imageFadeIn * fadeOutPhase2 }}>
+        <AbsoluteFill>
           <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
             <Img
               src={staticFile(sceneData.img)}
@@ -334,6 +343,10 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
               </div>
             </div>
           </AbsoluteFill>
+          {/* 入场遮罩：Phase 2 开始时从背景色渐变到透明 */}
+          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: 1 - imageFadeIn }} />
+          {/* 退场遮罩：Phase 2 结束时从透明渐变到背景色 */}
+          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: 1 - fadeOutPhase2 }} />
         </AbsoluteFill>
       );
     };
@@ -424,8 +437,6 @@ export const VidGenVideo: React.FC = () => {
 
   return (
     <AbsoluteFill>
-      <Background />
-
       {/* 🎵 背景音乐 - AI 智能选择 */}
       <Audio
         src={staticFile(bgmSrc)}
