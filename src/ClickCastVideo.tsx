@@ -225,123 +225,86 @@ const DynamicScene: React.FC<{ sceneData: any }> = React.memo(({ sceneData }) =>
   // 计算文本长度
   const isLongText = (mainTitle.length + subTitle.length) > 80;
 
-  // 两阶段动画渲染函数
+  // 两阶段动画渲染函数：图片始终可见，文字平滑切换
   const renderTwoPhaseScene = () => {
     const isPhase1 = frame < mainDuration;
-    const isTransition = frame >= mainDuration && frame < mainDuration + transitionDuration;
     const isPhase2 = frame >= mainDuration + transitionDuration;
 
-    // Phase 1: 全屏图 + 底部主文案
-    const renderPhase1 = () => {
-      const phase1Frame = frame;
-      const enterPhase1 = spring({ frame: phase1Frame - 5, fps, config: { damping: 14 } });
-      const fadeOutPhase1 = interpolate(phase1Frame, [mainDuration - 15, mainDuration], [0, 1], { extrapolateRight: 'clamp' });
+    // mainTitle 淡出：Phase 1 最后 15 帧开始
+    const mainTitleOpacity = isPhase1
+      ? interpolate(frame, [mainDuration - 15, mainDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' })
+      : 0;
 
-      return (
-        <AbsoluteFill>
-          <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
-            <Img
-              src={staticFile(sceneData.img)}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: isLongImage ? 'cover' : imageFit,
-                objectPosition: isLongImage ? `center ${scrollProgress}%` : 'center',
-                transform: isLongImage ? 'none' : `scale(${slowZoomNew})`,
-              }}
-            />
-          </AbsoluteFill>
-          <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div style={{
-              width: '100%',
-              padding: isPortrait ? '60px 40px 40px 40px' : '80px 40px 50px 40px',
-              opacity: enterPhase1,
-              transform: `translateY(${interpolate(enterPhase1, [0, 1], [30, 0])}px)`,
-            }}>
-              <div style={{ width: '100%', textAlign: 'center' }}>
-                <h2 style={{
-                  fontSize: isPortrait ? '42px' : (isLongText ? '48px' : '56px'),
-                  lineHeight: 1.2,
-                  color: '#ffffff',
-                  margin: '0 0 12px 0',
-                  fontWeight: 700,
-                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-                }}>{mainTitle}</h2>
-              </div>
-            </div>
-          </AbsoluteFill>
-          {/* 渐黑遮罩：Phase 1 退场时覆盖内容，避免露出底层渐变 */}
-          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: fadeOutPhase1 }} />
-        </AbsoluteFill>
-      );
-    };
-
-    // 过渡阶段：填充背景色，避免露出底层渐变
-    const renderTransition = () => (
-      <AbsoluteFill style={{ backgroundColor: overlayBg }} />
-    );
-
-    // Phase 2: 全屏图 + 底部次文案
-    const renderPhase2 = () => {
-      const phase2Frame = frame - mainDuration - transitionDuration;
-      const imageFadeIn = interpolate(phase2Frame, [0, fps * 0.3], [0, 1], { extrapolateRight: 'clamp' });
-      const actualSubDuration = Math.max(subDuration, fps * 3);
-      const fadeOutPhase2 = interpolate(phase2Frame, [actualSubDuration - fps * 0.5, actualSubDuration], [1, 0], { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' });
-      const enterPhase2 = spring({ frame: phase2Frame - 5, fps, config: { damping: 14 } });
-
-      return (
-        <AbsoluteFill>
-          <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
-            <Img
-              src={staticFile(sceneData.img)}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: isLongImage ? 'cover' : imageFit,
-                objectPosition: isLongImage ? `center ${scrollProgress}%` : 'center',
-                transform: isLongImage ? 'none' : `scale(${slowZoomNew})`,
-              }}
-            />
-          </AbsoluteFill>
-          <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div style={{
-              width: '100%',
-              padding: isPortrait ? '60px 40px 40px 40px' : '80px 40px 50px 40px',
-              opacity: enterPhase2,
-              transform: `translateY(${interpolate(enterPhase2, [0, 1], [30, 0])}px)`,
-            }}>
-              <div style={{ width: '100%', textAlign: 'center' }}>
-                <h2 style={{
-                  fontSize: isPortrait ? '42px' : (isLongText ? '48px' : '56px'),
-                  lineHeight: 1.2,
-                  color: '#ffffff',
-                  margin: '0 0 12px 0',
-                  fontWeight: 700,
-                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-                }}>{subTitle}</h2>
-              </div>
-            </div>
-          </AbsoluteFill>
-          {/* 入场遮罩：Phase 2 开始时从背景色渐变到透明 */}
-          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: 1 - imageFadeIn }} />
-          {/* 退场遮罩：Phase 2 结束时从透明渐变到背景色 */}
-          <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: 1 - fadeOutPhase2 }} />
-        </AbsoluteFill>
-      );
-    };
+    // subTitle 入场动画
+    const subFrame = Math.max(0, frame - mainDuration - transitionDuration);
+    const subEnter = isPhase2 ? spring({ frame: subFrame - 5, fps, config: { damping: 14 } }) : 0;
+    const subTitleOpacity = isPhase2 ? subEnter : 0;
+    const subTitleY = isPhase2 ? interpolate(subEnter, [0, 1], [30, 0]) : 30;
 
     return (
-      <>
+      <AbsoluteFill>
         <Sequence from={sceneData.audioStartFrame} durationInFrames={mainDuration}>
           <Audio src={staticFile(sceneData.audioFile)} />
         </Sequence>
         <Sequence from={sceneData.audioStartFrame + mainDuration + transitionDuration} durationInFrames={subDuration}>
           <Audio src={staticFile(sceneData.audioFileSub)} />
         </Sequence>
-        {isPhase1 ? renderPhase1() : (isTransition ? renderTransition() : renderPhase2())}
-        {/* 渐黑遮罩：退场时覆盖所有阶段内容，避免露出底层渐变 */}
+
+        {/* 图片层 — 始终渲染，无黑屏 */}
+        <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
+          <Img
+            src={staticFile(sceneData.img)}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: isLongImage ? 'cover' : imageFit,
+              objectPosition: isLongImage ? `center ${scrollProgress}%` : 'center',
+              transform: isLongImage ? 'none' : `scale(${slowZoomNew})`,
+            }}
+          />
+        </AbsoluteFill>
+
+        {/* 文字层 — 平滑切换 mainTitle → subTitle */}
+        <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center' }}>
+          <div style={{
+            width: '100%',
+            padding: isPortrait ? '60px 40px 40px 40px' : '80px 40px 50px 40px',
+            opacity: enter,
+            transform: `translateY(${interpolate(enter, [0, 1], [30, 0])}px)`,
+          }}>
+            <div style={{ width: '100%', textAlign: 'center' }}>
+              {/* mainTitle：Phase 1 显示，最后15帧淡出 */}
+              {isPhase1 && (
+                <h2 style={{
+                  fontSize: isPortrait ? '42px' : (isLongText ? '48px' : '56px'),
+                  lineHeight: 1.2,
+                  color: '#ffffff',
+                  margin: '0 0 12px 0',
+                  fontWeight: 700,
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                  opacity: mainTitleOpacity,
+                }}>{mainTitle}</h2>
+              )}
+              {/* subTitle：Phase 2 spring 入场 */}
+              {isPhase2 && (
+                <h2 style={{
+                  fontSize: isPortrait ? '42px' : (isLongText ? '48px' : '56px'),
+                  lineHeight: 1.2,
+                  color: '#ffffff',
+                  margin: '0 0 12px 0',
+                  fontWeight: 700,
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                  opacity: subTitleOpacity,
+                  transform: `translateY(${subTitleY}px)`,
+                }}>{subTitle}</h2>
+              )}
+            </div>
+          </div>
+        </AbsoluteFill>
+
+        {/* 退场遮罩 */}
         <AbsoluteFill style={{ backgroundColor: overlayBg, opacity: fadeOverlay }} />
-      </>
+      </AbsoluteFill>
     );
   };
 
