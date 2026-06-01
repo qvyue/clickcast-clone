@@ -69,16 +69,6 @@ function isHighContrastGradient(primary: string, secondary: string): boolean {
 }
 
 // --- 1. 背景组件 (使用动态配色) ---
-// 检测是否有预渲染的背景图，有则直接用图片（省掉每帧 blur+3D 计算）
-const PrerenderedBg: React.FC<{ isPortrait: boolean }> = React.memo(({ isPortrait }) => {
-  const bgFile = isPortrait ? 'bg-prerendered-portrait.png' : 'bg-prerendered-landscape.png';
-  return (
-    <AbsoluteFill>
-      <Img src={staticFile(bgFile)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    </AbsoluteFill>
-  );
-});
-
 const LiveBackground: React.FC<{ isPortrait: boolean; colors: any }> = React.memo(({ isPortrait, colors }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: colors.background, overflow: 'hidden' }}>
@@ -93,17 +83,6 @@ const Background: React.FC = React.memo(() => {
   const { width, height } = useVideoConfig();
   const isPortrait = height > width;
   const colors = videoStyle.colors;
-  const bgFile = isPortrait ? 'bg-prerendered-portrait.png' : 'bg-prerendered-landscape.png';
-
-  // 如果 public 目录存在预渲染背景图，用图片；否则 fallback 到实时渲染
-  try {
-    // staticFile 会在构建时检查文件是否存在，我们用运行时检测
-    const hasPrerendered = (timeline as any)._prerenderedBg;
-    if (hasPrerendered) {
-      return <PrerenderedBg isPortrait={isPortrait} />;
-    }
-  } catch {}
-
   return <LiveBackground isPortrait={isPortrait} colors={colors} />;
 });
 

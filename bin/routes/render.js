@@ -315,83 +315,9 @@ async function renderVideoAsync(jobId, domain, aspectRatio, paths) {
       fs.copyFileSync(src, dest);
     }
 
-    // ========== Step 4.5: Pre-render static background as PNG ==========
-    // The Background component has blur + 3D transforms that are expensive per-frame.
-    // Since it never changes, we render it once as a still image and use <Img> instead.
-    jobs.set(jobId, { ...jobs.get(jobId), message: 'Pre-rendering background...', progress: 18 });
-
-    try {
-      const { getRenderConfig } = require('../utils/render-config');
-      const { gl, chromiumPath } = getRenderConfig();
-      const cwd = path.join(__dirname, '../..');
-
-      // Pre-render for both orientations
-      for (const [compId, bgFile] of [
-        ['VidGenPromo-Landscape', 'bg-prerendered-landscape.png'],
-        ['VidGenPromo-Portrait', 'bg-prerendered-portrait.png'],
-      ]) {
-        const bgOutputPath = path.join(globalPublicDir, bgFile);
-
-        // Skip if already exists (e.g. from a previous render)
-        if (fs.existsSync(bgOutputPath)) continue;
-
-        const stillArgs = ['remotion', 'still', '--frame=0', compId, bgOutputPath, `--gl=${gl}`];
-        if (chromiumPath) {
-          stillArgs.push(`--chromium-executable-path=${chromiumPath}`);
-        }
-
-        const stillEnv = { ...process.env };
-        delete stillEnv.NODE_ENV;
-
-        await new Promise((resolve, reject) => {
-          let spawnCmd, spawnArgs, spawnOpts;
-          if (process.platform === 'win32') {
-            spawnCmd = process.env.ComSpec || 'cmd.exe';
-            spawnArgs = ['/c', 'npx', ...stillArgs];
-            spawnOpts = { cwd, env: stillEnv };
-          } else {
-            spawnCmd = 'npx';
-            spawnArgs = stillArgs;
-            spawnOpts = { cwd, env: stillEnv };
-          }
-
-          const stillProcess = spawn(spawnCmd, spawnArgs, spawnOpts);
-          const stillTimeout = setTimeout(() => {
-            stillProcess.kill('SIGKILL');
-            reject(new Error('Background pre-render timed out'));
-          }, 60000); // 1 minute timeout
-
-          stillProcess.on('close', (code) => {
-            clearTimeout(stillTimeout);
-            if (code === 0) {
-              console.log(`[${jobId}] Pre-rendered background: ${bgFile}`);
-              resolve();
-            } else {
-              // Non-fatal: if pre-render fails, fall back to live background
-              console.warn(`[${jobId}] Background pre-render exited with code ${code}, will use live background`);
-              resolve();
-            }
-          });
-
-          stillProcess.on('error', (err) => {
-            clearTimeout(stillTimeout);
-            console.warn(`[${jobId}] Background pre-render error: ${err.message}, will use live background`);
-            resolve(); // Non-fatal
-          });
-        });
-      }
-
-      // Mark timeline.json with prerendered flag so the component knows
-      try {
-        const tl = JSON.parse(fs.readFileSync(globalTimelinePath, 'utf8'));
-        tl._prerenderedBg = true;
-        fs.writeFileSync(globalTimelinePath, JSON.stringify(tl, null, 2));
-      } catch (e) {
-        console.warn(`[${jobId}] Failed to mark prerenderedBg flag: ${e.message}`);
-      }
-    } catch (e) {
-      console.warn(`[${jobId}] Background pre-render skipped: ${e.message}`);
-    }
+    // ========== Step 4.5: Background pre-render removed ==========
+    // Background component now only renders inside intro/outro Sequence,
+    // no longer at root level — pre-rendering is no longer needed.
 
     // Update status: start Remotion render
     jobs.set(jobId, { ...jobs.get(jobId), message: 'Starting Remotion render...', progress: 20 });
