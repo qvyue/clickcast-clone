@@ -48,8 +48,15 @@ async function renderPage(internalUrl) {
     // Wait for React to mount content inside #root
     await page.waitForSelector('#root > *', { timeout: 10000 });
 
-    // Allow async data fetching to settle
-    await page.waitForTimeout(500);
+    // Wait for async data to load:
+    // - Blog posts: wait for article content to render (only appears after API response)
+    // - Other pages: wait for network to go idle (all fetches complete)
+    const url = new URL(internalUrl);
+    if (url.pathname.match(/^\/blog\/[a-z0-9-]+$/)) {
+      await page.waitForSelector('.blogpost-content', { timeout: 10000 });
+    } else {
+      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    }
 
     return await page.content();
   } catch (err) {

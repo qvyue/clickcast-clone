@@ -227,14 +227,14 @@ if (fs.existsSync(frontendDistPath)) {
       }
 
       // 3. On-demand render for pages not in build cache (e.g. /blog, /blog/:slug)
+      // Playwright renders via SPA fallback which already injects meta tags,
+      // so we use the HTML directly — no second injectMeta call.
       const { renderPage } = require('./seo/renderer');
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const html = await renderPage(`${baseUrl}${req.path}`);
       if (html) {
-        const meta = await resolveMeta(req.path);
-        const finalHtml = meta ? injectMeta(html, meta) : html;
-        setCache(req.path, finalHtml, 24 * 60 * 60 * 1000); // 24h TTL
-        return res.send(finalHtml);
+        setCache(req.path, html, 24 * 60 * 60 * 1000); // 24h TTL
+        return res.send(html);
       }
 
       // Fallback to SPA if rendering failed

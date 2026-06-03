@@ -92,13 +92,12 @@ async function main() {
     try {
       const html = await renderPage(`${baseUrl}${routePath}`);
       if (html) {
-        // Apply SEO meta tags on top of the rendered HTML
-        const meta = await resolveMeta(routePath);
-        const finalHtml = meta ? injectMeta(html, meta) : html;
+        // Playwright renders via SPA fallback which already injects meta tags,
+        // so we use the HTML directly — no second injectMeta call.
 
         const { pathToFilename } = require('./prerender-cache');
         const filename = pathToFilename(routePath);
-        fs.writeFileSync(path.join(outputDir, filename), finalHtml);
+        fs.writeFileSync(path.join(outputDir, filename), html);
         console.log(`[prerender-build] Saved ${filename}`);
       } else {
         console.warn(`[prerender-build] Failed to render ${routePath}`);
