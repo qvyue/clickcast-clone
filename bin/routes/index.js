@@ -14,6 +14,7 @@ const benchmarkRoutes = require('./benchmark');
 const downloadRoutes = require('./download');
 const billingRoutes = require('./billing');
 const { adminRouter, publicRouter } = require('./admin');
+const { adminBlogRouter, publicBlogRouter } = require('./blog');
 const { optionalAuth, requireAuth, requireAdmin } = require('../utils/auth');
 
 module.exports = (app) => {
@@ -56,6 +57,12 @@ module.exports = (app) => {
   // Admin routes: FAQ management (requires auth + admin)
   app.use('/api/admin', requireAuth, requireAdmin, adminRouter);
 
+  // Admin routes: Blog management (requires auth + admin)
+  app.use('/api/admin/blog', requireAuth, requireAdmin, adminBlogRouter);
+
   // Public FAQ route (no auth required)
   app.use('/api', publicRouter);
+
+  // Public Blog routes (no auth required)
+  app.use('/api', publicBlogRouter);
 };

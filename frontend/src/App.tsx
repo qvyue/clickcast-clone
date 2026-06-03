@@ -8,6 +8,8 @@ const TermsPage = lazy(() => import('./components/Terms').then(m => ({ default: 
 const PrivacyPage = lazy(() => import('./components/Privacy').then(m => ({ default: m.PrivacyPage })))
 const AuthCallback = lazy(() => import('./components/LoginModal').then(m => ({ default: m.AuthCallback })))
 const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })))
+const BlogPage = lazy(() => import('./pages/Blog').then(m => ({ default: m.BlogPage })))
+const BlogPostPage = lazy(() => import('./pages/BlogPost').then(m => ({ default: m.BlogPostPage })))
 
 function App() {
   return (
@@ -27,6 +29,9 @@ function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         {/* Admin Panel */}
         <Route path="/admin" element={<Admin />} />
+        {/* Blog */}
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         {/* 其他路由重定向到首页（由 server.js 渲染） */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

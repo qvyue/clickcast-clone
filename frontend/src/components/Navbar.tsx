@@ -58,12 +58,14 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'home' }) => {
                 <a href="#use-cases" onClick={(e) => { e.preventDefault(); scrollTo('use-cases'); }}>Use Cases</a>
                 <a href="#pricing" onClick={(e) => { e.preventDefault(); scrollTo('pricing'); }}>Pricing</a>
                 <a href="#faq" onClick={(e) => { e.preventDefault(); scrollTo('faq'); }}>FAQ</a>
+                <a href="/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }}>Blog</a>
               </>
             ) : (
               <>
                 <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
                 <a href="/dashboard" className="nav-link-active" onClick={(e) => { e.preventDefault(); }}>Dashboard</a>
                 <a href="#pricing" onClick={(e) => { e.preventDefault(); scrollTo('pricing'); }}>Pricing</a>
+                <a href="/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }}>Blog</a>
               </>
             )}
           </div>

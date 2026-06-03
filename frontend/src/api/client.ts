@@ -466,3 +466,65 @@ export async function adminReorderFaqs(items: { id: string; sort_order: number }
   });
   await handleVoidResponse(response, `${API_BASE}/admin/faqs/reorder`);
 }
+
+// ========== Blog ==========
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  cover_image_url: string | null;
+  category: string;
+  author: string;
+  read_time: number;
+  is_active: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Public: fetch active blog posts for blog page */
+export async function fetchBlogPosts(): Promise<{ posts: Pick<BlogPost, 'id' | 'title' | 'slug' | 'excerpt' | 'cover_image_url' | 'category' | 'author' | 'read_time' | 'published_at'>[] }> {
+  const response = await fetchWithTimeout(`${API_BASE}/blog`);
+  return handleResponse(response, `${API_BASE}/blog`);
+}
+
+/** Public: fetch a single blog post by slug */
+export async function fetchBlogPost(slug: string): Promise<{ post: BlogPost }> {
+  const response = await fetchWithTimeout(`${API_BASE}/blog/${slug}`);
+  return handleResponse(response, `${API_BASE}/blog/${slug}`);
+}
+
+/** Admin: list all blog posts (including inactive) */
+export async function adminFetchBlogPosts(): Promise<{ posts: BlogPost[] }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/blog`);
+  return handleResponse(response, `${API_BASE}/admin/blog`);
+}
+
+/** Admin: create blog post */
+export async function adminCreateBlogPost(data: Partial<BlogPost> & { title: string; slug: string; content: string }): Promise<{ post: BlogPost }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/blog`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response, `${API_BASE}/admin/blog`);
+}
+
+/** Admin: update blog post */
+export async function adminUpdateBlogPost(id: string, data: Partial<BlogPost>): Promise<{ post: BlogPost }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/blog/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response, `${API_BASE}/admin/blog/${id}`);
+}
+
+/** Admin: delete blog post */
+export async function adminDeleteBlogPost(id: string): Promise<void> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/blog/${id}`, { method: 'DELETE' });
+  await handleVoidResponse(response, `${API_BASE}/admin/blog/${id}`);
+}
