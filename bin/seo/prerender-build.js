@@ -12,7 +12,8 @@ const path = require('path');
 const { resolveMeta } = require('./resolve');
 const { injectMeta } = require('./inject');
 
-const STATIC_ROUTES = ['/', '/blog', '/terms', '/privacy'];
+// /blog is rendered at runtime (needs Supabase data not available during Docker build)
+const STATIC_ROUTES = ['/', '/terms', '/privacy'];
 
 async function main() {
   const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');

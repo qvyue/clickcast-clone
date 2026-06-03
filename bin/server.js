@@ -206,18 +206,15 @@ if (fs.existsSync(frontendDistPath)) {
         return res.send(cached);
       }
 
-      // 3. On-demand render for blog posts
-      const normalized = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
-      if (normalized.match(/^\/blog\/[a-z0-9-]+$/)) {
-        const { renderPage } = require('./seo/renderer');
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const html = await renderPage(`${baseUrl}${req.path}`);
-        if (html) {
-          const meta = await resolveMeta(req.path);
-          const finalHtml = meta ? injectMeta(html, meta) : html;
-          setCache(req.path, finalHtml, 24 * 60 * 60 * 1000); // 24h TTL
-          return res.send(finalHtml);
-        }
+      // 3. On-demand render for pages not in build cache (e.g. /blog, /blog/:slug)
+      const { renderPage } = require('./seo/renderer');
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const html = await renderPage(`${baseUrl}${req.path}`);
+      if (html) {
+        const meta = await resolveMeta(req.path);
+        const finalHtml = meta ? injectMeta(html, meta) : html;
+        setCache(req.path, finalHtml, 24 * 60 * 60 * 1000); // 24h TTL
+        return res.send(finalHtml);
       }
 
       // Fallback to SPA if rendering failed
