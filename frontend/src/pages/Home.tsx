@@ -344,7 +344,8 @@ return (
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ Section — hidden when no FAQ data (prevents schema-content mismatch) */}
+      {faqItems.length > 0 && (
       <section id="faq" className="faq-section">
         <div className="section-container">
           <div className="section-header-center">
@@ -372,6 +373,7 @@ return (
           </div>
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <Footer />

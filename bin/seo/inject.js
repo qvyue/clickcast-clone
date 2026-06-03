@@ -58,14 +58,30 @@ function injectMeta(html, meta) {
   tags.push(
     `<meta property="og:site_name" content="VidGen">`,
   );
+  tags.push(
+    `<meta property="og:locale" content="en_US">`,
+  );
+
+  if (meta.canonical) {
+    tags.push(
+      `<meta property="og:url" content="${escapeAttr(meta.canonical)}">`,
+    );
+  }
 
   if (meta.ogImage) {
     tags.push(
       `<meta property="og:image" content="${escapeAttr(meta.ogImage)}">`,
     );
+    tags.push(
+      `<meta property="og:image:width" content="1200">`,
+    );
+    tags.push(
+      `<meta property="og:image:height" content="630">`,
+    );
   }
 
   tags.push(`<meta name="twitter:card" content="summary_large_image">`);
+  tags.push(`<meta name="twitter:site" content="@VidGen">`);
   tags.push(
     `<meta name="twitter:title" content="${escapeAttr(meta.title)}">`,
   );

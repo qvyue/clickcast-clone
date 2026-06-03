@@ -5,6 +5,7 @@
 
 const SITE_URL = (process.env.APP_URL || 'https://vidgen.cc').replace(/\/+$/, '');
 const SITE_NAME = 'VidGen';
+const OG_IMAGE_URL = SITE_URL + '/og-image.png';
 
 const staticMeta = {
   '/': {
@@ -12,6 +13,7 @@ const staticMeta = {
     description:
       'Turn any website URL into a professional marketing video. Auto-capture screenshots, AI-generated voiceover, subtitles, and music. 1080p/60fps, free tier available.',
     ogType: 'website',
+    ogImage: OG_IMAGE_URL,
     // jsonLd is built dynamically by buildHomepageJsonLd() in resolve.js
   },
   '/blog': {
@@ -19,16 +21,19 @@ const staticMeta = {
     description:
       'Guides, tutorials, and comparisons for website video creation.',
     ogType: 'website',
+    ogImage: OG_IMAGE_URL,
   },
   '/terms': {
     title: 'Terms of Service — VidGen',
     description: 'VidGen terms of service and usage agreement.',
     ogType: 'website',
+    ogImage: OG_IMAGE_URL,
   },
   '/privacy': {
     title: 'Privacy Policy — VidGen',
     description: 'VidGen privacy policy and data handling practices.',
     ogType: 'website',
+    ogImage: OG_IMAGE_URL,
   },
 };
 
@@ -38,7 +43,7 @@ const webApplicationSchema = {
   name: 'VidGen',
   url: SITE_URL,
   applicationCategory: 'MultimediaApplication',
-  operatingSystem: 'Web',
+  operatingSystem: 'Any',
   offers: [
     {
       '@type': 'Offer',
@@ -48,6 +53,7 @@ const webApplicationSchema = {
       priceCurrency: 'USD',
       billingIncrement: 'P1M',
       availability: 'https://schema.org/InStock',
+      url: SITE_URL + '/#pricing',
     },
     {
       '@type': 'Offer',
@@ -56,6 +62,7 @@ const webApplicationSchema = {
       price: '3',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
+      url: SITE_URL + '/#pricing',
     },
   ],
 };
@@ -88,4 +95,4 @@ const howToSchema = {
   ],
 };
 
-module.exports = { SITE_URL, SITE_NAME, staticMeta, webApplicationSchema, howToSchema };
+module.exports = { SITE_URL, SITE_NAME, OG_IMAGE_URL, staticMeta, webApplicationSchema, howToSchema };

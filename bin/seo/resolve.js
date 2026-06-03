@@ -4,7 +4,7 @@
  * Static pages use config; blog posts query Supabase.
  */
 
-const { SITE_URL, staticMeta, webApplicationSchema, howToSchema } = require('./meta');
+const { SITE_URL, staticMeta, OG_IMAGE_URL, webApplicationSchema, howToSchema } = require('./meta');
 const { getAdminClient } = require('../utils/supabase-admin');
 
 /**
@@ -50,8 +50,15 @@ async function resolveMeta(path) {
     return null;
   }
 
-  // Unrecognized paths — soft 404
-  return { __status: 404, ...staticMeta['/'], canonical: `${SITE_URL}/` };
+  // Unrecognized paths — soft 404 with distinct meta (not homepage's)
+  return {
+    __status: 404,
+    title: 'Page Not Found — VidGen',
+    description: 'The page you are looking for does not exist.',
+    ogType: 'website',
+    ogImage: OG_IMAGE_URL,
+    // No canonical for 404 pages — prevents Google from treating them as the homepage
+  };
 }
 
 /**
@@ -66,13 +73,19 @@ async function resolveBlogMeta(slug) {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, excerpt, cover_image_url, author, published_at')
+      .select('id, title, slug, excerpt, cover_image_url, author, published_at, updated_at')
       .eq('slug', slug)
       .eq('is_active', true)
       .single();
 
     if (error || !data) {
-      return { __status: 404, ...staticMeta['/'], canonical: `${SITE_URL}/` };
+      return {
+        __status: 404,
+        title: 'Page Not Found — VidGen',
+        description: 'The page you are looking for does not exist.',
+        ogType: 'website',
+        ogImage: OG_IMAGE_URL,
+      };
     }
 
     const meta = {
@@ -80,11 +93,8 @@ async function resolveBlogMeta(slug) {
       description: data.excerpt || data.title,
       ogType: 'article',
       canonical: `${SITE_URL}/blog/${data.slug}`,
+      ogImage: data.cover_image_url || OG_IMAGE_URL,
     };
-
-    if (data.cover_image_url) {
-      meta.ogImage = data.cover_image_url;
-    }
 
     // Article structured data
     meta.jsonLd = {
@@ -92,13 +102,19 @@ async function resolveBlogMeta(slug) {
       '@type': 'Article',
       headline: data.title,
       description: data.excerpt || undefined,
-      image: data.cover_image_url || undefined,
+      image: data.cover_image_url || OG_IMAGE_URL,
       author: { '@type': 'Person', name: data.author || 'VidGen Team' },
       datePublished: data.published_at || undefined,
+      dateModified: data.updated_at || undefined,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${data.slug}` },
       publisher: {
         '@type': 'Organization',
         name: 'VidGen',
         url: SITE_URL,
+        logo: {
+          '@type': 'ImageObject',
+          url: OG_IMAGE_URL,
+        },
       },
     };
 
@@ -151,7 +167,7 @@ async function buildHomepageJsonLd() {
             name: f.question,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: f.answer,
+              text: f.answer.replace(/\s+/g, ' ').trim(),
             },
           })),
         });

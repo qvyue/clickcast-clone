@@ -4,7 +4,7 @@
  */
 
 const BOT_PATTERN =
-  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|skypeuripreview|ahrefsbot|mj12bot|semrushbot|dotbot|applebot|bytespider|petalbot/i;
+  /googlebot|google-inspectiontool|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|skypeuripreview|ahrefsbot|mj12bot|semrushbot|dotbot|applebot|bytespider|petalbot|pinterestbot/i;
 
 /**
  * Check if a User-Agent string belongs to a known bot/crawler.

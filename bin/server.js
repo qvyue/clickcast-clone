@@ -36,6 +36,12 @@ const { initCache, getCached, setCache, pathToFilename } = require('./seo/preren
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ========== Security & Compression ==========
+app.use(require('compression')());
+app.use(require('helmet')({
+  contentSecurityPolicy: false, // CSP disabled — too complex for this app
+}));
+
 // ========== Middleware Configuration ==========
 // Skip JSON body parsing for Stripe webhook — it needs raw body for signature verification
 app.use((req, res, next) => {
@@ -98,6 +104,7 @@ Disallow: /editor/
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /auth/
+Disallow: /websites/
 
 Sitemap: ${SITE_URL}/sitemap.xml`);
 });
@@ -106,11 +113,12 @@ Sitemap: ${SITE_URL}/sitemap.xml`);
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const supabase = require('./utils/supabase-admin').getAdminClient();
+    const today = new Date().toISOString().split('T')[0];
     const staticPages = [
-      { path: '/', changefreq: 'weekly', priority: '1.0' },
-      { path: '/blog', changefreq: 'weekly', priority: '0.8' },
-      { path: '/terms', changefreq: 'monthly', priority: '0.3' },
-      { path: '/privacy', changefreq: 'monthly', priority: '0.3' },
+      { path: '/', changefreq: 'weekly', priority: '1.0', lastmod: today },
+      { path: '/blog', changefreq: 'weekly', priority: '0.8', lastmod: today },
+      { path: '/terms', changefreq: 'monthly', priority: '0.3', lastmod: today },
+      { path: '/privacy', changefreq: 'monthly', priority: '0.3', lastmod: today },
     ];
 
     let blogUrls = '';
@@ -121,10 +129,11 @@ app.get('/sitemap.xml', async (req, res) => {
         .eq('is_active', true);
 
       blogUrls = (posts || [])
+        .filter((p) => p.updated_at) // skip posts without updated_at
         .map(
           (p) => `  <url>
     <loc>${SITE_URL}/blog/${p.slug}</loc>
-    <lastmod>${(p.updated_at || '').split('T')[0]}</lastmod>
+    <lastmod>${p.updated_at.split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`,
@@ -136,6 +145,7 @@ app.get('/sitemap.xml', async (req, res) => {
       .map(
         (p) => `  <url>
     <loc>${SITE_URL}${p.path}</loc>
+    <lastmod>${p.lastmod}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`,
@@ -171,8 +181,18 @@ const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
 
 // Check if frontend is built
 if (fs.existsSync(frontendDistPath)) {
-  // Serve frontend static assets (JS, CSS, etc.)
-  app.use(express.static(frontendDistPath, { index: false }));
+  // Serve frontend static assets (JS, CSS, etc.) with cache headers
+  app.use(express.static(frontendDistPath, {
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      } else if (filePath.match(/-\w{8,}\.(js|css)$/)) {
+        // Content-hashed files — cache for 1 year
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    },
+  }));
 
   // ========== Pre-render Middleware for Bots ==========
   // Serves fully rendered HTML to search engine / social crawlers
