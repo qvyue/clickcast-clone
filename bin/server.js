@@ -26,6 +26,11 @@ const { isR2Configured, ensureLocalResource } = require('../lib/r2-storage');
 // Import route aggregator
 const setupRoutes = require('./routes');
 
+// Import SEO utilities
+const { resolveMeta } = require('./seo/resolve');
+const { injectMeta } = require('./seo/inject');
+const { SITE_URL } = require('./seo/meta');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -80,6 +85,72 @@ app.use('/websites/:domain/public/:filename', async (req, res, next) => {
 // ========== API Routes ==========
 setupRoutes(app);
 
+// ========== SEO Routes ==========
+
+// robots.txt — standard location for search engine crawlers
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /editor/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth/
+
+Sitemap: ${SITE_URL}/sitemap.xml`);
+});
+
+// sitemap.xml — generated from static pages + active blog posts
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const supabase = require('./utils/supabase-admin').getAdminClient();
+    const staticPages = [
+      { path: '/', changefreq: 'weekly', priority: '1.0' },
+      { path: '/blog', changefreq: 'weekly', priority: '0.8' },
+      { path: '/terms', changefreq: 'monthly', priority: '0.3' },
+      { path: '/privacy', changefreq: 'monthly', priority: '0.3' },
+    ];
+
+    let blogUrls = '';
+    if (supabase) {
+      const { data: posts } = await supabase
+        .from('blog_posts')
+        .select('slug, updated_at')
+        .eq('is_active', true);
+
+      blogUrls = (posts || [])
+        .map(
+          (p) => `  <url>
+    <loc>${SITE_URL}/blog/${p.slug}</loc>
+    <lastmod>${(p.updated_at || '').split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`,
+        )
+        .join('\n');
+    }
+
+    const staticUrls = staticPages
+      .map(
+        (p) => `  <url>
+    <loc>${SITE_URL}${p.path}</loc>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`,
+      )
+      .join('\n');
+
+    res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls}
+${blogUrls}
+</urlset>`);
+  } catch (err) {
+    console.error('Sitemap generation error:', err.message);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 // ========== Homepage Route ==========
 // We have migrated the homepage to the React frontend SPA.
 // If the frontend is built, the SPA fallback below will handle the '/' route.
@@ -101,21 +172,30 @@ if (fs.existsSync(frontendDistPath)) {
   // Serve frontend static assets (JS, CSS, etc.)
   app.use(express.static(frontendDistPath));
 
-  // SPA fallback: return index.html for frontend routes (e.g., /editor/:domain)
+  // SPA fallback: return index.html with SEO meta injection for frontend routes
   // Must be after API routes, so API calls are handled first
-  // Use middleware to catch all unmatched routes
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
     // Skip if it's an API route or static file request
     if (req.path.startsWith('/api/') || req.path.startsWith('/websites/')) {
       return next();
     }
-    // Return index.html for SPA routes
-    res.sendFile('index.html', { root: frontendDistPath }, (err) => {
-      if (err) {
-        console.error('SendFile error:', err.message);
-        res.status(500).send('Error loading page');
+
+    try {
+      let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
+      const meta = await resolveMeta(req.path);
+
+      if (meta) {
+        if (meta.__status === 404) {
+          res.status(404);
+        }
+        html = injectMeta(html, meta);
       }
-    });
+
+      res.send(html);
+    } catch (err) {
+      console.error('SPA fallback error:', err.message);
+      res.status(500).send('Error loading page');
+    }
   });
 
   console.log('Frontend SPA enabled (serving from ' + frontendDistPath + ')');
