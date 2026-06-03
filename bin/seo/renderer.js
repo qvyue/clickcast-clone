@@ -36,12 +36,13 @@ async function getBrowser() {
  */
 async function renderPage(internalUrl) {
   const b = await getBrowser();
-  const page = await b.newPage();
+
+  // Use newContext with custom UA so the bot-detect middleware skips this request
+  // (page.setUserAgent doesn't exist in Playwright headless-shell)
+  const context = await b.newContext({ userAgent: 'VidGen-Prerender/1.0' });
+  const page = await context.newPage();
 
   try {
-    // Custom UA so the bot-detect middleware skips this request
-    await page.setUserAgent('VidGen-Prerender/1.0');
-
     await page.goto(internalUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
     // Wait for React to mount content inside #root
@@ -56,6 +57,7 @@ async function renderPage(internalUrl) {
     return null;
   } finally {
     await page.close();
+    await context.close();
   }
 }
 
