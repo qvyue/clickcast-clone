@@ -173,6 +173,11 @@
 
 .admin-faq-card:has(.admin-edit-field) {
   flex-direction: column;
+  justify-content: flex-start;
+}
+
+.admin-faq-card:has(.admin-edit-field) .admin-edit-field {
+  width: 100%;
 }
 
 .admin-faq-card:hover {
