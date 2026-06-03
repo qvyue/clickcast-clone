@@ -56,6 +56,12 @@ export const Admin: React.FC = () => {
     is_active: true,
   });
 
+  const autoResize = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  };
+
   // ===== FAQ handlers =====
   const loadFaqs = useCallback(async () => {
     try {
@@ -345,7 +351,7 @@ export const Admin: React.FC = () => {
                 </div>
                 <div className="admin-edit-field">
                   <label>Answer</label>
-                  <textarea value={newFaqAnswer} onChange={(e) => setNewFaqAnswer(e.target.value)} placeholder="Enter answer..." className="admin-textarea" rows={3} />
+                  <textarea value={newFaqAnswer} onChange={(e) => { setNewFaqAnswer(e.target.value); autoResize(e.target); }} placeholder="Enter answer..." className="admin-textarea admin-faq-auto-textarea" rows={3} ref={autoResize} />
                 </div>
                 <div className="admin-edit-actions">
                   <button className="admin-btn admin-btn-primary" onClick={handleCreateFaq} disabled={saving || !newFaqQuestion.trim() || !newFaqAnswer.trim()}>{saving ? 'Saving...' : 'Create'}</button>
@@ -372,7 +378,7 @@ export const Admin: React.FC = () => {
                         </div>
                         <div className="admin-edit-field">
                           <label>Answer</label>
-                          <textarea value={editFaqAnswer} onChange={(e) => setEditFaqAnswer(e.target.value)} className="admin-textarea" rows={3} />
+                          <textarea value={editFaqAnswer} onChange={(e) => { setEditFaqAnswer(e.target.value); autoResize(e.target); }} className="admin-textarea admin-faq-auto-textarea" rows={3} ref={autoResize} />
                         </div>
                         <div className="admin-edit-actions">
                           <button className="admin-btn admin-btn-primary" onClick={() => handleUpdateFaq(faq.id)} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
