@@ -171,6 +171,10 @@
   transition: border-color 0.15s ease;
 }
 
+.admin-faq-card:has(.admin-edit-field) {
+  flex-direction: column;
+}
+
 .admin-faq-card:hover {
   border-color: var(--border-accent);
 }
