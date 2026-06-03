@@ -98,4 +98,30 @@ function isAuthConfigured() {
   return !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
 }
 
-module.exports = { optionalAuth, requireAuth, isAuthConfigured };
+/**
+ * Admin auth middleware.
+ * Must be used AFTER requireAuth (requires req.user).
+ * Checks req.user.sub against ADMIN_USER_IDS env var (comma-separated).
+ */
+function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const adminIds = (process.env.ADMIN_USER_IDS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (adminIds.length === 0) {
+    return res.status(403).json({ error: 'Admin not configured' });
+  }
+
+  if (!adminIds.includes(req.user.sub)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  next();
+}
+
+module.exports = { optionalAuth, requireAuth, requireAdmin, isAuthConfigured };

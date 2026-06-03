@@ -13,7 +13,8 @@ const generateRoutes = require('./generate');
 const benchmarkRoutes = require('./benchmark');
 const downloadRoutes = require('./download');
 const billingRoutes = require('./billing');
-const { optionalAuth } = require('../utils/auth');
+const { adminRouter, publicRouter } = require('./admin');
+const { optionalAuth, requireAuth, requireAdmin } = require('../utils/auth');
 
 module.exports = (app) => {
   // Apply optional auth to all API routes (sets req.user if token present)
@@ -51,4 +52,10 @@ module.exports = (app) => {
 
   // Billing routes: checkout, subscription, credits, portal, webhook
   app.use('/api/billing', billingRoutes);
+
+  // Admin routes: FAQ management (requires auth + admin)
+  app.use('/api/admin', requireAuth, requireAdmin, adminRouter);
+
+  // Public FAQ route (no auth required)
+  app.use('/api', publicRouter);
 };

@@ -406,3 +406,63 @@ export async function deleteVideo(domain: string): Promise<void> {
   const res = await fetchWithTimeout(`/api/delete/${domain}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Failed to delete video');
 }
+
+// ========== FAQ ==========
+
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Public: fetch active FAQs for homepage */
+export async function fetchFaqs(): Promise<{ faqs: Pick<FaqItem, 'id' | 'question' | 'answer' | 'sort_order'>[] }> {
+  const response = await fetchWithTimeout(`${API_BASE}/faqs`);
+  return handleResponse<{ faqs: Pick<FaqItem, 'id' | 'question' | 'answer' | 'sort_order'>[] }>(response, `${API_BASE}/faqs`);
+}
+
+/** Admin: list all FAQs (including inactive) */
+export async function adminFetchFaqs(): Promise<{ faqs: FaqItem[] }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/faqs`);
+  return handleResponse<{ faqs: FaqItem[] }>(response, `${API_BASE}/admin/faqs`);
+}
+
+/** Admin: create FAQ */
+export async function adminCreateFaq(data: { question: string; answer: string; sort_order?: number; is_active?: boolean }): Promise<{ faq: FaqItem }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/faqs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<{ faq: FaqItem }>(response, `${API_BASE}/admin/faqs`);
+}
+
+/** Admin: update FAQ */
+export async function adminUpdateFaq(id: string, data: Partial<Pick<FaqItem, 'question' | 'answer' | 'sort_order' | 'is_active'>>): Promise<{ faq: FaqItem }> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/faqs/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<{ faq: FaqItem }>(response, `${API_BASE}/admin/faqs/${id}`);
+}
+
+/** Admin: delete FAQ */
+export async function adminDeleteFaq(id: string): Promise<void> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/faqs/${id}`, { method: 'DELETE' });
+  await handleVoidResponse(response, `${API_BASE}/admin/faqs/${id}`);
+}
+
+/** Admin: batch reorder FAQs */
+export async function adminReorderFaqs(items: { id: string; sort_order: number }[]): Promise<void> {
+  const response = await fetchWithTimeout(`${API_BASE}/admin/faqs/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items }),
+  });
+  await handleVoidResponse(response, `${API_BASE}/admin/faqs/reorder`);
+}

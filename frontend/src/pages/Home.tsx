@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { useAuthStore } from '../store/authStore';
 import { useBillingStore } from '../store/billingStore';
-import { fetchWithTimeout } from '../api/client';
+import { fetchWithTimeout, fetchFaqs } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 
@@ -14,6 +14,7 @@ export const Home: React.FC = () => {
   const [progress, setProgress] = useState({ active: false, text: 'Preparing...', percent: 0 });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const [faqItems, setFaqItems] = useState<{ id: string; question: string; answer: string }[]>([]);
   const navigate = useNavigate();
   const billing = useBillingStore();
   const user = useAuthStore((s) => s.user);
@@ -23,6 +24,13 @@ export const Home: React.FC = () => {
     if (user) {
       billing.refresh();
     }
+
+    // Load FAQs from API
+    fetchFaqs()
+      .then((data) => setFaqItems(data.faqs))
+      .catch(() => {
+        // Fallback: keep empty, FAQ section will be hidden
+      });
 
     // Check checkout callback params
     const params = new URLSearchParams(window.location.search);
@@ -343,42 +351,21 @@ return (
             <h2 className="section-title">Common <span className="text-muted">Questions</span></h2>
           </div>
           <div className="faq-list">
-            {[
-              {
-                q: 'Is VidGen really free to use?',
-                a: "Absolutely! VidGen is completely free to start. You can sign up and generate AI videos right away without paying anything. The free version includes all core features, though exported videos will include a short VidGen outro clip. It's the best way to experience our quality firsthand before upgrading to Pro.",
-              },
-              {
-                q: 'What is the best AI video generator for SaaS product videos?',
-                a: 'VidGen is specifically designed to automate the generation of SaaS explainer videos. We connect directly to your URL to capture real UI screenshots and synthesize a professional narrative.',
-              },
-              {
-                q: 'Can I convert website into video?',
-                a: 'Yes! Simply paste your URL and our engine will analyze the page, write a script, generate voiceovers, and render a complete video within minutes.',
-              },
-              {
-                q: 'How does VidGen compare to Synthesia or HeyGen?',
-                a: 'While those platforms focus on avatar generation, VidGen focuses on your product\'s UI and storytelling. We automatically script and capture your actual website.',
-              },
-              {
-                q: 'How long does video generation take?',
-                a: 'Most videos are generated in less than 10 minutes, acting as a high-speed startup promo video maker.',
-              },
-            ].map((item, i) => (
-              <div key={i} className={`faq-item${i === 0 ? ' open' : ''}`}>
+            {faqItems.map((item, i) => (
+              <div key={item.id} className={`faq-item${i === 0 ? ' open' : ''}`}>
                 <button className="faq-q" onClick={() => {
                   document.querySelectorAll('.faq-item').forEach((el, j) => {
                     if (j === i) el.classList.toggle('open');
                     else el.classList.remove('open');
                   });
                 }}>
-                  <span>{item.q}</span>
+                  <span>{item.question}</span>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="faq-icon">
                     <path stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" d="M10 4v12M4 10h12" />
                   </svg>
                 </button>
                 <div className="faq-a-wrapper">
-                  <p className="faq-a">{item.a}</p>
+                  <p className="faq-a">{item.answer}</p>
                 </div>
               </div>
             ))}

@@ -7,6 +7,7 @@ const VideoEditor = lazy(() => import('./components/Editor/VideoEditor'))
 const TermsPage = lazy(() => import('./components/Terms').then(m => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('./components/Privacy').then(m => ({ default: m.PrivacyPage })))
 const AuthCallback = lazy(() => import('./components/LoginModal').then(m => ({ default: m.AuthCallback })))
+const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })))
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         {/* Privacy Policy */}
         <Route path="/privacy" element={<PrivacyPage />} />
+        {/* Admin Panel */}
+        <Route path="/admin" element={<Admin />} />
         {/* 其他路由重定向到首页（由 server.js 渲染） */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
