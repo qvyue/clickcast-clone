@@ -245,7 +245,7 @@ return (
             <div className="builder-card">
               <div className="builder-icon">🚀</div>
               <h4>SaaS Founders</h4>
-              <p>Launch your product with a professional demo video before you even have a marketing team.</p>
+              <p>Launch your product with a professional website video before you even have a marketing team.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">💻</div>

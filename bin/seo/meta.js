@@ -8,9 +8,9 @@ const SITE_NAME = 'VidGen';
 
 const staticMeta = {
   '/': {
-    title: 'VidGen — AI Product Demo Video Generator from URL',
+    title: 'VidGen — Website Video Generator from URL',
     description:
-      'Turn any website URL into a polished product demo video. Auto-capture screenshots, AI-generated voiceover, subtitles, and music. 1080p/60fps, free tier available.',
+      'Turn any website URL into a professional marketing video. Auto-capture screenshots, AI-generated voiceover, subtitles, and music. 1080p/60fps, free tier available.',
     ogType: 'website',
     jsonLd: {
       '@context': 'https://schema.org',
@@ -30,7 +30,7 @@ const staticMeta = {
   '/blog': {
     title: 'Blog — VidGen',
     description:
-      'Guides, tutorials, and comparisons for AI product demo video creation.',
+      'Guides, tutorials, and comparisons for website video creation.',
     ogType: 'website',
   },
   '/terms': {
