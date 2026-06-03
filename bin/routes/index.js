@@ -64,5 +64,5 @@ module.exports = (app) => {
   app.use('/api', publicRouter);
 
   // Public Blog routes (no auth required)
-  app.use('/api', publicBlogRouter);
+  app.use('/api/blog', publicBlogRouter);
 };
