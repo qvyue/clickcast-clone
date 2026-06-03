@@ -170,7 +170,7 @@ const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
 // Check if frontend is built
 if (fs.existsSync(frontendDistPath)) {
   // Serve frontend static assets (JS, CSS, etc.)
-  app.use(express.static(frontendDistPath));
+  app.use(express.static(frontendDistPath, { index: false }));
 
   // SPA fallback: return index.html with SEO meta injection for frontend routes
   // Must be after API routes, so API calls are handled first
