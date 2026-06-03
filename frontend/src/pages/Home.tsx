@@ -214,7 +214,7 @@ return (
           </div>
           <div className="comparison-card">
             <div className="comp-col old-way">
-              <h4>Traditional Way</h4>
+              <h3>Traditional Way</h3>
               <ul>
                 <li><span className="cross">✕</span> Manual recording</li>
                 <li><span className="cross">✕</span> Days of video editing</li>
@@ -223,7 +223,7 @@ return (
               </ul>
             </div>
             <div className="comp-col new-way">
-              <h4>With VidGen</h4>
+              <h3>With VidGen</h3>
               <ul>
                 <li><span className="check">✓</span> 1-click URL generation</li>
                 <li><span className="check">✓</span> Instant AI scripting</li>
@@ -244,32 +244,32 @@ return (
           <div className="builders-grid">
             <div className="builder-card">
               <div className="builder-icon">🚀</div>
-              <h4>SaaS Founders</h4>
+              <h3>SaaS Founders</h3>
               <p>Launch your product with a professional website video before you even have a marketing team.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">💻</div>
-              <h4>Indie Hackers</h4>
+              <h3>Indie Hackers</h3>
               <p>Stop spending days editing videos. Ship your features, paste your URL, and get back to coding.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">📈</div>
-              <h4>Marketing Teams</h4>
+              <h3>Marketing Teams</h3>
               <p>A/B test different video styles and messaging instantly without blocking the design team.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">🎓</div>
-              <h4>Students</h4>
+              <h3>Students</h3>
               <p>Showcase your projects and assignments with cinematic flair that impresses professors and recruiters.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">💼</div>
-              <h4>Professionals</h4>
+              <h3>Professionals</h3>
               <p>Present your portfolio websites as dynamic reels that stand out on social media.</p>
             </div>
             <div className="builder-card">
               <div className="builder-icon">🏢</div>
-              <h4>Businesses</h4>
+              <h3>Businesses</h3>
               <p>Enhance your corporate presence with explainer videos that highlight your services effectively.</p>
             </div>
           </div>
