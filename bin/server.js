@@ -179,6 +179,13 @@ app.get('/', (req, res, next) => {
 // ========== Frontend SPA Service ==========
 const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
 
+// Read index.html once at startup (never changes between deployments)
+const indexHtmlPath = path.join(frontendDistPath, 'index.html');
+let indexHtml = '';
+if (fs.existsSync(indexHtmlPath)) {
+  indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
+}
+
 // Check if frontend is built
 if (fs.existsSync(frontendDistPath)) {
   // Serve frontend static assets (JS, CSS, etc.) with cache headers
@@ -246,57 +253,53 @@ if (fs.existsSync(frontendDistPath)) {
 
   // ========== SSR Middleware — Core Pages ==========
   // Server-side renders /, /blog, /blog/:slug for ALL visitors (not just bots).
-  // Queries Supabase directly and injects content into the SPA shell.
+  // Caches the FULL rendered HTML (with meta tags) — zero Supabase queries on cache hit.
   const { renderBlogPost, renderBlogList, renderHomepage } = require('./seo/ssr');
+  const SSR_TTL = 6 * 60 * 60 * 1000; // 6 hours — content changes infrequently, invalidateCache() handles updates
 
   app.use(async (req, res, next) => {
     const normalized = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
 
     try {
-      // Check runtime cache first
-      const cached = getCached(normalized);
-      if (cached) {
-        // Inject meta tags into cached SSR content
-        let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
-        const meta = await resolveMeta(normalized);
+      // 1. Check full-page cache — zero DB queries on hit
+      const cachedPage = getCached('page:' + normalized);
+      if (cachedPage) {
+        return res.send(cachedPage);
+      }
+
+      // 2. Render SSR content
+      let content = null;
+      let prefetchedFaqs = null;
+      const blogMatch = normalized.match(/^\/blog\/([a-z0-9-]+)$/);
+      if (blogMatch) {
+        content = await renderBlogPost(blogMatch[1]);
+      } else if (normalized === '/blog') {
+        content = await renderBlogList();
+      } else if (normalized === '/') {
+        const result = await renderHomepage();
+        if (result) {
+          content = result.html;
+          prefetchedFaqs = result.faqs;
+        }
+      }
+
+      if (content) {
+        // Build full page: index.html + meta + SSR content
+        let html = indexHtml;
+        const meta = await resolveMeta(normalized, { prefetchedFaqs });
         if (meta) {
           if (meta.__status === 404) res.status(404);
           html = injectMeta(html, meta);
         }
-        // Replace empty <div id="root"></div> with cached content
-        html = html.replace('<div id="root"></div>', `<div id="root">${cached}</div>`);
-        return res.send(html);
-      }
-
-      let content = null;
-
-      // Blog post: /blog/:slug
-      const blogMatch = normalized.match(/^\/blog\/([a-z0-9-]+)$/);
-      if (blogMatch) {
-        content = await renderBlogPost(blogMatch[1]);
-      }
-      // Blog listing: /blog
-      else if (normalized === '/blog') {
-        content = await renderBlogList();
-      }
-      // Homepage: /
-      else if (normalized === '/') {
-        content = await renderHomepage();
-      }
-
-      if (content) {
-        // Cache the content (1 hour TTL)
-        setCache(normalized, content, 60 * 60 * 1000);
-
-        // Build full page with meta injection
-        let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
-        const meta = await resolveMeta(normalized);
-        if (meta) html = injectMeta(html, meta);
         html = html.replace('<div id="root"></div>', `<div id="root">${content}</div>`);
+
+        // Cache the FULL rendered HTML
+        setCache('page:' + normalized, html, SSR_TTL);
+
         return res.send(html);
       }
 
-      // Not an SSR page or SSR failed — fall through to SPA fallback
+      // Not an SSR page or SSR failed — fall through
       next();
     } catch (err) {
       console.error('[ssr-mw] Error:', err.message);
@@ -313,7 +316,7 @@ if (fs.existsSync(frontendDistPath)) {
     }
 
     try {
-      let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
+      let html = indexHtml;
       const meta = await resolveMeta(req.path);
 
       if (meta) {

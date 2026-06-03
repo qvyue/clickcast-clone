@@ -15,7 +15,7 @@ const { getAdminClient } = require('../utils/supabase-admin');
  *          Returns null if the path should not get custom meta (fallback to default).
  *          Returns { __status: 404 } for paths that should respond with 404.
  */
-async function resolveMeta(path) {
+async function resolveMeta(path, { prefetchedFaqs } = {}) {
   // Normalize trailing slash
   const normalized = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
 
@@ -28,7 +28,7 @@ async function resolveMeta(path) {
 
     // Homepage: build dynamic JSON-LD (FAQPage + WebApplication + HowTo)
     if (normalized === '/') {
-      meta.jsonLd = await buildHomepageJsonLd();
+      meta.jsonLd = await buildHomepageJsonLd(prefetchedFaqs);
     }
 
     return meta;
@@ -146,35 +146,39 @@ function isPrerenderablePath(path) {
  * Build the homepage JSON-LD @graph combining WebApplication, HowTo, and FAQPage schemas.
  * FAQPage data is queried from Supabase.
  */
-async function buildHomepageJsonLd() {
+async function buildHomepageJsonLd(prefetchedFaqs) {
   const graph = [webApplicationSchema, howToSchema];
 
-  // Try to add FAQPage schema from Supabase
-  const supabase = getAdminClient();
-  if (supabase) {
-    try {
-      const { data: faqs } = await supabase
-        .from('faqs')
-        .select('question, answer')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-
-      if (faqs && faqs.length > 0) {
-        graph.push({
-          '@type': 'FAQPage',
-          mainEntity: faqs.map((f) => ({
-            '@type': 'Question',
-            name: f.question,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: f.answer.replace(/\s+/g, ' ').trim(),
-            },
-          })),
-        });
+  // Use prefetched FAQs if available (avoids double Supabase query)
+  let faqs = prefetchedFaqs;
+  if (!faqs) {
+    const supabase = getAdminClient();
+    if (supabase) {
+      try {
+        const { data } = await supabase
+          .from('faqs')
+          .select('question, answer')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        faqs = data;
+      } catch (err) {
+        console.error('[seo/resolve] FAQ query failed:', err.message);
       }
-    } catch (err) {
-      console.error('[seo/resolve] FAQ query failed:', err.message);
     }
+  }
+
+  if (faqs && faqs.length > 0) {
+    graph.push({
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.answer.replace(/\s+/g, ' ').trim(),
+        },
+      })),
+    });
   }
 
   return {

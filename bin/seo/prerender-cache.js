@@ -105,12 +105,15 @@ function invalidateCache(urlPath) {
     return;
   }
 
-  const filename = pathToFilename(urlPath);
-  const filePath = path.join(CACHE_DIR, filename);
-  const metaPath = path.join(CACHE_DIR, metaFilename(filename));
+  // Invalidate both old-style (no prefix) and new-style (page: prefix) cache keys
+  for (const prefix of ['', 'page:']) {
+    const filename = pathToFilename(prefix + urlPath);
+    const filePath = path.join(CACHE_DIR, filename);
+    const metaPath = path.join(CACHE_DIR, metaFilename(filename));
 
-  try { fs.unlinkSync(filePath); } catch (_) { /* ignore */ }
-  try { fs.unlinkSync(metaPath); } catch (_) { /* ignore */ }
+    try { fs.unlinkSync(filePath); } catch (_) { /* ignore */ }
+    try { fs.unlinkSync(metaPath); } catch (_) { /* ignore */ }
+  }
 }
 
 /**
