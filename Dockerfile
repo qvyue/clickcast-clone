@@ -60,9 +60,10 @@ RUN cd frontend && npm ci && npm run build && rm -rf node_modules
 
 # Pre-render static pages for SEO (build-time snapshots)
 # Install Chromium temporarily, render pages, then remove Chromium
-RUN npx playwright install chromium && \
+# Override PLAYWRIGHT_BROWSERS_PATH so install & render use the same directory
+# (The ENV default /data/browsers doesn't exist during build)
+RUN PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright npx playwright install chromium && \
     PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright node bin/seo/prerender-build.js && \
-    npx playwright uninstall --all && \
     rm -rf /root/.cache/ms-playwright
 
 # 验证 BGM 文件存在
