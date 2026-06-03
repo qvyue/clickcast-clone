@@ -5,6 +5,7 @@
 
 const express = require('express');
 const { getAdminClient } = require('../utils/supabase-admin');
+const { invalidateCache } = require('../seo/prerender-cache');
 
 // ========== Admin Router (requires auth + admin) ==========
 
@@ -66,6 +67,8 @@ adminBlogRouter.post('/', async (req, res) => {
     }
     return res.status(500).json({ error: error.message });
   }
+  invalidateCache(`/blog/${slug}`);
+  invalidateCache('/blog'); // blog listing page
   res.json({ post: data });
 });
 
@@ -110,6 +113,8 @@ adminBlogRouter.put('/:id', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
   if (!data) return res.status(404).json({ error: 'Blog post not found' });
+  invalidateCache(`/blog/${data.slug}`);
+  invalidateCache('/blog');
   res.json({ post: data });
 });
 
@@ -125,6 +130,7 @@ adminBlogRouter.delete('/:id', async (req, res) => {
   const { error } = await supabase.from('blog_posts').delete().eq('id', id);
 
   if (error) return res.status(500).json({ error: error.message });
+  invalidateCache('/blog');
   res.json({ success: true });
 });
 

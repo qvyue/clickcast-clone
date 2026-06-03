@@ -1,0 +1,19 @@
+/**
+ * Bot User-Agent Detection
+ * Identifies search engine crawlers and social platform bots.
+ */
+
+const BOT_PATTERN =
+  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|skypeuripreview|ahrefsbot|mj12bot|semrushbot|dotbot|applebot|bytespider|petalbot/i;
+
+/**
+ * Check if a User-Agent string belongs to a known bot/crawler.
+ * @param {string} userAgent
+ * @returns {boolean}
+ */
+function isBot(userAgent) {
+  if (!userAgent) return false;
+  return BOT_PATTERN.test(userAgent);
+}
+
+module.exports = { isBot };

@@ -4,7 +4,7 @@
  * Static pages use config; blog posts query Supabase.
  */
 
-const { SITE_URL, staticMeta } = require('./meta');
+const { SITE_URL, staticMeta, webApplicationSchema, howToSchema } = require('./meta');
 const { getAdminClient } = require('../utils/supabase-admin');
 
 /**
@@ -21,10 +21,17 @@ async function resolveMeta(path) {
 
   // Static pages
   if (staticMeta[normalized]) {
-    return {
+    const meta = {
       ...staticMeta[normalized],
       canonical: `${SITE_URL}${normalized}`,
     };
+
+    // Homepage: build dynamic JSON-LD (FAQPage + WebApplication + HowTo)
+    if (normalized === '/') {
+      meta.jsonLd = await buildHomepageJsonLd();
+    }
+
+    return meta;
   }
 
   // Blog detail: /blog/:slug
@@ -102,4 +109,62 @@ async function resolveBlogMeta(slug) {
   }
 }
 
-module.exports = { resolveMeta };
+/**
+ * Check if a URL path should be pre-rendered for bots.
+ * @param {string} path
+ * @returns {boolean}
+ */
+function isPrerenderablePath(path) {
+  const normalized = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+
+  // Static public pages
+  if (staticMeta[normalized]) return true;
+
+  // Blog posts
+  if (normalized.match(/^\/blog\/[a-z0-9-]+$/)) return true;
+
+  return false;
+}
+
+/**
+ * Build the homepage JSON-LD @graph combining WebApplication, HowTo, and FAQPage schemas.
+ * FAQPage data is queried from Supabase.
+ */
+async function buildHomepageJsonLd() {
+  const graph = [webApplicationSchema, howToSchema];
+
+  // Try to add FAQPage schema from Supabase
+  const supabase = getAdminClient();
+  if (supabase) {
+    try {
+      const { data: faqs } = await supabase
+        .from('faqs')
+        .select('question, answer')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (faqs && faqs.length > 0) {
+        graph.push({
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((f) => ({
+            '@type': 'Question',
+            name: f.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: f.answer,
+            },
+          })),
+        });
+      }
+    } catch (err) {
+      console.error('[seo/resolve] FAQ query failed:', err.message);
+    }
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': graph,
+  };
+}
+
+module.exports = { resolveMeta, isPrerenderablePath };

@@ -58,6 +58,13 @@ COPY . .
 # Build frontend (Vite embeds VITE_* env vars at build time)
 RUN cd frontend && npm ci && npm run build && rm -rf node_modules
 
+# Pre-render static pages for SEO (build-time snapshots)
+# Install Chromium temporarily, render pages, then remove Chromium
+RUN npx playwright install chromium && \
+    PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright node bin/seo/prerender-build.js && \
+    npx playwright uninstall --all && \
+    rm -rf /root/.cache/ms-playwright
+
 # 验证 BGM 文件存在
 RUN echo "=== Checking BGM file ===" && \
     ls -la /app/public/ && \
@@ -75,7 +82,7 @@ RUN printf '#!/bin/sh\n\
 set -e\n\
 \n\
 # Create /data subdirectories if they dont exist\n\
-mkdir -p /data/browsers /data/websites /data/tmp\n\
+mkdir -p /data/browsers /data/websites /data/tmp /data/prerender\n\
 \n\
 # Set TMPDIR to /data/tmp (NOT /dev/shm — only 64MB in Docker, causes Chromium crash)\n\
 export TMPDIR=/data/tmp\n\

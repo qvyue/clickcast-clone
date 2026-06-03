@@ -27,9 +27,11 @@ const { isR2Configured, ensureLocalResource } = require('../lib/r2-storage');
 const setupRoutes = require('./routes');
 
 // Import SEO utilities
-const { resolveMeta } = require('./seo/resolve');
+const { resolveMeta, isPrerenderablePath } = require('./seo/resolve');
 const { injectMeta } = require('./seo/inject');
 const { SITE_URL } = require('./seo/meta');
+const { isBot } = require('./seo/bot-detect');
+const { initCache, getCached, setCache, pathToFilename } = require('./seo/prerender-cache');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -172,6 +174,60 @@ if (fs.existsSync(frontendDistPath)) {
   // Serve frontend static assets (JS, CSS, etc.)
   app.use(express.static(frontendDistPath, { index: false }));
 
+  // ========== Pre-render Middleware for Bots ==========
+  // Serves fully rendered HTML to search engine / social crawlers
+  app.use(async (req, res, next) => {
+    // Skip non-page paths
+    if (req.path.startsWith('/api/') || req.path.startsWith('/websites/')) {
+      return next();
+    }
+
+    // Only intercept bot requests
+    if (!isBot(req.headers['user-agent'])) {
+      return next();
+    }
+
+    // Only pre-render known public pages
+    if (!isPrerenderablePath(req.path)) {
+      return next();
+    }
+
+    try {
+      // 1. Try build-time cache (frontend/dist/prerender/)
+      const buildCachePath = path.join(frontendDistPath, 'prerender', pathToFilename(req.path));
+      if (fs.existsSync(buildCachePath)) {
+        const html = fs.readFileSync(buildCachePath, 'utf-8');
+        return res.send(html);
+      }
+
+      // 2. Try runtime cache (/data/prerender/)
+      const cached = getCached(req.path);
+      if (cached) {
+        return res.send(cached);
+      }
+
+      // 3. On-demand render for blog posts
+      const normalized = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+      if (normalized.match(/^\/blog\/[a-z0-9-]+$/)) {
+        const { renderPage } = require('./seo/renderer');
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const html = await renderPage(`${baseUrl}${req.path}`);
+        if (html) {
+          const meta = await resolveMeta(req.path);
+          const finalHtml = meta ? injectMeta(html, meta) : html;
+          setCache(req.path, finalHtml, 24 * 60 * 60 * 1000); // 24h TTL
+          return res.send(finalHtml);
+        }
+      }
+
+      // Fallback to SPA if rendering failed
+      next();
+    } catch (err) {
+      console.error('[prerender-mw] Error:', err.message);
+      next();
+    }
+  });
+
   // SPA fallback: return index.html with SEO meta injection for frontend routes
   // Must be after API routes, so API calls are handled first
   app.use(async (req, res, next) => {
@@ -248,10 +304,22 @@ setInterval(() => {
 
 // Start HTTP server
 app.listen(PORT, () => {
+  // Initialize pre-render cache
+  initCache();
+
   console.log(`
 ========================================
    VidGen Web UI
    http://localhost:${PORT}
 ========================================
   `);
+});
+
+// Graceful shutdown — close Playwright browser
+process.on('SIGTERM', async () => {
+  try {
+    const { closeBrowser } = require('./seo/renderer');
+    await closeBrowser();
+  } catch (_) { /* ignore */ }
+  process.exit(0);
 });

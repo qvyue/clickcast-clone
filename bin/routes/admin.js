@@ -5,6 +5,7 @@
 
 const express = require('express');
 const { getAdminClient } = require('../utils/supabase-admin');
+const { invalidateCache } = require('../seo/prerender-cache');
 
 // ========== Admin Router (requires auth + admin) ==========
 
@@ -60,6 +61,7 @@ adminRouter.post('/faqs', async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+  invalidateCache('/'); // homepage has FAQPage schema
   res.json({ faq: data });
 });
 
@@ -94,6 +96,7 @@ adminRouter.put('/faqs/:id', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'FAQ not found' });
+  invalidateCache('/');
   res.json({ faq: data });
 });
 
@@ -109,6 +112,7 @@ adminRouter.delete('/faqs/:id', async (req, res) => {
   const { error } = await supabase.from('faqs').delete().eq('id', id);
 
   if (error) return res.status(500).json({ error: error.message });
+  invalidateCache('/');
   res.json({ success: true });
 });
 
@@ -135,6 +139,7 @@ adminRouter.put('/faqs/reorder', async (req, res) => {
       .eq('id', item.id);
   }
 
+  invalidateCache('/');
   res.json({ success: true });
 });
 
