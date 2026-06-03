@@ -25,6 +25,40 @@ async function main() {
   const app = express();
   app.use(express.static(frontendDistPath, { index: false }));
 
+  // API routes needed for pre-rendering (blog page fetches /api/blog)
+  app.get('/api/blog', async (req, res) => {
+    try {
+      const { getAdminClient } = require('../utils/supabase-admin');
+      const supabase = getAdminClient();
+      if (!supabase) return res.json({ posts: [] });
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt, cover_image_url, category, author, read_time, published_at')
+        .eq('is_active', true)
+        .order('published_at', { ascending: false });
+      res.json({ posts: data || [] });
+    } catch (_) {
+      res.json({ posts: [] });
+    }
+  });
+
+  // API routes needed for pre-rendering (FAQ section on homepage)
+  app.get('/api/faqs', async (req, res) => {
+    try {
+      const { getAdminClient } = require('../utils/supabase-admin');
+      const supabase = getAdminClient();
+      if (!supabase) return res.json({ faqs: [] });
+      const { data } = await supabase
+        .from('faqs')
+        .select('id, question, answer, sort_order')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+      res.json({ faqs: data || [] });
+    } catch (_) {
+      res.json({ faqs: [] });
+    }
+  });
+
   // SPA fallback with SEO meta injection
   app.use(async (req, res) => {
     try {
