@@ -3,7 +3,7 @@
  * Static page meta definitions and site-wide constants
  */
 
-const SITE_URL = process.env.SITE_URL || 'https://vidgen.site';
+const SITE_URL = process.env.APP_URL || 'https://vidgen.cc';
 const SITE_NAME = 'VidGen';
 
 const staticMeta = {
