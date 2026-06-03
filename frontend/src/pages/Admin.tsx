@@ -396,11 +396,11 @@ export const Admin: React.FC = () => {
                           <div className="admin-faq-answer">{faq.answer}</div>
                         </div>
                         <div className="admin-faq-actions">
-                          <button className="admin-btn-icon" onClick={() => handleMoveFaqUp(index)} disabled={index === 0} title="Move up">↑</button>
-                          <button className="admin-btn-icon" onClick={() => handleMoveFaqDown(index)} disabled={index === faqs.length - 1} title="Move down">↓</button>
-                          <button className="admin-btn-icon" onClick={() => handleToggleFaqActive(faq)} title={faq.is_active ? 'Hide' : 'Show'}>{faq.is_active ? '👁' : '👁‍🗨'}</button>
-                          <button className="admin-btn-icon" onClick={() => { setEditingFaqId(faq.id); setEditFaqQuestion(faq.question); setEditFaqAnswer(faq.answer); }} title="Edit">✏️</button>
-                          <button className="admin-btn-icon admin-btn-danger" onClick={() => handleDeleteFaq(faq.id)} title="Delete">🗑</button>
+                          <button className="admin-btn-icon" onClick={() => handleMoveFaqUp(index)} disabled={index === 0} title="Move up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+                          <button className="admin-btn-icon" onClick={() => handleMoveFaqDown(index)} disabled={index === faqs.length - 1} title="Move down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                          <button className="admin-btn-icon" onClick={() => handleToggleFaqActive(faq)} title={faq.is_active ? 'Hide' : 'Show'}>{faq.is_active ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a12.84 12.84 0 0 1 3.06-4.12M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a12.84 12.84 0 0 1-3.06 4.12M1 1l22 22"/></svg>}</button>
+                          <button className="admin-btn-icon" onClick={() => { setEditingFaqId(faq.id); setEditFaqQuestion(faq.question); setEditFaqAnswer(faq.answer); }} title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                          <button className="admin-btn-icon admin-btn-danger" onClick={() => handleDeleteFaq(faq.id)} title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                         </div>
                       </>
                     )}
@@ -453,9 +453,9 @@ export const Admin: React.FC = () => {
                           </div>
                         </div>
                         <div className="admin-blog-actions">
-                          <button className="admin-btn-icon" onClick={() => handleToggleBlogActive(post)} title={post.is_active ? 'Hide' : 'Show'}>{post.is_active ? '👁' : '👁‍🗨'}</button>
-                          <button className="admin-btn-icon" onClick={() => startEditBlog(post)} title="Edit">✏️</button>
-                          <button className="admin-btn-icon admin-btn-danger" onClick={() => handleDeleteBlog(post.id)} title="Delete">🗑</button>
+                          <button className="admin-btn-icon" onClick={() => handleToggleBlogActive(post)} title={post.is_active ? 'Hide' : 'Show'}>{post.is_active ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a12.84 12.84 0 0 1 3.06-4.12M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a12.84 12.84 0 0 1-3.06 4.12M1 1l22 22"/></svg>}</button>
+                          <button className="admin-btn-icon" onClick={() => startEditBlog(post)} title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                          <button className="admin-btn-icon admin-btn-danger" onClick={() => handleDeleteBlog(post.id)} title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                         </div>
                       </>
                     )}
