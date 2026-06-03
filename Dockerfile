@@ -58,13 +58,9 @@ COPY . .
 # Build frontend (Vite embeds VITE_* env vars at build time)
 RUN cd frontend && npm ci && npm run build && rm -rf node_modules
 
-# Pre-render static pages for SEO (build-time snapshots)
-# Install Chromium temporarily, render pages, then remove Chromium
-# Override PLAYWRIGHT_BROWSERS_PATH so install & render use the same directory
-# (The ENV default /data/browsers doesn't exist during build)
-RUN PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright npx playwright install chromium && \
-    PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright node bin/seo/prerender-build.js && \
-    rm -rf /root/.cache/ms-playwright
+# NOTE: Build-time pre-rendering removed — core pages (/, /blog, /blog/:slug)
+# are now rendered server-side at runtime via bin/seo/ssr.js
+# /terms and /privacy are rendered on-demand by Playwright for bot requests
 
 # 验证 BGM 文件存在
 RUN echo "=== Checking BGM file ===" && \

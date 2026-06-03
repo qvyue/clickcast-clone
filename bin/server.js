@@ -196,6 +196,7 @@ if (fs.existsSync(frontendDistPath)) {
 
   // ========== Pre-render Middleware for Bots ==========
   // Serves fully rendered HTML to search engine / social crawlers
+  // Only used for /terms and /privacy (build-time Playwright cache)
   app.use(async (req, res, next) => {
     // Skip non-page paths
     if (req.path.startsWith('/api/') || req.path.startsWith('/websites/')) {
@@ -226,9 +227,7 @@ if (fs.existsSync(frontendDistPath)) {
         return res.send(cached);
       }
 
-      // 3. On-demand render for pages not in build cache (e.g. /blog, /blog/:slug)
-      // Playwright renders via SPA fallback which already injects meta tags,
-      // so we use the HTML directly — no second injectMeta call.
+      // 3. On-demand Playwright render for /terms, /privacy etc.
       const { renderPage } = require('./seo/renderer');
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const html = await renderPage(`${baseUrl}${req.path}`);
@@ -241,6 +240,66 @@ if (fs.existsSync(frontendDistPath)) {
       next();
     } catch (err) {
       console.error('[prerender-mw] Error:', err.message);
+      next();
+    }
+  });
+
+  // ========== SSR Middleware — Core Pages ==========
+  // Server-side renders /, /blog, /blog/:slug for ALL visitors (not just bots).
+  // Queries Supabase directly and injects content into the SPA shell.
+  const { renderBlogPost, renderBlogList, renderHomepage } = require('./seo/ssr');
+
+  app.use(async (req, res, next) => {
+    const normalized = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+
+    try {
+      // Check runtime cache first
+      const cached = getCached(normalized);
+      if (cached) {
+        // Inject meta tags into cached SSR content
+        let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
+        const meta = await resolveMeta(normalized);
+        if (meta) {
+          if (meta.__status === 404) res.status(404);
+          html = injectMeta(html, meta);
+        }
+        // Replace empty <div id="root"></div> with cached content
+        html = html.replace('<div id="root"></div>', `<div id="root">${cached}</div>`);
+        return res.send(html);
+      }
+
+      let content = null;
+
+      // Blog post: /blog/:slug
+      const blogMatch = normalized.match(/^\/blog\/([a-z0-9-]+)$/);
+      if (blogMatch) {
+        content = await renderBlogPost(blogMatch[1]);
+      }
+      // Blog listing: /blog
+      else if (normalized === '/blog') {
+        content = await renderBlogList();
+      }
+      // Homepage: /
+      else if (normalized === '/') {
+        content = await renderHomepage();
+      }
+
+      if (content) {
+        // Cache the content (1 hour TTL)
+        setCache(normalized, content, 60 * 60 * 1000);
+
+        // Build full page with meta injection
+        let html = fs.readFileSync(path.join(frontendDistPath, 'index.html'), 'utf-8');
+        const meta = await resolveMeta(normalized);
+        if (meta) html = injectMeta(html, meta);
+        html = html.replace('<div id="root"></div>', `<div id="root">${content}</div>`);
+        return res.send(html);
+      }
+
+      // Not an SSR page or SSR failed — fall through to SPA fallback
+      next();
+    } catch (err) {
+      console.error('[ssr-mw] Error:', err.message);
       next();
     }
   });
