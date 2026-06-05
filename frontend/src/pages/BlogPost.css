@@ -166,6 +166,38 @@
   margin: 2rem 0;
 }
 
+/* GFM Tables */
+.blogpost-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.blogpost-content thead th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--border-default);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.blogpost-content tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.blogpost-content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.blogpost-content table + table {
+  margin-top: 0;
+}
+
 /* States */
 .blogpost-loading {
   text-align: center;

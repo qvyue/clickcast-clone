@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { fetchBlogPost, BlogPost as BlogPostType } from '../api/client';
@@ -86,7 +87,7 @@ export const BlogPostPage: React.FC = () => {
         </div>
 
         <div className="blogpost-content">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
         </div>
       </div>
 
