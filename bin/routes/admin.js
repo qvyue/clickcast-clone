@@ -143,6 +143,17 @@ adminRouter.put('/faqs/reorder', async (req, res) => {
   res.json({ success: true });
 });
 
+/**
+ * Invalidate cache — for use after direct database operations (e.g. SQL inserts).
+ * @route POST /api/admin/cache/invalidate
+ * @body { path?: string } — omit to flush all cache
+ */
+adminRouter.post('/cache/invalidate', (req, res) => {
+  const { path } = req.body;
+  invalidateCache(path || undefined);
+  res.json({ success: true, invalidated: path || 'all' });
+});
+
 // ========== Public Router (no auth) ==========
 
 const publicRouter = express.Router();

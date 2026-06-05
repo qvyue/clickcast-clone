@@ -127,10 +127,22 @@ adminBlogRouter.delete('/:id', async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Database not configured' });
 
   const { id } = req.params;
+
+  // Query slug before deleting (needed for cache invalidation)
+  const { data: existing } = await supabase
+    .from('blog_posts')
+    .select('slug')
+    .eq('id', id)
+    .single();
+
   const { error } = await supabase.from('blog_posts').delete().eq('id', id);
 
   if (error) return res.status(500).json({ error: error.message });
+
   invalidateCache('/blog');
+  if (existing?.slug) {
+    invalidateCache(`/blog/${existing.slug}`);
+  }
   res.json({ success: true });
 });
 
